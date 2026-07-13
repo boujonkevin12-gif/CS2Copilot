@@ -22,10 +22,31 @@ export async function GET(request: NextRequest) {
 
   try {
     const steamService = getSteamService();
-    const profile = await steamService.getFullProfile(steamId);
-    const cookieData = encodeURIComponent(JSON.stringify(profile));
+    const fullProfile = await steamService.getFullProfile(steamId);
+
+    // Store ONLY essential data in cookie (must fit under 4KB)
+    const minimalProfile = {
+      steamId: fullProfile.steamId,
+      name: fullProfile.name,
+      avatar: fullProfile.avatar,
+      avatarMedium: fullProfile.avatarMedium,
+      avatarSmall: fullProfile.avatarSmall,
+      profileUrl: fullProfile.profileUrl,
+      country: fullProfile.country,
+      visibility: fullProfile.visibility,
+      lastLogoff: fullProfile.lastLogoff,
+      createdAt: fullProfile.createdAt,
+      steamLevel: fullProfile.steamLevel,
+      steamXp: fullProfile.steamXp,
+      steamXpNeeded: fullProfile.steamXpNeeded,
+      bans: fullProfile.bans,
+      cs2: fullProfile.cs2,
+      totalGames: fullProfile.totalGames,
+    };
+
+    const cookieValue = JSON.stringify(minimalProfile);
     const response = NextResponse.redirect(new URL("/dashboard", request.url));
-    response.cookies.set("cs2pilot_user", cookieData, {
+    response.cookies.set("cs2pilot_user", cookieValue, {
       httpOnly: true,
       secure: true,
       sameSite: "lax",

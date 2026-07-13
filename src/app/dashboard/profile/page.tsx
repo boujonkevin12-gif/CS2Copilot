@@ -115,7 +115,7 @@ function AchievementProgress({ achievement, index }: { achievement: typeof achie
 }
 
 export default function ProfilePage() {
-  const { user, loading } = useUser();
+  const { user, loading, recentGames } = useUser();
 
   if (loading) {
     return (
@@ -314,7 +314,7 @@ export default function ProfilePage() {
       </motion.div>
 
       {/* Recent Games */}
-      {user.recentGames && user.recentGames.length > 0 && (
+      {recentGames.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
           <GlassCard padding="md">
             <div className="flex items-center gap-3 mb-4">
@@ -327,7 +327,7 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="space-y-2">
-              {user.recentGames.map((game) => (
+              {recentGames.map((game) => (
                 <div key={game.appid} className="glass rounded-xl p-3 flex items-center gap-3">
                   <img
                     src={`https://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.iconUrl}.jpg`}

@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const userData = JSON.parse(decodeURIComponent(cookie.value));
+    const userData = JSON.parse(cookie.value);
     return NextResponse.json({ user: userData });
   } catch {
     return NextResponse.json({ user: null }, { status: 401 });

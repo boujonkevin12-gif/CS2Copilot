@@ -67,7 +67,7 @@ function NotAvailable({ label }: { label: string }) {
 }
 
 export default function DashboardOverview() {
-  const { user, loading } = useUser();
+  const { user, loading, friends, recentGames } = useUser();
 
   if (loading) {
     return (
@@ -233,14 +233,14 @@ export default function DashboardOverview() {
       </div>
 
       {/* Friends Section */}
-      {user.friends && user.friends.length > 0 && (
+      {friends.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <GlassCard padding="md">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-sm font-semibold">Amigos ({user.friends.length})</h3>
+              <h3 className="text-sm font-semibold">Amigos ({friends.length})</h3>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-              {user.friends.slice(0, 12).map((friend) => (
+              {friends.slice(0, 12).map((friend) => (
                 <div key={friend.steamId} className="glass rounded-xl p-3 flex flex-col items-center text-center hover:bg-white/[0.04] transition-all">
                   {friend.avatar ? (
                     <img src={friend.avatar} alt={friend.name} className="h-10 w-10 rounded-full mb-2" />
@@ -359,7 +359,7 @@ export default function DashboardOverview() {
       </motion.div>
 
       {/* Recent Games from Steam */}
-      {user.recentGames && user.recentGames.length > 0 && (
+      {recentGames.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
           <GlassCard padding="md">
             <div className="flex items-center justify-between mb-6">
@@ -375,7 +375,7 @@ export default function DashboardOverview() {
                   </tr>
                 </thead>
                 <tbody>
-                  {user.recentGames.map((game, index) => (
+                  {recentGames.map((game, index) => (
                     <motion.tr
                       key={game.appid}
                       initial={{ opacity: 0, x: -10 }}
