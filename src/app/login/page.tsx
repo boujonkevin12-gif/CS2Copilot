@@ -528,9 +528,9 @@ export default function LoginPage() {
                 transition={{ delay: 1.1 }}
               >
                 ¿No tienes cuenta?{" "}
-                <a href="#" className="text-primary hover:text-primary-hover font-medium transition-colors">
+                <Link href="/register" className="text-primary hover:text-primary-hover font-medium transition-colors">
                   Regístrate gratis
-                </a>
+                </Link>
               </motion.p>
             </div>
           </div>

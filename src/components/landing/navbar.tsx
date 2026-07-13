@@ -57,7 +57,7 @@ export function Navbar() {
                   Iniciar Sesión
                 </Button>
               </Link>
-              <Link href="/login">
+              <Link href="/register">
                 <Button variant="primary" size="sm">
                   Comenzar
                 </Button>
@@ -97,7 +97,7 @@ export function Navbar() {
                     Iniciar Sesión
                   </Button>
                 </Link>
-                <Link href="/login" className="w-full">
+                <Link href="/register" className="w-full">
                   <Button variant="primary" size="sm" className="w-full">
                     Comenzar
                   </Button>
