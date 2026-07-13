@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
+import { useUser } from "@/lib/user-context";
 import { useRef } from "react";
 import {
   User,
@@ -23,42 +24,18 @@ import {
   Heart,
   Skull,
   BadgeCheck,
-  CircleDot,
   Sparkles,
   TrendingUp,
   Calendar,
   Globe,
+  ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
-
-const playerData = {
-  name: "SteamPlayer",
-  steamId: "STEAM_0:1:48291637",
-  avatar: null,
-  steamLevel: 78,
-  hoursPlayed: 4823,
-  hoursLast2Weeks: 47,
-  premierRating: 21847,
-  premierRank: "Bala de Plata 3",
-  faceitLevel: 10,
-  faceitElo: 2487,
-  cs2Rating: 18432,
-  registrationDate: "Marzo 2020",
-  lastSeen: "Hace 2 horas",
-  onlineStatus: "En línea",
-  country: "Argentina",
-  wins: 1847,
-  losses: 1203,
-  draws: 84,
-  winrate: 59.4,
-  kd: 1.38,
-  hs: 52.3,
-  adr: 87.6,
-};
 
 const medals = [
   { id: 1, name: "Maestro de la Precisión", description: "50,000 headshots", icon: Crosshair, color: "#f59e0b", rarity: "legendario", unlocked: true },
   { id: 2, name: "Veterano de Guerra", description: "5,000 partidas jugadas", icon: Swords, color: "#a855f7", rarity: "épico", unlocked: true },
-  { id: 3, name: "El clutch King", description: "500 clutches 1vX", icon: Crown, color: "#3b82f6", rarity: "épico", unlocked: true },
+  { id: 3, name: "El Clutch King", description: "500 clutches 1vX", icon: Crown, color: "#3b82f6", rarity: "épico", unlocked: true },
   { id: 4, name: "Inquebrantable", description: "Racha de 20 victorias", icon: Flame, color: "#ef4444", rarity: "raro", unlocked: true },
   { id: 5, name: "Francotirador", description: "10,000 kills con AWP", icon: Target, color: "#06b6d4", rarity: "legendario", unlocked: true },
   { id: 6, name: "Escudo Humano", description: "2,000 kills con pistol", icon: Shield, color: "#22c55e", rarity: "raro", unlocked: true },
@@ -70,8 +47,8 @@ const medals = [
 const badges = [
   { id: 1, name: "Participante del Major", icon: Trophy, color: "#eab308", description: "Seguiste el CS2 Major 2025" },
   { id: 2, name: "Beta Tester CS2", icon: Gamepad2, color: "#3b82f6", description: "Jugaste la beta cerrada de CS2" },
-  { id: 3, name: "MVP del Mes", icon: Medal, color: "#f59e0b", description: "Elegido MVP en tu clan - Ene 2025" },
-  { id: 4, name: "10,000 Horas", icon: Clock, color: "#a855f7", description: "累计 10,000 horas en CS franchise" },
+  { id: 3, name: "MVP del Mes", icon: Medal, color: "#f59e0b", description: "Elegido MVP en tu clan" },
+  { id: 4, name: "Veterano CS", icon: Clock, color: "#a855f7", description: "Miles de horas en CS franchise" },
   { id: 5, name: "Insignia Dorada", icon: BadgeCheck, color: "#fbbf24", description: "Cuenta verificada premium" },
   { id: 6, name: "Fundador", icon: Sparkles, color: "#06b6d4", description: "Miembro fundador de CS2Pilot" },
   { id: 7, name: "Líder de Equipo", icon: Globe, color: "#22c55e", description: "Lideraste 500+ partidas de equipo" },
@@ -79,26 +56,20 @@ const badges = [
 ];
 
 const achievements = [
-  { id: 1, name: "Primera Victoria", description: "Gana tu primera partida competitiva", icon: Trophy, color: "#22c55e", unlocked: true, date: "Mar 2020", progress: 100 },
-  { id: 2, name: "Racha de Fuego", description: "Gana 10 partidas consecutivas", icon: Flame, color: "#ef4444", unlocked: true, date: "Jun 2022", progress: 100 },
-  { id: 3, name: "Maestro del Spray", description: "Consigue 5,000 kills con rifles de spray", icon: Crosshair, color: "#f59e0b", unlocked: true, date: "Ago 2023", progress: 100 },
-  { id: 4, name: "Clutch Master", description: "Gana 100 clutches 1v3 o superiores", icon: Crown, color: "#a855f7", unlocked: true, date: "Dic 2023", progress: 100 },
-  { id: 5, name: "Dedicación Absoluta", description: "Juega 5,000 horas en total", icon: Clock, color: "#3b82f6", unlocked: true, date: "Feb 2025", progress: 100 },
-  { id: 6, name: "Headshot Machine", description: "Consigue 50,000 headshots", icon: Skull, color: "#f97316", unlocked: true, date: "Mar 2025", progress: 100 },
-  { id: 7, name: "Élite Premier", description: "Alcanza 25,000 Premier Rating", icon: Star, color: "#eab308", unlocked: false, date: null, progress: 87 },
-  { id: 8, name: "Supremo FACEIT", description: "Alcanza nivel 10 FACEIT con 3,000+ ELO", icon: Shield, color: "#06b6d4", unlocked: false, date: null, progress: 83 },
-  { id: 9, name: "Leyenda Viviente", description: "Gana 2,000 partidas competitivas", icon: Award, color: "#ec4899", unlocked: false, date: null, progress: 92 },
-  { id: 10, name: "Inmaculado", description: "Termina una partida con 100% HS rate (mín. 20 kills)", icon: Eye, color: "#22d3ee", unlocked: false, date: null, progress: 65 },
-  { id: 11, name: "Ojo de Halcón", description: "Mantén 60%+ HS rate en 500 partidas", icon: Target, color: "#f59e0b", unlocked: false, date: null, progress: 78 },
-  { id: 12, name: "Escudo de Plata", description: "Gana 500 rondas como CT sin morir", icon: Shield, color: "#94a3b8", unlocked: false, date: null, progress: 71 },
+  { id: 1, name: "Primera Victoria", description: "Gana tu primera partida competitiva", icon: Trophy, color: "#22c55e", unlocked: true, progress: 100 },
+  { id: 2, name: "Racha de Fuego", description: "Gana 10 partidas consecutivas", icon: Flame, color: "#ef4444", unlocked: true, progress: 100 },
+  { id: 3, name: "Maestro del Spray", description: "5,000 kills con rifles de spray", icon: Crosshair, color: "#f59e0b", unlocked: true, progress: 100 },
+  { id: 4, name: "Clutch Master", description: "Gana 100 clutches 1v3+", icon: Crown, color: "#a855f7", unlocked: true, progress: 100 },
+  { id: 5, name: "Dedicación Absoluta", description: "Juega 5,000 horas en total", icon: Clock, color: "#3b82f6", unlocked: false, progress: 0 },
+  { id: 6, name: "Headshot Machine", description: "50,000 headshots", icon: Skull, color: "#f97316", unlocked: false, progress: 0 },
+  { id: 7, name: "Élite Premier", description: "Alcanza 25,000 Premier Rating", icon: Star, color: "#eab308", unlocked: false, progress: 0 },
+  { id: 8, name: "Supremo FACEIT", description: "Nivel 10 con 3,000+ ELO", icon: Shield, color: "#06b6d4", unlocked: false, progress: 0 },
 ];
 
 const recentActivity = [
-  { type: "logro", text: "Desbloqueaste 'Headshot Machine'", time: "Hace 3 días", icon: Skull },
-  { type: "medalla", text: "Obtuviste 'Leyenda de Premier'", time: "Hace 1 semana", icon: Star },
-  { type: "racha", text: "Racha de 15 victorias consecutivas", time: "Hace 2 semanas", icon: Flame },
-  { type: "récord", text: "Nuevo récord: 47 kills en una partida", time: "Hace 3 semanas", icon: Trophy },
-  { type: "insignia", text: "Obtuviste 'Fundador' de CS2Pilot", time: "Hace 1 mes", icon: Sparkles },
+  { type: "logro", text: "Conectaste tu cuenta de Steam", time: "Ahora", icon: Sparkles },
+  { type: "perfil", text: "Perfil sincronizado con Steam", time: "Ahora", icon: User },
+  { type: "datos", text: "Datos de CS2 cargados", time: "Ahora", icon: Gamepad2 },
 ];
 
 function StatBox({ label, value, sub, color = "text-foreground" }: { label: string; value: string | number; sub?: string; color?: string }) {
@@ -129,10 +100,7 @@ function AchievementProgress({ achievement, index }: { achievement: typeof achie
       transition={{ delay: index * 0.05 }}
       className={`glass rounded-xl p-4 flex items-center gap-4 ${!achievement.unlocked ? "opacity-70" : ""}`}
     >
-      <div
-        className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0"
-        style={{ backgroundColor: `${achievement.color}15` }}
-      >
+      <div className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${achievement.color}15` }}>
         <achievement.icon className="h-6 w-6" style={{ color: achievement.color }} />
       </div>
       <div className="flex-1 min-w-0">
@@ -141,38 +109,45 @@ function AchievementProgress({ achievement, index }: { achievement: typeof achie
           {achievement.unlocked && <BadgeCheck className="h-4 w-4 text-success shrink-0" />}
         </div>
         <p className="text-xs text-muted truncate">{achievement.description}</p>
-        <div className="mt-2">
-          <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: isInView ? `${achievement.progress}%` : 0 }}
-              transition={{ duration: 1, ease: "easeOut", delay: 0.2 + index * 0.05 }}
-              className="h-full rounded-full"
-              style={{
-                backgroundColor: achievement.unlocked ? achievement.color : `${achievement.color}80`,
-              }}
-            />
-          </div>
-          <div className="flex items-center justify-between mt-1">
-            <span className="text-[10px] text-muted-foreground">{achievement.progress}%</span>
-            {achievement.date && (
-              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {achievement.date}
-              </span>
-            )}
-          </div>
-        </div>
       </div>
     </motion.div>
   );
 }
 
 export default function ProfilePage() {
-  const totalAchievements = achievements.length;
-  const unlockedAchievements = achievements.filter((a) => a.unlocked).length;
+  const { user, loading } = useUser();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="h-12 w-12 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4" />
+          <p className="text-sm text-muted">Cargando perfil de Steam...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <GlassCard padding="lg" className="text-center max-w-md">
+          <AlertTriangle className="h-12 w-12 text-accent mx-auto mb-4" />
+          <h2 className="text-lg font-semibold mb-2">No hay sesión activa</h2>
+          <p className="text-sm text-muted mb-4">Conecta tu cuenta de Steam para ver tu perfil.</p>
+          <a href="/login" className="inline-flex items-center gap-2 glass rounded-xl px-6 py-3 text-sm font-semibold hover:bg-white/[0.06] transition-all">
+            Conectar con Steam
+          </a>
+        </GlassCard>
+      </div>
+    );
+  }
+
+  const createdAtDate = user.createdAt ? new Date(user.createdAt * 1000).toLocaleDateString("es-AR", { month: "long", year: "numeric" }) : "Desconocido";
+  const lastLogoffDate = user.lastLogoff ? new Date(user.lastLogoff * 1000).toLocaleString("es-AR") : "Desconocido";
   const totalMedals = medals.length;
   const totalBadges = badges.length;
+  const unlockedAchievements = achievements.filter((a) => a.unlocked).length;
 
   return (
     <div className="space-y-6">
@@ -180,52 +155,60 @@ export default function ProfilePage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <GlassCard padding="lg">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            {/* Avatar */}
             <div className="relative">
-              <div className="h-28 w-28 rounded-2xl bg-gradient-to-br from-primary via-cyan-500 to-purple-500 flex items-center justify-center text-4xl font-bold text-white shadow-lg shadow-primary/20">
-                SP
-              </div>
-              <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-success flex items-center justify-center border-2 border-[#09090b]">
-                <span className="text-[10px] font-bold text-white">✓</span>
-              </div>
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} className="h-28 w-28 rounded-2xl border-2 border-white/[0.1] shadow-lg shadow-primary/20" />
+              ) : (
+                <div className="h-28 w-28 rounded-2xl bg-gradient-to-br from-primary via-cyan-500 to-purple-500 flex items-center justify-center text-4xl font-bold text-white shadow-lg shadow-primary/20">
+                  {user.name?.slice(0, 2).toUpperCase() || "SP"}
+                </div>
+              )}
+              {user.visibility === 3 && (
+                <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-success flex items-center justify-center border-2 border-[#09090b]">
+                  <span className="text-[10px] font-bold text-white">✓</span>
+                </div>
+              )}
               <div className="absolute -top-2 -right-2 glass rounded-lg px-2 py-1 flex items-center gap-1">
                 <Star className="h-3 w-3 text-yellow-500" fill="currentColor" />
-                <span className="text-[10px] font-bold">Lv.{playerData.steamLevel}</span>
+                <span className="text-[10px] font-bold">Lv.{user.steamLevel}</span>
               </div>
             </div>
 
-            {/* Info */}
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-3">
-                <h1 className="text-2xl font-bold tracking-tight">{playerData.name}</h1>
-                <div className="flex gap-2">
-                  <Badge variant="success" size="sm">{playerData.onlineStatus}</Badge>
-                  <Badge variant="accent" size="sm">{playerData.country}</Badge>
+                <h1 className="text-2xl font-bold tracking-tight">{user.name}</h1>
+                <div className="flex gap-2 flex-wrap justify-center">
+                  <Badge variant="success" size="sm">{user.visibility === 3 ? "Público" : "Privado"}</Badge>
+                  {user.country && <Badge variant="accent" size="sm">{user.country}</Badge>}
+                  {user.bans?.vacBanned && <Badge variant="danger" size="sm">VAC Banned</Badge>}
                 </div>
               </div>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-xs text-muted mb-4">
-                <span className="flex items-center gap-1.5"><Gamepad2 className="h-3.5 w-3.5" />{playerData.steamId}</span>
-                <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />Miembro desde {playerData.registrationDate}</span>
-                <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />Última conexión: {playerData.lastSeen}</span>
+                <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5" />{user.steamId}</span>
+                <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />Steam desde {createdAtDate}</span>
+                {user.profileUrl && (
+                  <a href={user.profileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary hover:text-primary-hover transition-colors">
+                    <ExternalLink className="h-3.5 w-3.5" />Ver perfil en Steam
+                  </a>
+                )}
               </div>
 
-              {/* Quick stats row */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="glass rounded-xl px-4 py-3 text-center">
-                  <div className="text-lg font-bold font-mono text-primary">{playerData.premierRating.toLocaleString()}</div>
-                  <div className="text-[10px] text-muted uppercase tracking-wider">Premier</div>
+                  <div className="text-lg font-bold font-mono text-primary">{user.steamLevel}</div>
+                  <div className="text-[10px] text-muted uppercase tracking-wider">Steam Level</div>
                 </div>
                 <div className="glass rounded-xl px-4 py-3 text-center">
-                  <div className="text-lg font-bold font-mono text-accent">{playerData.faceitLevel}</div>
-                  <div className="text-[10px] text-muted uppercase tracking-wider">FACEIT</div>
+                  <div className="text-lg font-bold font-mono text-accent">{user.cs2?.hoursPlayed?.toLocaleString() || "0"}</div>
+                  <div className="text-[10px] text-muted uppercase tracking-wider">Horas CS2</div>
                 </div>
                 <div className="glass rounded-xl px-4 py-3 text-center">
-                  <div className="text-lg font-bold font-mono">{playerData.cs2Rating.toLocaleString()}</div>
-                  <div className="text-[10px] text-muted uppercase tracking-wider">CS2 Rating</div>
+                  <div className="text-lg font-bold font-mono text-cyan-400">{user.totalGames}</div>
+                  <div className="text-[10px] text-muted uppercase tracking-wider">Juegos</div>
                 </div>
                 <div className="glass rounded-xl px-4 py-3 text-center">
-                  <div className="text-lg font-bold font-mono text-success">{playerData.winrate}%</div>
-                  <div className="text-[10px] text-muted uppercase tracking-wider">Win Rate</div>
+                  <div className="text-lg font-bold font-mono text-success">{user.cs2?.hoursLast2Weeks || 0}h</div>
+                  <div className="text-[10px] text-muted uppercase tracking-wider">Últimas 2 Sem</div>
                 </div>
               </div>
             </div>
@@ -233,94 +216,141 @@ export default function ProfilePage() {
         </GlassCard>
       </motion.div>
 
-      {/* General Stats */}
+      {/* CS2 Stats */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <StatBox label="Horas Jugadas" value={playerData.hoursPlayed.toLocaleString()} sub={`${playerData.hoursLast2Weeks}h últimas 2 semanas`} color="text-primary" />
-          <StatBox label="Premier Rating" value={playerData.premierRating.toLocaleString()} sub={playerData.premierRank} color="text-accent" />
-          <StatBox label="FACEIT ELO" value={playerData.faceitElo.toLocaleString()} sub={`Nivel ${playerData.faceitLevel}`} color="text-cyan-400" />
-          <StatBox label="Steam Level" value={playerData.steamLevel} sub="Nivel de cuenta" color="text-yellow-500" />
-          <StatBox label="K/D Ratio" value={playerData.kd} sub="Promedio general" color="text-success" />
-          <StatBox label="HS Rate" value={`${playerData.hs}%`} sub="Headshot rate" color="text-purple-400" />
-        </div>
-      </motion.div>
-
-      {/* Win/Loss + ADR */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
         <GlassCard padding="md">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Gamepad2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold">Resumen de Partidas</h3>
-              <p className="text-xs text-muted">{(playerData.wins + playerData.losses + playerData.draws).toLocaleString()} partidas jugadas</p>
+              <h3 className="text-sm font-semibold">Counter-Strike 2</h3>
+              <p className="text-xs text-muted">
+                {user.cs2 ? `${user.cs2.hoursPlayed.toLocaleString()} horas jugadas` : "No se detectaron datos de CS2"}
+              </p>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-muted">Victorias</span>
-                <span className="text-xs font-mono text-success">{playerData.wins.toLocaleString()}</span>
+          {user.cs2 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="glass rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold font-mono text-primary">{user.cs2.hoursPlayed.toLocaleString()}</div>
+                <div className="text-xs text-muted mt-1">Horas Totales</div>
               </div>
-              <div className="h-3 rounded-full bg-white/[0.06] overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(playerData.wins / (playerData.wins + playerData.losses + playerData.draws)) * 100}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className="h-full rounded-full bg-success"
-                />
+              <div className="glass rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold font-mono text-accent">{user.cs2.hoursLast2Weeks}</div>
+                <div className="text-xs text-muted mt-1">Horas (2 Sem)</div>
               </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-muted">Derrotas</span>
-                <span className="text-xs font-mono text-danger">{playerData.losses.toLocaleString()}</span>
+              <div className="glass rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold font-mono text-success">{user.cs2.playtimeTotal?.toLocaleString()}</div>
+                <div className="text-xs text-muted mt-1">Minutos Totales</div>
               </div>
-              <div className="h-3 rounded-full bg-white/[0.06] overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(playerData.losses / (playerData.wins + playerData.losses + playerData.draws)) * 100}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className="h-full rounded-full bg-danger"
-                />
+              <div className="glass rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold font-mono text-cyan-400">CS2</div>
+                <div className="text-xs text-muted mt-1">App ID 730</div>
               </div>
             </div>
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-muted">Empates</span>
-                <span className="text-xs font-mono">{playerData.draws}</span>
-              </div>
-              <div className="h-3 rounded-full bg-white/[0.06] overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(playerData.draws / (playerData.wins + playerData.losses + playerData.draws)) * 100}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className="h-full rounded-full bg-muted-foreground"
-                />
-              </div>
+          ) : (
+            <div className="glass rounded-xl p-8 text-center">
+              <Gamepad2 className="h-10 w-10 text-muted mx-auto mb-3" />
+              <p className="text-sm text-muted">No se encontraron datos de CS2 en tu perfil de Steam.</p>
             </div>
-          </div>
-          <div className="mt-4 pt-4 border-t border-white/[0.06] grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-lg font-bold text-success">{playerData.winrate}%</div>
-              <div className="text-[11px] text-muted">Win Rate</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold">{playerData.kd}</div>
-              <div className="text-[11px] text-muted">K/D Ratio</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-primary">{playerData.hs}%</div>
-              <div className="text-[11px] text-muted">Headshot Rate</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-accent">{playerData.adr}</div>
-              <div className="text-[11px] text-muted">ADR</div>
-            </div>
-          </div>
+          )}
         </GlassCard>
       </motion.div>
+
+      {/* Steam Info */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <GlassCard padding="md">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-10 w-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+              <Globe className="h-5 w-5 text-cyan-500" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold">Información de Steam</h3>
+              <p className="text-xs text-muted">Datos obtenidos de tu perfil público</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="glass rounded-xl p-3">
+              <div className="text-[11px] text-muted mb-1">Steam ID</div>
+              <div className="text-sm font-mono font-medium truncate">{user.steamId}</div>
+            </div>
+            <div className="glass rounded-xl p-3">
+              <div className="text-[11px] text-muted mb-1">Steam Level</div>
+              <div className="text-sm font-mono font-medium">{user.steamLevel}</div>
+            </div>
+            <div className="glass rounded-xl p-3">
+              <div className="text-[11px] text-muted mb-1">XP</div>
+              <div className="text-sm font-mono font-medium">{user.steamXp?.toLocaleString() || "N/A"}</div>
+            </div>
+            <div className="glass rounded-xl p-3">
+              <div className="text-[11px] text-muted mb-1">Última conexión</div>
+              <div className="text-sm font-medium truncate">{lastLogoffDate}</div>
+            </div>
+            <div className="glass rounded-xl p-3">
+              <div className="text-[11px] text-muted mb-1">Visibilidad</div>
+              <div className="text-sm font-medium">{user.visibility === 3 ? "Público" : user.visibility === 1 ? "Privado" : "Amigos"}</div>
+            </div>
+            <div className="glass rounded-xl p-3">
+              <div className="text-[11px] text-muted mb-1">Juegos Totales</div>
+              <div className="text-sm font-mono font-medium">{user.totalGames}</div>
+            </div>
+          </div>
+          {user.bans && (user.bans.vacBanned || user.bans.numberOfGameBans > 0) && (
+            <div className="mt-4 glass rounded-xl p-3 border border-danger/20">
+              <div className="flex items-center gap-2 text-danger text-sm font-medium">
+                <AlertTriangle className="h-4 w-4" />
+                Restricciones de cuenta
+              </div>
+              <div className="mt-2 text-xs text-muted space-y-1">
+                {user.bans.vacBanned && <div>VAC Baneado — {user.bans.numberOfVACBans} baneo(s) VAC</div>}
+                {user.bans.numberOfGameBans > 0 && <div>{user.bans.numberOfGameBans} baneo(s) de juego</div>}
+                {user.bans.communityBanned && <div>Baneado de la comunidad</div>}
+                <div>Días desde último ban: {user.bans.daysSinceLastBan}</div>
+              </div>
+            </div>
+          )}
+        </GlassCard>
+      </motion.div>
+
+      {/* Recent Games */}
+      {user.recentGames && user.recentGames.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
+          <GlassCard padding="md">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-accent" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold">Juegos Recientes</h3>
+                <p className="text-xs text-muted">Últimos juegos con actividad</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {user.recentGames.map((game) => (
+                <div key={game.appid} className="glass rounded-xl p-3 flex items-center gap-3">
+                  <img
+                    src={`https://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.iconUrl}.jpg`}
+                    alt={game.name}
+                    className="h-10 w-10 rounded-lg"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{game.name}</div>
+                    <div className="text-[11px] text-muted">
+                      {Math.round(game.playtime / 60).toLocaleString()} horas totales
+                      {game.playtime2Weeks > 0 && ` · ${Math.round(game.playtime2Weeks / 60)}h últimas 2 semanas`}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-mono font-medium">{Math.round(game.playtime / 60).toLocaleString()}h</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        </motion.div>
+      )}
 
       {/* Medals */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
@@ -332,12 +362,12 @@ export default function ProfilePage() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Medallas</h3>
-                <p className="text-xs text-muted">{totalMedals} medallas obtenidas</p>
+                <p className="text-xs text-muted">{totalMedals} medallas desbloqueadas</p>
               </div>
             </div>
             <Badge variant="accent" size="sm">{totalMedals}/9</Badge>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {medals.map((medal, i) => (
               <motion.div
                 key={medal.id}
@@ -346,19 +376,13 @@ export default function ProfilePage() {
                 transition={{ delay: 0.3 + i * 0.05 }}
                 className="glass rounded-xl p-4 flex items-center gap-3 hover:bg-white/[0.04] transition-all group"
               >
-                <div
-                  className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"
-                  style={{ backgroundColor: `${medal.color}15` }}
-                >
+                <div className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform" style={{ backgroundColor: `${medal.color}15` }}>
                   <medal.icon className="h-6 w-6" style={{ color: medal.color }} />
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{medal.name}</div>
                   <div className="text-[11px] text-muted truncate">{medal.description}</div>
-                  <Badge
-                    variant={medal.rarity === "legendario" ? "accent" : medal.rarity === "épico" ? "warning" : medal.rarity === "raro" ? "success" : "default"}
-                    size="sm"
-                  >
+                  <Badge variant={medal.rarity === "legendario" ? "accent" : medal.rarity === "épico" ? "warning" : medal.rarity === "raro" ? "success" : "default"} size="sm">
                     {medal.rarity}
                   </Badge>
                 </div>
@@ -370,7 +394,6 @@ export default function ProfilePage() {
 
       {/* Badges + Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Badges */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="lg:col-span-3">
           <GlassCard padding="md" className="h-full">
             <div className="flex items-center justify-between mb-5">
@@ -394,10 +417,7 @@ export default function ProfilePage() {
                   transition={{ delay: 0.3 + i * 0.05 }}
                   className="glass rounded-xl p-4 flex flex-col items-center text-center hover:bg-white/[0.04] transition-all group"
                 >
-                  <div
-                    className="h-14 w-14 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform"
-                    style={{ backgroundColor: `${badge.color}15` }}
-                  >
+                  <div className="h-14 w-14 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform" style={{ backgroundColor: `${badge.color}15` }}>
                     <badge.icon className="h-7 w-7" style={{ color: badge.color }} />
                   </div>
                   <div className="text-xs font-semibold">{badge.name}</div>
@@ -408,7 +428,6 @@ export default function ProfilePage() {
           </GlassCard>
         </motion.div>
 
-        {/* Recent Activity */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-2">
           <GlassCard padding="md" className="h-full">
             <div className="flex items-center gap-3 mb-5">
@@ -417,7 +436,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Actividad Reciente</h3>
-                <p className="text-xs text-muted">Últimos logros desbloqueados</p>
+                <p className="text-xs text-muted">Última actividad en CS2Pilot</p>
               </div>
             </div>
             <div className="space-y-3">
@@ -453,24 +472,21 @@ export default function ProfilePage() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Logros</h3>
-                <p className="text-xs text-muted">{unlockedAchievements}/{totalAchievements} desbloqueados</p>
+                <p className="text-xs text-muted">{unlockedAchievements}/{achievements.length} desbloqueados</p>
               </div>
             </div>
-            <Badge variant="accent" size="sm">{Math.round((unlockedAchievements / totalAchievements) * 100)}%</Badge>
+            <Badge variant="accent" size="sm">{Math.round((unlockedAchievements / achievements.length) * 100)}%</Badge>
           </div>
-
-          {/* Progress bar */}
           <div className="mb-5">
             <div className="h-2.5 rounded-full bg-white/[0.06] overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${(unlockedAchievements / totalAchievements) * 100}%` }}
+                animate={{ width: `${(unlockedAchievements / achievements.length) * 100}%` }}
                 transition={{ duration: 1, ease: "easeOut" }}
                 className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
               />
             </div>
           </div>
-
           <div className="space-y-3">
             {achievements.map((achievement, i) => (
               <AchievementProgress key={achievement.id} achievement={achievement} index={i} />

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { UserProvider, useUser } from "@/lib/user-context";
 import {
   LayoutDashboard,
   History,
@@ -20,6 +21,7 @@ import {
   Package,
   Flame,
   User,
+  LogOut,
 } from "lucide-react";
 
 const sidebarLinks = [
@@ -34,13 +36,14 @@ const sidebarLinks = [
   { icon: Settings, label: "Configuración", href: "/dashboard/settings" },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user, loading } = useUser();
   const [collapsed, setCollapsed] = useState(false);
+
+  const initials = user?.name
+    ? user.name.slice(0, 2).toUpperCase()
+    : "SP";
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -87,11 +90,14 @@ export default function DashboardLayout({
         </nav>
 
         <div className="p-3 border-t border-white/[0.06]">
-          {!collapsed && (
+          {!collapsed && user?.cs2 && (
             <div className="glass rounded-xl p-3 mb-2">
-              <div className="text-xs font-medium mb-1">CS2Pilot Pro</div>
+              <div className="text-xs font-medium mb-1">Horas CS2</div>
+              <div className="text-lg font-bold text-primary font-mono">
+                {user.cs2.hoursPlayed.toLocaleString()}h
+              </div>
               <div className="text-[11px] text-muted">
-                Actualiza para análisis completos
+                {user.cs2.hoursLast2Weeks}h últimas 2 semanas
               </div>
             </div>
           )}
@@ -129,12 +135,24 @@ export default function DashboardLayout({
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-accent" />
             </button>
             <div className="flex items-center gap-3 pl-3 border-l border-white/[0.06]">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center text-xs font-bold text-white">
-                SP
-              </div>
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="h-8 w-8 rounded-full border border-white/[0.1]"
+                />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center text-xs font-bold text-white">
+                  {initials}
+                </div>
+              )}
               <div className="hidden sm:block">
-                <div className="text-sm font-medium">SteamPlayer</div>
-                <div className="text-xs text-muted">Plan Pro</div>
+                <div className="text-sm font-medium">
+                  {loading ? "Cargando..." : user?.name || "Jugador"}
+                </div>
+                <div className="text-xs text-muted">
+                  {user?.steamLevel ? `Steam Level ${user.steamLevel}` : "Conectado"}
+                </div>
               </div>
             </div>
           </div>
@@ -143,5 +161,17 @@ export default function DashboardLayout({
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <UserProvider>
+      <DashboardNav>{children}</DashboardNav>
+    </UserProvider>
   );
 }
