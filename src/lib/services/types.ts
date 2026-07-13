@@ -50,6 +50,35 @@ export interface SteamFriend {
   friendSince: number;
 }
 
+export interface CS2AggregateStats {
+  totalKills: number;
+  totalDeaths: number;
+  totalAssists: number;
+  totalWins: number;
+  totalLosses: number;
+  totalMVPs: number;
+  totalRoundsPlayed: number;
+  totalRoundsWon: number;
+  totalHeadshotKills: number;
+  totalShotsFired: number;
+  totalShotsHit: number;
+  totalDominations: number;
+  totalRevenges: number;
+  totalKnifeKills: number;
+  totalGrenadeKills: number;
+  totalFlashbangEnemies: number;
+  totalSniperKills: number;
+  totalRifleKills: number;
+  totalSmgKills: number;
+  totalShotgunKills: number;
+  totalMachinegunKills: number;
+  totalPistolKills: number;
+  totalHSPct: number;
+  totalKD: number;
+  totalWinPct: number;
+  accuracy: number;
+}
+
 export interface ServiceProvider {
   name: string;
   isAvailable: boolean;

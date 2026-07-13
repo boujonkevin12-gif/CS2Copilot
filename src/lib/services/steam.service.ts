@@ -1,4 +1,4 @@
-import { SteamPlayer, SteamGame, SteamFriend, SteamBans, CS2Data } from "./types";
+import { SteamPlayer, SteamGame, SteamFriend, SteamBans, CS2Data, CS2AggregateStats } from "./types";
 
 const STEAM_API_KEY = process.env.STEAM_API_KEY;
 
@@ -114,6 +114,54 @@ class SteamService {
         friendSince: Number(f.friend_since) || 0,
       };
     });
+  }
+
+  async getUserStatsForGame(steamId: string, appId: number = CS2_APPID): Promise<CS2AggregateStats | null> {
+    const data = await this.fetch<{ playerstats: { stats: { name: string; value: number }[] } }>(
+      `https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/?key=${this.apiKey}&steamid=${steamId}&appid=${appId}`
+    );
+    const rawStats = data?.playerstats?.stats;
+    if (!rawStats || rawStats.length === 0) return null;
+
+    const stats = new Map(rawStats.map((s) => [s.name, s.value]));
+
+    const kills = stats.get("total_kills") || 0;
+    const deaths = stats.get("total_deaths") || 0;
+    const wins = stats.get("total_wins") || 0;
+    const headshots = stats.get("total_headshot_kills") || 0;
+    const roundsPlayed = stats.get("total_rounds_played") || 0;
+    const roundsWon = stats.get("total_rounds_won") || 0;
+    const shotsFired = stats.get("total_shots_fired") || 0;
+    const shotsHit = stats.get("total_shots_hit") || 0;
+
+    return {
+      totalKills: kills,
+      totalDeaths: deaths,
+      totalAssists: stats.get("total_assists") || 0,
+      totalWins: wins,
+      totalLosses: Math.max(0, roundsPlayed > 0 ? (stats.get("total_matches_won") || 0) : 0),
+      totalMVPs: stats.get("total_mvps") || 0,
+      totalRoundsPlayed: roundsPlayed,
+      totalRoundsWon: roundsWon,
+      totalHeadshotKills: headshots,
+      totalShotsFired: shotsFired,
+      totalShotsHit: shotsHit,
+      totalDominations: stats.get("total_dominations") || 0,
+      totalRevenges: stats.get("total_revenges") || 0,
+      totalKnifeKills: stats.get("total_kills_knife") || 0,
+      totalGrenadeKills: stats.get("total_kills_hegrenade") || 0,
+      totalFlashbangEnemies: stats.get("total_flashbang Enemies") || stats.get("total_enemies_flashed") || 0,
+      totalSniperKills: stats.get("total_kill_alerts") || 0,
+      totalRifleKills: stats.get("total_kill_alerts") || 0,
+      totalSmgKills: 0,
+      totalShotgunKills: 0,
+      totalMachinegunKills: 0,
+      totalPistolKills: 0,
+      totalHSPct: kills > 0 ? Math.round((headshots / kills) * 1000) / 10 : 0,
+      totalKD: deaths > 0 ? Math.round((kills / deaths) * 100) / 100 : kills,
+      totalWinPct: roundsPlayed > 0 ? Math.round((roundsWon / roundsPlayed) * 1000) / 10 : 0,
+      accuracy: shotsFired > 0 ? Math.round((shotsHit / shotsFired) * 1000) / 10 : 0,
+    };
   }
 
   async getFullProfile(steamId: string): Promise<SteamPlayer> {

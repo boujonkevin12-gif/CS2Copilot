@@ -56,12 +56,42 @@ interface SteamUser {
   friends?: SteamFriend[];
 }
 
+interface CS2AggregateStats {
+  totalKills: number;
+  totalDeaths: number;
+  totalAssists: number;
+  totalWins: number;
+  totalLosses: number;
+  totalMVPs: number;
+  totalRoundsPlayed: number;
+  totalRoundsWon: number;
+  totalHeadshotKills: number;
+  totalShotsFired: number;
+  totalShotsHit: number;
+  totalDominations: number;
+  totalRevenges: number;
+  totalKnifeKills: number;
+  totalGrenadeKills: number;
+  totalFlashbangEnemies: number;
+  totalSniperKills: number;
+  totalRifleKills: number;
+  totalSmgKills: number;
+  totalShotgunKills: number;
+  totalMachinegunKills: number;
+  totalPistolKills: number;
+  totalHSPct: number;
+  totalKD: number;
+  totalWinPct: number;
+  accuracy: number;
+}
+
 interface UserContextType {
   user: SteamUser | null;
   loading: boolean;
   games: SteamGame[];
   recentGames: SteamGame[];
   friends: SteamFriend[];
+  cs2Stats: CS2AggregateStats | null;
   loadingGames: boolean;
   loadingFriends: boolean;
   refresh: () => Promise<void>;
@@ -73,6 +103,7 @@ const UserContext = createContext<UserContextType>({
   games: [],
   recentGames: [],
   friends: [],
+  cs2Stats: null,
   loadingGames: false,
   loadingFriends: false,
   refresh: async () => {},
@@ -90,6 +121,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [friends, setFriends] = useState<SteamFriend[]>([]);
   const [loadingGames, setLoadingGames] = useState(false);
   const [loadingFriends, setLoadingFriends] = useState(false);
+  const [cs2Stats, setCs2Stats] = useState<CS2AggregateStats | null>(null);
 
   const fetchUser = useCallback(async () => {
     try {
@@ -141,18 +173,29 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const fetchCs2Stats = useCallback(async () => {
+    try {
+      const res = await fetch("/api/steam/cs2stats");
+      const data = await res.json();
+      setCs2Stats(data.stats || null);
+    } catch {
+      setCs2Stats(null);
+    }
+  }, []);
+
   useEffect(() => {
     fetchUser().then((u) => {
       if (u) {
         fetchGames();
         fetchRecentGames();
         fetchFriends();
+        fetchCs2Stats();
       }
     });
-  }, [fetchUser, fetchGames, fetchRecentGames, fetchFriends]);
+  }, [fetchUser, fetchGames, fetchRecentGames, fetchFriends, fetchCs2Stats]);
 
   return (
-    <UserContext.Provider value={{ user, loading, games, recentGames, friends, loadingGames, loadingFriends, refresh: fetchUser }}>
+    <UserContext.Provider value={{ user, loading, games, recentGames, friends, cs2Stats, loadingGames, loadingFriends, refresh: fetchUser }}>
       {children}
     </UserContext.Provider>
   );

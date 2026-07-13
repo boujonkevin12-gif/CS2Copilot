@@ -67,7 +67,7 @@ function NotAvailable({ label }: { label: string }) {
 }
 
 export default function DashboardOverview() {
-  const { user, loading, friends, recentGames } = useUser();
+  const { user, loading, friends, recentGames, cs2Stats } = useUser();
 
   if (loading) {
     return (
@@ -212,9 +212,54 @@ export default function DashboardOverview() {
 
       {/* Second Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
-        <NotAvailable label="HS%" />
-        <NotAvailable label="ADR" />
-        <NotAvailable label="K/D" />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+          <GlassCard padding="md">
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                <Crosshair className="h-5 w-5 text-accent" />
+              </div>
+            </div>
+            {cs2Stats ? (
+              <div className="text-2xl font-bold font-mono">{cs2Stats.totalHSPct}%</div>
+            ) : (
+              <div className="text-2xl font-bold font-mono text-muted">—</div>
+            )}
+            <div className="text-xs text-muted mt-1">HS%</div>
+          </GlassCard>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }}>
+          <GlassCard padding="md">
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
+                <Target className="h-5 w-5 text-success" />
+              </div>
+            </div>
+            {cs2Stats ? (
+              <div className="text-2xl font-bold font-mono">{cs2Stats.accuracy}%</div>
+            ) : (
+              <div className="text-2xl font-bold font-mono text-muted">—</div>
+            )}
+            <div className="text-xs text-muted mt-1">Accuracy</div>
+          </GlassCard>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.29 }}>
+          <GlassCard padding="md">
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-10 w-10 rounded-xl bg-danger/10 flex items-center justify-center">
+                <Swords className="h-5 w-5 text-danger" />
+              </div>
+            </div>
+            {cs2Stats ? (
+              <div className="text-2xl font-bold font-mono">{cs2Stats.totalKD}</div>
+            ) : (
+              <div className="text-2xl font-bold font-mono text-muted">—</div>
+            )}
+            <div className="text-xs text-muted mt-1">K/D</div>
+          </GlassCard>
+        </motion.div>
+
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <GlassCard padding="md">
             <div className="flex items-center justify-between mb-3">
