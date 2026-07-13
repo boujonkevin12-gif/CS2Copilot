@@ -9,17 +9,31 @@ function ParticleField() {
   const [particles, setParticles] = useState<
     { x: number; y: number; size: number; speed: number; opacity: number; delay: number }[]
   >([]);
+  const [lines, setLines] = useState<
+    { width: number; left: number; top: number; rotate: number; duration: number; delay: number }[]
+  >([]);
 
   useEffect(() => {
-    const generated = Array.from({ length: 80 }, () => ({
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 2 + 0.5,
-      speed: Math.random() * 20 + 10,
-      opacity: Math.random() * 0.4 + 0.1,
-      delay: Math.random() * 10,
-    }));
-    setParticles(generated);
+    setParticles(
+      Array.from({ length: 80 }, () => ({
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 2 + 0.5,
+        speed: Math.random() * 20 + 10,
+        opacity: Math.random() * 0.4 + 0.1,
+        delay: Math.random() * 10,
+      }))
+    );
+    setLines(
+      Array.from({ length: 6 }, () => ({
+        width: Math.random() * 200 + 100,
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        rotate: Math.random() * 360,
+        duration: Math.random() * 8 + 6,
+        delay: Math.random() * 5,
+      }))
+    );
   }, []);
 
   return (
@@ -46,24 +60,24 @@ function ParticleField() {
           }}
         />
       ))}
-      {[...Array(6)].map((_, i) => (
+      {lines.map((l, i) => (
         <motion.div
           key={`line-${i}`}
           className="absolute h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"
           style={{
-            width: `${Math.random() * 200 + 100}px`,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            transform: `rotate(${Math.random() * 360}deg)`,
+            width: `${l.width}px`,
+            left: `${l.left}%`,
+            top: `${l.top}%`,
+            transform: `rotate(${l.rotate}deg)`,
           }}
           animate={{
             opacity: [0, 0.3, 0],
             scaleX: [0.5, 1, 0.5],
           }}
           transition={{
-            duration: Math.random() * 8 + 6,
+            duration: l.duration,
             repeat: Infinity,
-            delay: Math.random() * 5,
+            delay: l.delay,
             ease: "easeInOut",
           }}
         />
@@ -363,7 +377,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 grid-bg opacity-40" />
       <ScanLines />
       <FloatingOrbs />
-      <ParticleField />
+      {mounted && <ParticleField />}
       <AnimatedCrosshairs />
 
       {/* Gradient edges */}
