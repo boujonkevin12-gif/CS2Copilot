@@ -20,7 +20,9 @@ import {
   Lightbulb,
   Brain,
   Shield,
+  BarChart3,
 } from "lucide-react";
+import { useUser } from "@/lib/user-context";
 
 interface Message {
   id: string;
@@ -61,21 +63,6 @@ const quickSuggestions = [
     bg: "bg-purple-400/10",
   },
 ];
-
-const mockResponses: Record<string, string> = {
-  "¿Cómo mejorar mi aim?":
-    "Basándome en tus estadísticas, aquí tienes consejos personalizados para mejorar tu puntería:\n\n🎯 **Configuración de Crosshair**\nTu crosshair actual tiene buen contraste. Asegúrate de que el tamaño sea consistente entre las sesiones de entrenamiento.\n\n📊 **Tu datos actuales:**\n- Precisión general: 34.2%\n- Tasa de headshots: 52.3%\n- Tiempo de reacción: 187ms\n\n💡 **Recomendaciones:**\n1. **Aim Training Daily**: Dedica 15-20 minutos diarios a aim trainers como Aim Lab o Kovaak's\n2. **DM Pre-Match**: Juega 2-3 Deathmatch antes de entrar a competitivo\n3. **Crosshair Placement**: Trabaja en mantener el crosshair a la altura de la cabeza mientras te mueves\n4. **Peek Correctly**: Usa jiggle peeking en lugar de wide peeking\n5. **Sensibilidad**: Tu sensibilidad parece óptima, pero prueba bajar 0.1-0.2 si sientes que sobrepasas objetivos\n\n⚡ **Drill recomendado:**\n- 10 min Aim Lab (Gridshot)\n- 10 min Reflexshot\n- 5 min tracking\n\n¿Quieres que analice tus estadísticas de puntería por mapa en detalle?",
-  "¿Por qué bajo de ELO?":
-    "He analizado tus partidas recientes y encontré varios patrones que están afectando tu ELO:\n\n📉 **Análisis de tu caída:**\n- ELO actual: 1847 (↓47 esta semana)\n- Win rate reciente: 52% (vs 64.8% histórico)\n- K/D reciente: 1.2 (vs 1.67 histórico)\n\n🔍 **Causas identificadas:**\n\n1. **Juego en horas pico**\n   - Estás jugando entre 20:00-23:00 cuando hay más smurfs\n   - Intenta jugar en horarios menos congestinados\n\n2. **Deterioro de performance en halftime**\n   - Tus stats de CT están 15% por debajo de T\n   - Necesitas trabajar tu juego defensivo\n\n3. **Mapas problemáticos**\n   - Vertigo: 48% WR (tu peor mapa)\n   - Nuke: 54% WR\n   - Considera banear estos mapas en el pick/ban\n\n4. **Fatiga mental**\n   - Has jugado 42 horas esta semana\n   - Toma descansos de 15 min cada 3-4 partidas\n\n5. **Tilting**\n   - Tus 3 últimas derrotas consecutivas muestran un patrón de tilt\n   - Si pierdes 2 seguidas, haz una pausa\n\n💪 **Plan de acción:**\n1. Reduce sesiones a 2-3 horas máximo\n2. Enfócate en Inferno y Overpass (tus mejores mapas)\n3. Trabaja específicamente en juego CT\n4. Usa el coaching IA post-partida para identificar errores",
-  "Analiza mis partidas":
-    "📊 **Análisis de tus últimas 7 partidas:**\n\n**Resumen General:**\n- Victoria: 5 (71.4%)\n- Derrota: 2 (28.6%)\n- Rating promedio: 1.29\n- K/D total: 99/101 (0.98)\n\n🗺️ **Por Mapa:**\n\n**Dust II** ✅ Victoria (16-12)\n- Rating: 1.45 | HS: 62%\n- Fuerte en AWP en Mid\n- Débil: Retakes en B site\n\n**Mirage** ❌ Derrota (11-16)\n- Rating: 0.98 | HS: 44%\n- Problema: Rotaciones lentas\n- Sugerencia: Mejora tu timing en A split\n\n**Inferno** ✅ Victoria (16-8)\n- Rating: 1.72 | HS: 58%\n- Dominio total en Banana control\n- Tu mejor mapa actualmente\n\n**Anubis** ✅ Victoria (16-14)\n- Rating: 1.18 | HS: 50%\n- Partida muy reñida\n- Mejorar clutch situations (perdiste 3 clutchs 1v1)\n\n**Nuke** ❌ Derrota (9-16)\n- Rating: 0.76 | HS: 38%\n- Problema principal: Navegación en ramp\n- Necesitas trabajar los setups de CT en Nuke\n\n**Overpass** ✅ Victoria (16-6)\n- Rating: 1.65 | HS: 65%\n- Dominio en Long control\n- Partida casi perfecta\n\n🎯 **Tendencia:**\n- Mejorando en mapas de tamaño mediano (Inferno, Overpass)\n- Dificultad en mapas complejos (Nuke, Vertigo)\n- Consistencia en headshots subiendo (+3% este mes)\n\n¿Quieres que profundice en algún mapa específico?",
-  "¿Cómo jugar Mirage?":
-    "🗺️ **Guía Completa de Mirage para tu nivel (Supremo):**\n\n**Posiciones Recomendadas según tu estilo:**\n\n🔵 **CT Side (tus stats: 58% WR)**\n\n**A Site - Ticket/CT:**\n- Posición ideal para tu estilo de juego\n- Usa smokes de A ramp para isolations\n- Timing: peek a los 1:45 del round\n\n**Mid - Window:**\n- Tu AWP es fuerte aquí\n- Smoke de top mid cada round\n- Comunicación con connector player\n\n**B Site - Van/Forest:**\n- Juega passivo, espera el contact\n- Usa molotovs para delay\n- Retake con equipo, no solo\n\n🟠 **T Side (tus stats: 62% WR)**\n\n**A Split:**\n- Tu mejor estrategia actual\n- Smoke CT + Stairs + Jungle\n- Execute a los 1:20 del round\n\n**B Rush:**\n- Solo usar como surprise 1-2 veces por juego\n- Flash over wall + rush together\n\n**Mid Control:**\n- Essential para ganar en Mirage\n- Smoke window + top mid\n- Split A o B desde connectors\n\n💡 **Tips específicos para ti:**\n1. Mejora tus rotaciones (estás 2s lentos)\n2. Trabaja los clutches 1v1 (40% win rate)\n3. Mejora tu spray control con AK (35% accuracy)\n\n¿Quieres que te enseñe lineup específicos de smokes y flashes?",
-  "¿Cómo mejorar mi K/D?":
-    "🎯 **Análisis de tu K/D y plan de mejora:**\n\n**Tu K/D actual:** 1.67 (bueno, pero puedes mejorar)\n\n📊 **Desglose por situación:**\n\n**Entry Frags:** 1.2 K/D\n- Necesitas mejorar tu primer contacto\n- Practica crosshair placement en paths comunes\n\n**Trading:** 2.1 K/D ✅\n- Excelente, mantén esto\n- Siempre cubre a tu compañero\n\n**Clutch 1vX:** 0.8 K/D ❌\n- Tu mayor debilidad\n- Necesitas trabajo en situaciones de presión\n\n**Lurking:** 1.9 K/D ✅\n- Muy buen timing\n- Sigue leyendo el mapa\n\n💡 **Plan de Mejora (4 semanas):**\n\n**Semana 1-2: Fundamentos**\n- 15 min/day: Aim Lab (tracking + flicking)\n- 2 DM antes de cada sesión competitiva\n- Enfócate en no over-peeking\n\n**Semana 3-4: Avanzado**\n- Trabaja positions específicas por mapa\n- Mejora tu crosshair placement en movement\n- Practica spray transfers\n\n🔧 **Ajustes técnicos:**\n- Tu sensibilidad: 1.8 @ 800 DPI (buena)\n- Crosshair: centro con punto (óptimo)\n- Rate: 128tick (asegúrate de que tu PC lo soporte)\n\n📈 **Objetivos medibles:**\n- Subir K/D a 1.8+ en 2 semanas\n- Mejorar clutch rate a 45%\n- Mantener HS% arriba de 55%\n\n¿Quieres que creemos un plan de entrenamiento personalizado semanal?",
-};
-
-import { BarChart3 } from "lucide-react";
 
 function TypingIndicator() {
   return (
@@ -131,6 +118,7 @@ function MessageActions({ onCopy }: { onCopy: () => void }) {
 }
 
 export default function CoachPage() {
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -164,8 +152,18 @@ export default function CoachPage() {
 
     setTimeout(() => {
       const responseText =
-        mockResponses[messageText] ||
-        `Entendido tu pregunta sobre "${messageText}".\n\nBasándome en tus estadísticas y partidas recientes, aquí va mi análisis:\n\n📊 **Tus datos actuales:**\n- Win Rate: 64.8%\n- K/D: 1.67\n- Rating: 1.52\n- Horas jugadas: 3,420\n\n💡 **Mi recomendación:**\nEsta es un área donde puedes mejorar significativamente. Te sugiero:\n\n1. **Análisis de replays**: Revisa tus últimas 5 derrotas\n2. **Identifica patrones**: ¿En qué situaciones pierdes más?\n3. **Práctica dirigida**: Enfócate en esa área específica\n4. **Coaching consistente**: Usa esta herramienta regularmente\n\n¿Quieres que profundice en algún aspecto específico?\n\n*Nota: Próximamente me conectaré con tu perfil de Steam para darte análisis en tiempo real con datos reales.*`;
+        `¡Buena pregunta! Entiendo que quieres saber sobre "${messageText}".\n\n` +
+        `**Próximamente me conectaré con tu perfil de Steam y FACEIT para darte análisis en tiempo real con datos reales.**\n\n` +
+        `Mientras tanto, aquí van algunos consejos generales de CS2 que pueden ayudarte:\n\n` +
+        `💡 **Consejos generales:**\n` +
+        `- **Práctica constante**: Dedica tiempo diario a aim training (Aim Lab, Kovaak's o DM)\n` +
+        `- **Crosshair placement**: Mantén el crosshair siempre a la altura de la cabeza y anticipa posiciones enemigas\n` +
+        `- **Comunicación**: Informa a tu equipo sobre posiciones, utilities y temporizaciones\n` +
+        `- **Game sense**: Observa las demos de tus partidas para identificar patrones y errores\n` +
+        `- **Gestión de economía**: Aprende cuándo forzar, force buy o ahorrar\n` +
+        `- **Mentalidad**: Si pierdes 2 seguidas, toma un descanso para evitar tilt\n\n` +
+        `¿Quieres que profundice en algún aspecto específico del juego?\n\n` +
+        `*Coach IA en desarrollo. Próximamente con análisis real de tus partidas.*`;
 
       const assistantMessage: Message = {
         id: generateId(),
@@ -219,6 +217,8 @@ export default function CoachPage() {
       );
     });
   };
+
+  const welcomeName = user?.name ? ` ${user.name}` : "";
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
@@ -274,7 +274,7 @@ export default function CoachPage() {
             </motion.div>
 
             <h2 className="text-2xl font-bold mb-2">
-              Hola, soy tu <span className="gradient-text">Coach IA</span>
+              Hola{welcomeName}, soy tu <span className="gradient-text">Coach IA</span>
             </h2>
             <p className="text-sm text-muted text-center max-w-md mb-8">
               Analizo tus partidas, estadísticas y juego para darte consejos personalizados
@@ -456,8 +456,7 @@ export default function CoachPage() {
         )}
 
         <p className="text-center text-[10px] text-muted-foreground mt-3">
-          Coach IA puede cometer errores. Verifica la información importante.
-          Datos de ejemplo hasta la conexión con tu perfil de Steam.
+          Coach IA en desarrollo. Próximamente con análisis real de tus partidas.
         </p>
       </motion.div>
     </div>

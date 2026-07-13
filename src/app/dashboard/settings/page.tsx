@@ -13,7 +13,10 @@ import {
   Link2,
   LogOut,
   ChevronRight,
+  Star,
 } from "lucide-react";
+import { useUser } from "@/lib/user-context";
+import { useRouter } from "next/navigation";
 
 const settingsSections = [
   {
@@ -61,6 +64,22 @@ const settingsSections = [
 ];
 
 export default function SettingsPage() {
+  const { user } = useUser();
+  const router = useRouter();
+
+  const initials = (user?.name || "U")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const handleLogout = () => {
+    document.cookie =
+      "cs2pilot_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    router.push("/login");
+  };
+
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
@@ -72,19 +91,40 @@ export default function SettingsPage() {
 
       <GlassCard padding="lg" hover={false}>
         <div className="flex items-center gap-5">
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center text-xl font-bold text-white">
-            SP
-          </div>
+          {user?.avatar ? (
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="h-16 w-16 rounded-2xl object-cover"
+            />
+          ) : (
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center text-xl font-bold text-white">
+              {initials}
+            </div>
+          )}
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <h2 className="text-lg font-semibold">SteamPlayer</h2>
-              <Badge variant="accent" size="sm">Pro</Badge>
+              <h2 className="text-lg font-semibold">
+                {user?.name || "Usuario"}
+              </h2>
+              <Badge variant="accent" size="sm">
+                Gratis
+              </Badge>
             </div>
-            <div className="text-sm text-muted mt-0.5">
-              steamplayer@cs2pilot.com
-            </div>
+            {user?.steamId && (
+              <div className="text-sm text-muted mt-0.5">
+                Steam ID: {user.steamId}
+              </div>
+            )}
+            {user?.steamLevel != null && user.steamLevel > 0 && (
+              <div className="text-xs text-muted mt-0.5">
+                Nivel Steam: {user.steamLevel}
+              </div>
+            )}
           </div>
-          <Button variant="ghost" size="sm">Editar Perfil</Button>
+          <Button variant="ghost" size="sm">
+            Editar Perfil
+          </Button>
         </div>
       </GlassCard>
 
@@ -97,7 +137,9 @@ export default function SettingsPage() {
             transition={{ delay: index * 0.05 }}
           >
             <button className="w-full glass rounded-xl p-4 flex items-center gap-4 hover:bg-white/[0.05] transition-all group cursor-pointer text-left">
-              <div className={`h-10 w-10 rounded-xl ${section.bg} flex items-center justify-center shrink-0`}>
+              <div
+                className={`h-10 w-10 rounded-xl ${section.bg} flex items-center justify-center shrink-0`}
+              >
                 <section.icon className={`h-5 w-5 ${section.color}`} />
               </div>
               <div className="flex-1 min-w-0">
@@ -117,24 +159,27 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">CS2Pilot Pro</span>
-              <Badge variant="success" size="sm">Activo</Badge>
+              <span className="text-sm font-medium">Plan Gratis</span>
+              <Badge variant="default" size="sm">
+                Actual
+              </Badge>
             </div>
-            <div className="text-xs text-muted mt-1">
-              Renovación el 12 de agosto, 2026 &middot; $9.99/mes
+            <div className="text-xs text-muted mt-1 flex items-center gap-1">
+              <Star className="h-3 w-3" />
+              Próximamente planes Pro
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm">Administrar</Button>
-            <Button variant="ghost" size="sm" className="text-danger hover:text-danger">
-              Cancelar
-            </Button>
-          </div>
+          <Button variant="ghost" size="sm">
+            Ver Planes
+          </Button>
         </div>
       </GlassCard>
 
       <div className="border-t border-white/[0.06] pt-4">
-        <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-danger hover:bg-danger/5 transition-all w-full cursor-pointer">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-danger hover:bg-danger/5 transition-all w-full cursor-pointer"
+        >
           <LogOut className="h-4 w-4" />
           Cerrar Sesión
         </button>

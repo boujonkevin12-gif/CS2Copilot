@@ -3,45 +3,25 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   Package,
   TrendingUp,
   TrendingDown,
   Search,
-  Filter,
   Grid3X3,
   List,
-  ChevronDown,
-  ArrowUpDown,
-  Eye,
-  ExternalLink,
-  Star,
   Zap,
   DollarSign,
   BarChart3,
   SlidersHorizontal,
   X,
+  LogIn,
+  LinkIcon,
 } from "lucide-react";
+import { useUser } from "@/lib/user-context";
 
 type Rarity = "Covert" | "Classified" | "Restricted" | "Mil-Spec" | "Industrial" | "Consumer";
-
-interface Skin {
-  id: string;
-  name: string;
-  weapon: string;
-  rarity: Rarity;
-  skin: string;
-  wear: string;
-  float: number;
-  pattern: number;
-  price: number;
-  priceChange: number;
-  StatTrak: boolean;
-  image: string;
-  color: string;
-  borderGradient: string;
-}
 
 const rarityColors: Record<Rarity, { color: string; bg: string; border: string }> = {
   Covert: { color: "#ef4444", bg: "rgba(239,68,68,0.1)", border: "rgba(239,68,68,0.3)" },
@@ -52,202 +32,37 @@ const rarityColors: Record<Rarity, { color: string; bg: string; border: string }
   Consumer: { color: "#94a3b8", bg: "rgba(148,163,184,0.08)", border: "rgba(148,163,184,0.2)" },
 };
 
-const skins: Skin[] = [
-  { id: "1", name: "AK-47", weapon: "AK-47", rarity: "Covert", skin: "Fire Serpent", wear: "Field-Tested", float: 0.2147, pattern: 219, price: 1450.00, priceChange: 45.20, StatTrak: false, image: "", color: "#ef4444", borderGradient: "from-red-500 to-orange-500" },
-  { id: "2", name: "AWP", weapon: "AWP", rarity: "Covert", skin: "Dragon Lore", wear: "Minimal Wear", float: 0.0892, pattern: 420, price: 4820.00, priceChange: -120.50, StatTrak: true, image: "", color: "#ef4444", borderGradient: "from-red-500 to-amber-500" },
-  { id: "3", name: "M4A4", weapon: "M4A4", rarity: "Covert", skin: "Howl", wear: "Field-Tested", float: 0.3512, pattern: 661, price: 3200.00, priceChange: 89.00, StatTrak: false, image: "", color: "#ef4444", borderGradient: "from-red-600 to-orange-600" },
-  { id: "4", name: "Knife", weapon: "Karambit", rarity: "Covert", skin: "Fade", wear: "Factory New", float: 0.0082, pattern: 999, price: 3850.00, priceChange: 150.00, StatTrak: false, image: "", color: "#ef4444", borderGradient: "from-purple-500 to-pink-500" },
-  { id: "5", name: "Gloves", weapon: "Sport Gloves", rarity: "Covert", skin: "Pandora's Box", wear: "Field-Tested", float: 0.1823, pattern: 555, price: 2980.00, priceChange: -45.30, StatTrak: false, image: "", color: "#ef4444", borderGradient: "from-blue-500 to-purple-500" },
-  { id: "6", name: "USP-S", weapon: "USP-S", rarity: "Classified", skin: "Kill Confirmed", wear: "Minimal Wear", float: 0.1234, pattern: 0, price: 285.00, priceChange: 12.50, StatTrak: true, image: "", color: "#a855f7", borderGradient: "from-purple-500 to-pink-500" },
-  { id: "7", name: "AK-47", weapon: "AK-47", rarity: "Classified", skin: "Vulcan", wear: "Factory New", float: 0.0341, pattern: 0, price: 320.00, priceChange: 8.20, StatTrak: false, image: "", color: "#a855f7", borderGradient: "from-blue-500 to-cyan-500" },
-  { id: "8", name: "M4A1-S", weapon: "M4A1-S", rarity: "Classified", skin: "Hyper Beast", wear: "Field-Tested", float: 0.2890, pattern: 0, price: 145.00, priceChange: -3.40, StatTrak: false, image: "", color: "#a855f7", borderGradient: "from-pink-500 to-purple-500" },
-  { id: "9", name: "Desert Eagle", weapon: "Desert Eagle", rarity: "Classified", skin: "Blaze", wear: "Factory New", float: 0.0120, pattern: 363, price: 580.00, priceChange: 25.00, StatTrak: false, image: "", color: "#a855f7", borderGradient: "from-orange-500 to-red-500" },
-  { id: "10", name: "Glock-18", weapon: "Glock-18", rarity: "Restricted", skin: "Fade", wear: "Factory New", float: 0.0210, pattern: 850, price: 1250.00, priceChange: 35.00, StatTrak: true, image: "", color: "#3b82f6", borderGradient: "from-cyan-500 to-blue-500" },
-  { id: "11", name: "P250", weapon: "P250", rarity: "Restricted", skin: "See Yaa", wear: "Minimal Wear", float: 0.0780, pattern: 0, price: 85.00, priceChange: 2.10, StatTrak: false, image: "", color: "#3b82f6", borderGradient: "from-blue-400 to-cyan-400" },
-  { id: "12", name: "Five-SeveN", weapon: "Five-SeveN", rarity: "Restricted", skin: "Monkey Business", wear: "Field-Tested", float: 0.3120, pattern: 0, price: 12.50, priceChange: -0.30, StatTrak: false, image: "", color: "#3b82f6", borderGradient: "from-blue-400 to-indigo-400" },
-  { id: "13", name: "UMP-45", weapon: "UMP-45", rarity: "Mil-Spec", skin: "Primal Saber", wear: "Field-Tested", float: 0.2450, pattern: 0, price: 18.20, priceChange: 0.80, StatTrak: true, image: "", color: "#06b6d4", borderGradient: "from-cyan-400 to-teal-400" },
-  { id: "14", name: "MAC-10", weapon: "MAC-10", rarity: "Mil-Spec", skin: "Neon Rider", wear: "Minimal Wear", float: 0.1540, pattern: 0, price: 22.80, priceChange: -1.20, StatTrak: false, image: "", color: "#06b6d4", borderGradient: "from-pink-400 to-cyan-400" },
-  { id: "15", name: "SG 553", weapon: "SG 553", rarity: "Mil-Spec", skin: "Integrale", wear: "Factory New", float: 0.0450, pattern: 0, price: 8.50, priceChange: 0.20, StatTrak: false, image: "", color: "#06b6d4", borderGradient: "from-cyan-300 to-blue-400" },
-  { id: "16", name: "P90", weapon: "P90", rarity: "Industrial", skin: "Shallow Grave", wear: "Field-Tested", float: 0.3200, pattern: 0, price: 3.20, priceChange: -0.10, StatTrak: false, image: "", color: "#64748b", borderGradient: "from-slate-400 to-slate-500" },
-  { id: "17", name: "Nova", weapon: "Nova", rarity: "Industrial", skin: "Walnut", wear: "Field-Tested", float: 0.4100, pattern: 0, price: 0.15, priceChange: 0, StatTrak: false, image: "", color: "#64748b", borderGradient: "from-slate-400 to-gray-500" },
-  { id: "18", name: "MAG-7", weapon: "MAG-7", rarity: "Consumer", skin: "Storm", wear: "Battle-Scarred", float: 0.6500, pattern: 0, price: 0.05, priceChange: 0, StatTrak: false, image: "", color: "#94a3b8", borderGradient: "from-gray-400 to-gray-500" },
-  { id: "19", name: "Negev", weapon: "Negev", rarity: "Consumer", skin: "Army Sheen", wear: "Field-Tested", float: 0.3800, pattern: 0, price: 0.08, priceChange: 0, StatTrak: false, image: "", color: "#94a3b8", borderGradient: "from-gray-400 to-gray-500" },
-  { id: "20", name: "PP-Bizon", weapon: "PP-Bizon", rarity: "Consumer", skin: "Sand Dashed", wear: "Field-Tested", float: 0.4200, pattern: 0, price: 0.03, priceChange: 0, StatTrak: false, image: "", color: "#94a3b8", borderGradient: "from-gray-400 to-gray-500" },
-  { id: "21", name: "M4A4", weapon: "M4A4", rarity: "Classified", skin: "Asiimov", wear: "Field-Tested", float: 0.3600, pattern: 0, price: 95.00, priceChange: 4.50, StatTrak: true, image: "", color: "#a855f7", borderGradient: "from-orange-400 to-white" },
-  { id: "22", name: "AK-47", weapon: "AK-47", rarity: "Classified", skin: "Neon Rider", wear: "Minimal Wear", float: 0.1340, pattern: 0, price: 180.00, priceChange: 7.80, StatTrak: false, image: "", color: "#a855f7", borderGradient: "from-pink-500 to-cyan-500" },
-  { id: "23", name: "AWP", weapon: "AWP", rarity: "Restricted", skin: "Graphite", wear: "Factory New", float: 0.0290, pattern: 0, price: 420.00, priceChange: -15.00, StatTrak: false, image: "", color: "#3b82f6", borderGradient: "from-gray-600 to-gray-800" },
-  { id: "24", name: "Knife", weapon: "Butterfly Knife", rarity: "Covert", skin: "Doppler", wear: "Factory New", float: 0.0060, pattern: 670, price: 2800.00, priceChange: 95.00, StatTrak: false, image: "", color: "#ef4444", borderGradient: "from-red-500 to-blue-500" },
-];
-
-const priceHistory = [
-  { month: "Ene", value: 10200 },
-  { month: "Feb", value: 10800 },
-  { month: "Mar", value: 11400 },
-  { month: "Abr", value: 12100 },
-  { month: "May", value: 11800 },
-  { month: "Jun", value: 12400 },
-  { month: "Jul", value: 12847 },
-];
-
-const inventoryStats = {
-  totalValue: 12847.50,
-  totalChange: 342.20,
-  totalChangePercent: 2.74,
-  totalItems: 24,
-  totalGain: 2847.30,
-  totalLoss: -523.80,
-  avgFloat: 0.189,
-};
-
 const rarities: Rarity[] = ["Covert", "Classified", "Restricted", "Mil-Spec", "Industrial", "Consumer"];
 const wearTypes = ["Factory New", "Minimal Wear", "Field-Tested", "Well-Worn", "Battle-Scarred"];
-const weaponTypes = [...new Set(skins.map((s) => s.weapon))];
+const weaponTypes = ["AK-47", "AWP", "M4A4", "M4A1-S", "Desert Eagle", "Glock-18", "USP-S"];
 
-function PriceChart() {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const max = Math.max(...priceHistory.map((d) => d.value));
-  const min = Math.min(...priceHistory.map((d) => d.value));
-  const range = max - min;
-
+function EmptyPriceChart() {
   return (
     <div className="relative">
       <div className="flex items-end gap-2 h-48">
-        {priceHistory.map((data, i) => {
-          const height = ((data.value - min) / range) * 80 + 20;
-          return (
-            <div
-              key={data.month}
-              className="flex-1 flex flex-col items-center gap-2 relative"
-              onMouseEnter={() => setHoveredIndex(i)}
-              onMouseLeave={() => setHoveredIndex(null)}
-            >
-              {hoveredIndex === i && (
-                <motion.div
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="absolute -top-14 glass rounded-lg px-3 py-2 text-center z-10 whitespace-nowrap"
-                >
-                  <div className="text-xs font-bold text-success">${data.value.toLocaleString()}</div>
-                  <div className="text-[10px] text-muted">{data.month} 2026</div>
-                </motion.div>
-              )}
-              <motion.div
-                initial={{ height: 0 }}
-                animate={{ height: `${height}%` }}
-                transition={{ duration: 0.8, delay: i * 0.1 }}
-                className="w-full rounded-lg relative overflow-hidden cursor-pointer bg-gradient-to-t from-success/20 to-success/50 hover:from-success/30 hover:to-success/60 transition-colors"
-              />
-              <span className="text-[11px] text-muted">{data.month}</span>
-            </div>
-          );
-        })}
+        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+          <div
+            key={i}
+            className="flex-1 flex flex-col items-center gap-2 relative"
+          >
+            <div className="w-full rounded-lg h-2 bg-white/[0.04]" />
+            <span className="text-[11px] text-muted/40">—</span>
+          </div>
+        ))}
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="text-center glass rounded-xl px-6 py-4">
+          <BarChart3 className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+          <p className="text-sm font-medium text-muted">No disponible</p>
+          <p className="text-xs text-muted-foreground/70">Requiere integración con Steam Market</p>
+        </div>
       </div>
     </div>
   );
 }
 
-function SkinCard({ skin, index }: { skin: Skin; index: number }) {
-  const [isHovered, setIsHovered] = useState(false);
-  const rarityStyle = rarityColors[skin.rarity];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: index * 0.03 }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="group cursor-pointer"
-    >
-      <div
-        className="relative rounded-xl overflow-hidden transition-all duration-300"
-        style={{
-          border: `1px solid ${isHovered ? rarityStyle.border : "rgba(255,255,255,0.06)"}`,
-          boxShadow: isHovered ? `0 8px 32px ${rarityStyle.color}20` : "none",
-        }}
-      >
-        {/* Rarity top bar */}
-        <div
-          className="h-1 w-full"
-          style={{ background: `linear-gradient(90deg, ${rarityStyle.color}, ${rarityStyle.color}80)` }}
-        />
-
-        {/* Skin image area */}
-        <div
-          className="relative h-36 flex items-center justify-center"
-          style={{ background: rarityStyle.bg }}
-        >
-          {/* Weapon silhouette */}
-          <div className="text-4xl font-bold opacity-20 select-none" style={{ color: rarityStyle.color }}>
-            {skin.weapon === "Knife" ? "🔪" : skin.weapon === "Gloves" ? "🧤" : "🔫"}
-          </div>
-
-          {/* StatTrak badge */}
-          {skin.StatTrak && (
-            <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-500/90 text-white">
-              StatTrak™
-            </div>
-          )}
-
-          {/* Float badge */}
-          <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[9px] font-mono glass">
-            {skin.float.toFixed(4)}
-          </div>
-
-          {/* Hover overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2"
-          >
-            <button className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
-              <Eye className="h-4 w-4 text-white" />
-            </button>
-            <button className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
-              <ExternalLink className="h-4 w-4 text-white" />
-            </button>
-          </motion.div>
-        </div>
-
-        {/* Info */}
-        <div className="p-3 glass-strong">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: rarityStyle.color }}>
-              {skin.rarity}
-            </span>
-            <span className="text-[10px] text-muted">{skin.wear}</span>
-          </div>
-          <h4 className="text-sm font-semibold truncate">{skin.name}</h4>
-          <p className="text-[11px] text-muted truncate">{skin.skin}</p>
-
-          {skin.pattern > 0 && (
-            <div className="text-[10px] text-muted-foreground mt-1 font-mono">
-              Pattern: #{skin.pattern}
-            </div>
-          )}
-
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/[0.06]">
-            <span className="text-sm font-bold font-mono">${skin.price.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
-            <span
-              className={`text-[11px] font-medium flex items-center gap-0.5 ${
-                skin.priceChange >= 0 ? "text-success" : "text-danger"
-              }`}
-            >
-              {skin.priceChange >= 0 ? (
-                <TrendingUp className="h-3 w-3" />
-              ) : (
-                <TrendingDown className="h-3 w-3" />
-              )}
-              {skin.priceChange >= 0 ? "+" : ""}{skin.priceChange.toFixed(2)}
-            </span>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 export default function InventoryPage() {
+  const { user, loading } = useUser();
   const [search, setSearch] = useState("");
   const [selectedRarity, setSelectedRarity] = useState<Rarity | null>(null);
   const [selectedWear, setSelectedWear] = useState<string | null>(null);
@@ -258,23 +73,34 @@ export default function InventoryPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [stattrakOnly, setStattrakOnly] = useState(false);
 
-  const filteredSkins = skins
-    .filter((skin) => {
-      if (search && !skin.name.toLowerCase().includes(search.toLowerCase()) && !skin.skin.toLowerCase().includes(search.toLowerCase())) return false;
-      if (selectedRarity && skin.rarity !== selectedRarity) return false;
-      if (selectedWear && skin.wear !== selectedWear) return false;
-      if (selectedWeapon && skin.weapon !== selectedWeapon) return false;
-      if (stattrakOnly && !skin.StatTrak) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      const dir = sortDir === "asc" ? 1 : -1;
-      if (sortBy === "price") return (a.price - b.price) * dir;
-      if (sortBy === "float") return (a.float - b.float) * dir;
-      return a.name.localeCompare(b.name) * dir;
-    });
-
   const activeFilters = [selectedRarity, selectedWear, selectedWeapon, stattrakOnly ? "StatTrak" : null].filter(Boolean).length;
+
+  if (!user && !loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+            <LogIn className="h-10 w-10 text-primary" />
+          </div>
+          <h2 className="text-xl font-bold mb-2">Conecta tu Steam</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm">
+            Conecta tu perfil de Steam para ver tu inventario de CS2, precios en tiempo real y estadísticas de tu colección.
+          </p>
+          <a
+            href="/api/auth/steam"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary-hover transition-colors"
+          >
+            <LinkIcon className="h-4 w-4" />
+            Conectar con Steam
+          </a>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -288,7 +114,7 @@ export default function InventoryPage() {
           Inventario
         </h1>
         <p className="text-sm text-muted mt-1">
-          Valor total de tu colección: <span className="text-foreground font-semibold">${inventoryStats.totalValue.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</span>
+          Conecta tu perfil de Steam para ver tu inventario
         </p>
       </motion.div>
 
@@ -302,13 +128,10 @@ export default function InventoryPage() {
               </div>
               <div>
                 <div className="text-xs text-muted">Valor Total</div>
-                <div className="text-xl font-bold font-mono">${inventoryStats.totalValue.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</div>
+                <div className="text-xl font-bold font-mono">—</div>
               </div>
             </div>
-            <div className="flex items-center gap-1">
-              <TrendingUp className="h-3 w-3 text-success" />
-              <span className="text-xs text-success">+{inventoryStats.totalChangePercent}% este mes</span>
-            </div>
+            <span className="text-xs text-muted">No disponible</span>
           </GlassCard>
         </motion.div>
 
@@ -320,10 +143,10 @@ export default function InventoryPage() {
               </div>
               <div>
                 <div className="text-xs text-muted">Ganancias</div>
-                <div className="text-xl font-bold font-mono text-success">+${inventoryStats.totalGain.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</div>
+                <div className="text-xl font-bold font-mono">—</div>
               </div>
             </div>
-            <span className="text-xs text-muted">Desde compra</span>
+            <span className="text-xs text-muted">No disponible</span>
           </GlassCard>
         </motion.div>
 
@@ -335,10 +158,10 @@ export default function InventoryPage() {
               </div>
               <div>
                 <div className="text-xs text-muted">Pérdidas</div>
-                <div className="text-xl font-bold font-mono text-danger">${inventoryStats.totalLoss.toLocaleString("es-ES", { minimumFractionDigits: 2 })}</div>
+                <div className="text-xl font-bold font-mono">—</div>
               </div>
             </div>
-            <span className="text-xs text-muted">Desde compra</span>
+            <span className="text-xs text-muted">No disponible</span>
           </GlassCard>
         </motion.div>
 
@@ -350,10 +173,10 @@ export default function InventoryPage() {
               </div>
               <div>
                 <div className="text-xs text-muted">Total Objetos</div>
-                <div className="text-xl font-bold font-mono">{inventoryStats.totalItems}</div>
+                <div className="text-xl font-bold font-mono">—</div>
               </div>
             </div>
-            <span className="text-xs text-muted">Float avg: {inventoryStats.avgFloat}</span>
+            <span className="text-xs text-muted">No disponible</span>
           </GlassCard>
         </motion.div>
       </div>
@@ -376,11 +199,10 @@ export default function InventoryPage() {
               </div>
             </div>
             <Badge variant="success" size="sm">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +{inventoryStats.totalChangePercent}%
+              —
             </Badge>
           </div>
-          <PriceChart />
+          <EmptyPriceChart />
         </GlassCard>
       </motion.div>
 
@@ -566,41 +388,23 @@ export default function InventoryPage() {
       {/* Results count */}
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted">
-          Mostrando {filteredSkins.length} de {skins.length} objetos
+          0 objetos
         </span>
       </div>
 
-      {/* Skins Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-        <AnimatePresence>
-          {filteredSkins.map((skin, i) => (
-            <SkinCard key={skin.id} skin={skin} index={i} />
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {filteredSkins.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-16"
-        >
-          <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-sm text-muted">No se encontraron skins con estos filtros</p>
-          <button
-            onClick={() => {
-              setSearch("");
-              setSelectedRarity(null);
-              setSelectedWear(null);
-              setSelectedWeapon(null);
-              setStattrakOnly(false);
-            }}
-            className="text-xs text-primary hover:text-primary-hover mt-2 cursor-pointer"
-          >
-            Limpiar filtros
-          </button>
-        </motion.div>
-      )}
+      {/* Empty state */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="text-center py-16"
+      >
+        <div className="h-16 w-16 rounded-2xl bg-white/[0.04] flex items-center justify-center mx-auto mb-4">
+          <Package className="h-8 w-8 text-muted-foreground/50" />
+        </div>
+        <p className="text-sm font-medium text-muted mb-1">No hay skins disponibles</p>
+        <p className="text-xs text-muted-foreground/70 mb-3">Próximamente con integración de Steam Inventory</p>
+        <p className="text-[11px] text-muted-foreground/50">Requiere integración con Steam Inventory API y Steam Market</p>
+      </motion.div>
     </div>
   );
 }

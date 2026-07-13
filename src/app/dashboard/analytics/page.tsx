@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
 import { ProgressRing } from "@/components/ui/progress-ring";
+import { useUser } from "@/lib/user-context";
 import {
   TrendingUp,
   Crosshair,
@@ -11,38 +12,54 @@ import {
   Flame,
   Zap,
   Clock,
+  AlertTriangle,
 } from "lucide-react";
 
-const mapStats = [
-  { map: "Dust II", matches: 142, winRate: 64, avgRating: 1.21, kda: "22.4/16.1/4.2" },
-  { map: "Mirage", matches: 118, winRate: 58, avgRating: 1.12, kda: "20.8/17.3/3.8" },
-  { map: "Inferno", matches: 97, winRate: 72, avgRating: 1.34, kda: "24.1/14.8/5.1" },
-  { map: "Anubis", matches: 83, winRate: 61, avgRating: 1.18, kda: "21.5/15.9/3.5" },
-  { map: "Nuke", matches: 74, winRate: 55, avgRating: 1.05, kda: "19.2/17.8/4.0" },
-  { map: "Overpass", matches: 68, winRate: 69, avgRating: 1.28, kda: "23.0/15.2/4.5" },
-  { map: "Ancient", matches: 56, winRate: 62, avgRating: 1.19, kda: "21.8/16.4/3.9" },
-  { map: "Vertigo", matches: 44, winRate: 48, avgRating: 0.97, kda: "18.5/19.1/3.2" },
-];
-
-const aimStats = [
-  { label: "Precisión General", value: 34.2, icon: Target, color: "var(--color-primary)" },
-  { label: "Tasa de Headshots", value: 47.2, icon: Crosshair, color: "var(--color-success)" },
-  { label: "Precisión con Pistola", value: 42.8, icon: Crosshair, color: "var(--color-accent)" },
-  { label: "Precisión con AWP", value: 68.5, icon: Target, color: "#a855f7" },
-];
-
-const recentTrend = [
-  { month: "Feb", rating: 1.08 },
-  { month: "Mar", rating: 1.12 },
-  { month: "Abr", rating: 1.15 },
-  { month: "May", rating: 1.22 },
-  { month: "Jun", rating: 1.28 },
-  { month: "Jul", rating: 1.32 },
-];
-
-const maxRating = 1.5;
+const MAP_NAMES = ["Dust II", "Mirage", "Inferno", "Anubis", "Nuke", "Overpass", "Ancient", "Vertigo"];
 
 export default function AnalyticsPage() {
+  const { user, loading } = useUser();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="h-12 w-12 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4" />
+          <p className="text-sm text-muted">Cargando análisis...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <GlassCard padding="lg" className="text-center max-w-md">
+          <AlertTriangle className="h-12 w-12 text-accent mx-auto mb-4" />
+          <h2 className="text-lg font-semibold mb-2">Conecta tu Steam</h2>
+          <p className="text-sm text-muted mb-4">Inicia sesión con Steam para ver tu análisis detallado.</p>
+          <a href="/login" className="inline-flex items-center gap-2 glass rounded-xl px-6 py-3 text-sm font-semibold hover:bg-white/[0.06] transition-all">
+            Conectar Steam
+          </a>
+        </GlassCard>
+      </div>
+    );
+  }
+
+  const summaryStats = [
+    { label: "Total de Partidas", value: "—", icon: Flame, color: "text-accent", bg: "bg-accent/10" },
+    { label: "Rating Promedio", value: "—", icon: TrendingUp, color: "text-success", bg: "bg-success/10" },
+    { label: "Tiempo de Respuesta Promedio", value: "—", icon: Zap, color: "text-primary", bg: "bg-primary/10" },
+    { label: "Horas Jugadas", value: user.cs2?.hoursPlayed ? `${Math.round(user.cs2.hoursPlayed).toLocaleString()}h` : "—", icon: Clock, color: "text-purple-400", bg: "bg-purple-400/10" },
+  ];
+
+  const aimStats = [
+    { label: "Precisión General", value: 0, icon: Target, color: "var(--color-primary)" },
+    { label: "Tasa de Headshots", value: 0, icon: Crosshair, color: "var(--color-success)" },
+    { label: "Precisión con Pistola", value: 0, icon: Crosshair, color: "var(--color-accent)" },
+    { label: "Precisión con AWP", value: 0, icon: Target, color: "#a855f7" },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
@@ -53,12 +70,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Total de Partidas", value: "682", icon: Flame, color: "text-accent", bg: "bg-accent/10" },
-          { label: "Rating Promedio", value: "1.24", icon: TrendingUp, color: "text-success", bg: "bg-success/10" },
-          { label: "Tiempo de Respuesta Promedio", value: "187ms", icon: Zap, color: "text-primary", bg: "bg-primary/10" },
-          { label: "Horas Jugadas", value: "1,247h", icon: Clock, color: "text-purple-400", bg: "bg-purple-400/10" },
-        ].map((stat, index) => (
+        {summaryStats.map((stat, index) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
@@ -84,22 +96,12 @@ export default function AnalyticsPage() {
         >
           <GlassCard padding="md" className="h-full">
             <h3 className="text-sm font-semibold mb-6">Tendencia de Rating</h3>
-            <div className="flex items-end gap-3 h-48">
-              {recentTrend.map((data, i) => {
-                const height = (data.rating / maxRating) * 100;
-                return (
-                  <div key={data.month} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="text-xs font-medium text-primary">{data.rating.toFixed(2)}</div>
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: `${height}%` }}
-                      transition={{ duration: 0.6, delay: 0.3 + i * 0.1 }}
-                      className="w-full rounded-lg bg-gradient-to-t from-primary/40 to-primary/80"
-                    />
-                    <span className="text-[11px] text-muted">{data.month}</span>
-                  </div>
-                );
-              })}
+            <div className="h-48 flex items-center justify-center">
+              <div className="text-center">
+                <TrendingUp className="h-10 w-10 text-muted mx-auto mb-3 opacity-40" />
+                <p className="text-sm font-medium text-muted">No disponible</p>
+                <p className="text-xs text-muted-foreground mt-1">Requiere integración con Leetify</p>
+              </div>
             </div>
           </GlassCard>
         </motion.div>
@@ -117,12 +119,13 @@ export default function AnalyticsPage() {
                   <ProgressRing value={stat.value} size={52} strokeWidth={4} />
                   <div className="flex-1">
                     <div className="text-sm font-medium">{stat.label}</div>
-                    <div className="text-xs text-muted mt-0.5">
-                      {stat.value >= 40 ? "Por encima del promedio" : "Espacio de mejora"}
-                    </div>
+                    <div className="text-xs text-muted mt-0.5">No disponible</div>
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="mt-4 pt-3 border-t border-white/[0.06] text-center">
+              <span className="text-[10px] text-accent">Próximamente con Leetify</span>
             </div>
           </GlassCard>
         </motion.div>
@@ -147,37 +150,30 @@ export default function AnalyticsPage() {
                 </tr>
               </thead>
               <tbody>
-                {mapStats.map((map, index) => (
+                {MAP_NAMES.map((mapName) => (
                   <tr
-                    key={map.map}
+                    key={mapName}
                     className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors"
                   >
-                    <td className="py-3 text-sm font-medium">{map.map}</td>
-                    <td className="py-3 text-sm text-center text-muted">{map.matches}</td>
+                    <td className="py-3 text-sm font-medium">{mapName}</td>
+                    <td className="py-3 text-sm text-center text-muted">—</td>
                     <td className="py-3 text-center">
                       <div className="inline-flex items-center gap-2">
-                        <div className="h-1.5 w-16 rounded-full bg-white/[0.06] overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${map.winRate >= 60 ? "bg-success" : map.winRate >= 50 ? "bg-primary" : "bg-danger"}`}
-                            style={{ width: `${map.winRate}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-medium">{map.winRate}%</span>
+                        <div className="h-1.5 w-16 rounded-full bg-white/[0.06] overflow-hidden" />
+                        <span className="text-xs font-medium text-muted">—</span>
                       </div>
                     </td>
                     <td className="py-3 text-center">
-                      <Badge
-                        variant={map.avgRating >= 1.2 ? "success" : map.avgRating >= 1.0 ? "accent" : "danger"}
-                        size="sm"
-                      >
-                        {map.avgRating.toFixed(2)}
-                      </Badge>
+                      <Badge variant="accent" size="sm">—</Badge>
                     </td>
-                    <td className="py-3 text-center text-sm text-muted font-mono">{map.kda}</td>
+                    <td className="py-3 text-center text-sm text-muted font-mono">—</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="mt-4 pt-3 border-t border-white/[0.06] text-center">
+            <span className="text-[10px] text-accent">Requiere CSStats</span>
           </div>
         </GlassCard>
       </motion.div>
