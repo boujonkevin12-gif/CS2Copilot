@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
+import Link from "next/link";
 
 const plans = [
   {
@@ -119,9 +120,11 @@ export function Pricing() {
                   <span className="text-sm text-muted">{plan.period}</span>
                 </div>
               </div>
-              <Button variant={plan.variant} className="w-full mb-6">
-                {plan.cta}
-              </Button>
+              <Link href={plan.name === "Equipo" ? "/login" : "/register"}>
+                <Button variant={plan.variant} className="w-full mb-6">
+                  {plan.cta}
+                </Button>
+              </Link>
               <ul className="space-y-3">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm">
