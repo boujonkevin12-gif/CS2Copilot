@@ -14,9 +14,15 @@ import {
   LogOut,
   ChevronRight,
   Star,
+  Gamepad2,
+  Unlink,
+  CheckCircle2,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { useUser } from "@/lib/user-context";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const settingsSections = [
   {
@@ -64,8 +70,11 @@ const settingsSections = [
 ];
 
 export default function SettingsPage() {
-  const { user } = useUser();
+  const { user, connectFaceit, disconnectFaceit } = useUser();
   const router = useRouter();
+  const [faceitNickname, setFaceitNickname] = useState("");
+  const [faceitLoading, setFaceitLoading] = useState(false);
+  const [faceitError, setFaceitError] = useState("");
 
   const initials = (user?.name || "U")
     .split(" ")
@@ -78,6 +87,25 @@ export default function SettingsPage() {
     document.cookie =
       "cs2pilot_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     router.push("/login");
+  };
+
+  const handleConnectFaceit = async () => {
+    if (!faceitNickname.trim()) return;
+    setFaceitLoading(true);
+    setFaceitError("");
+    const result = await connectFaceit(faceitNickname.trim());
+    setFaceitLoading(false);
+    if (result.success) {
+      setFaceitNickname("");
+    } else {
+      setFaceitError(result.error || "Error al conectar");
+    }
+  };
+
+  const handleDisconnectFaceit = async () => {
+    setFaceitLoading(true);
+    await disconnectFaceit();
+    setFaceitLoading(false);
   };
 
   return (
@@ -126,6 +154,69 @@ export default function SettingsPage() {
             Editar Perfil
           </Button>
         </div>
+      </GlassCard>
+
+      <GlassCard padding="lg" hover={false}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
+            <Gamepad2 className="h-5 w-5 text-accent" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold">FACEIT</h3>
+            <p className="text-xs text-muted">Conecta tu cuenta de FACEIT para ver historial de partidas y estadísticas</p>
+          </div>
+        </div>
+
+        {user?.faceitNickname ? (
+          <div className="space-y-3">
+            <div className="glass rounded-xl p-4 flex items-center gap-4">
+              <CheckCircle2 className="h-8 w-8 text-success shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium">{user.faceitNickname}</div>
+                <div className="text-xs text-muted mt-0.5">
+                  Nivel {user.faceitLevel ?? "—"} · ELO {user.faceitElo ?? "—"}
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Unlink className="h-4 w-4" />}
+                onClick={handleDisconnectFaceit}
+                disabled={faceitLoading}
+              >
+                Desconectar
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={faceitNickname}
+                onChange={(e) => { setFaceitNickname(e.target.value); setFaceitError(""); }}
+                placeholder="Tu nickname de FACEIT"
+                className="flex-1 h-9 px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                onKeyDown={(e) => e.key === "Enter" && handleConnectFaceit()}
+              />
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleConnectFaceit}
+                disabled={faceitLoading || !faceitNickname.trim()}
+                icon={faceitLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
+              >
+                Conectar
+              </Button>
+            </div>
+            {faceitError && (
+              <div className="flex items-center gap-2 text-xs text-danger">
+                <AlertCircle className="h-3.5 w-3.5" />
+                {faceitError}
+              </div>
+            )}
+          </div>
+        )}
       </GlassCard>
 
       <div className="space-y-2">

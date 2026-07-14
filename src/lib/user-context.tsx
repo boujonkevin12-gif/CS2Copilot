@@ -50,10 +50,13 @@ interface SteamUser {
   bans: SteamBans;
   cs2: CS2Data | null;
   totalGames: number;
-  // These are fetched lazily, not from cookie
   games?: SteamGame[];
   recentGames?: SteamGame[];
   friends?: SteamFriend[];
+  faceitNickname?: string;
+  faceitPlayerId?: string;
+  faceitLevel?: number | null;
+  faceitElo?: number | null;
 }
 
 interface CS2AggregateStats {
@@ -85,6 +88,104 @@ interface CS2AggregateStats {
   accuracy: number;
 }
 
+interface FaceitMatchData {
+  matchId: string;
+  map: string;
+  mode: string;
+  status: string;
+  startedAt: number;
+  finishedAt: number;
+  teams: Record<string, {
+    team_id: string;
+    name: string;
+    players: Array<{
+      player_id: string;
+      nickname: string;
+      avatar: string;
+    }>;
+  }>;
+  stats?: {
+    rounds: Array<{
+      roundId: string;
+      map: string;
+      team1: {
+        teamId: string;
+        name: string;
+        score: number;
+        result: string;
+        players: Array<{
+          playerId: string;
+          nickname: string;
+          kills: number;
+          deaths: number;
+          assists: number;
+          kd: number;
+          hsPercent: number;
+          headshots: number;
+          totalDamage: number;
+        }>;
+      };
+      team2: {
+        teamId: string;
+        name: string;
+        score: number;
+        result: string;
+        players: Array<{
+          playerId: string;
+          nickname: string;
+          kills: number;
+          deaths: number;
+          assists: number;
+          kd: number;
+          hsPercent: number;
+          headshots: number;
+          totalDamage: number;
+        }>;
+      };
+    }>;
+  };
+}
+
+interface FaceitLifetimeStats {
+  player_id: string;
+  lifetime: {
+    Matches: string;
+    "Win Rate %": string;
+    "Average K/D Ratio": string;
+    "Average Headshots %": string;
+    "Average K/R Ratio": string;
+    Kills: string;
+    Deaths: string;
+    Assists: string;
+    Headshots: string;
+    "Ace Rounds": string;
+    "Quadro Kills": string;
+    "Triple Kills": string;
+    "Double Kills": string;
+    MVPs: string;
+    "Average Damage per Round": string;
+    "Clutches Won": string;
+    "Total Damage Dealt": string;
+    "Average KAST": string;
+    Rating: string;
+  };
+  segments: Array<{
+    type: string;
+    label: string;
+    map_name: string;
+    mode: string;
+    wins: string;
+    matches: string;
+    "Win Rate %": string;
+    "Average K/D Ratio": string;
+    "Average Headshots %": string;
+    Kills: string;
+    Deaths: string;
+    Assists: string;
+    Headshots: string;
+  }>;
+}
+
 interface UserContextType {
   user: SteamUser | null;
   loading: boolean;
@@ -94,7 +195,13 @@ interface UserContextType {
   cs2Stats: CS2AggregateStats | null;
   loadingGames: boolean;
   loadingFriends: boolean;
+  faceitMatches: FaceitMatchData[];
+  faceitStats: FaceitLifetimeStats | null;
+  loadingFaceitMatches: boolean;
   refresh: () => Promise<void>;
+  connectFaceit: (nickname: string) => Promise<{ success: boolean; error?: string }>;
+  disconnectFaceit: () => Promise<void>;
+  syncFaceitMatches: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType>({
@@ -106,7 +213,13 @@ const UserContext = createContext<UserContextType>({
   cs2Stats: null,
   loadingGames: false,
   loadingFriends: false,
+  faceitMatches: [],
+  faceitStats: null,
+  loadingFaceitMatches: false,
   refresh: async () => {},
+  connectFaceit: async () => ({ success: false }),
+  disconnectFaceit: async () => {},
+  syncFaceitMatches: async () => {},
 });
 
 export function useUser() {
@@ -122,6 +235,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [loadingGames, setLoadingGames] = useState(false);
   const [loadingFriends, setLoadingFriends] = useState(false);
   const [cs2Stats, setCs2Stats] = useState<CS2AggregateStats | null>(null);
+  const [faceitMatches, setFaceitMatches] = useState<FaceitMatchData[]>([]);
+  const [faceitStats, setFaceitStats] = useState<FaceitLifetimeStats | null>(null);
+  const [loadingFaceitMatches, setLoadingFaceitMatches] = useState(false);
 
   const fetchUser = useCallback(async () => {
     try {
@@ -183,6 +299,91 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const fetchFaceitStats = useCallback(async () => {
+    try {
+      const res = await fetch("/api/faceit/sync");
+      const data = await res.json();
+      if (data.connected && data.stats) {
+        setFaceitStats(data.stats);
+      }
+    } catch {
+      setFaceitStats(null);
+    }
+  }, []);
+
+  const fetchFaceitMatches = useCallback(async () => {
+    setLoadingFaceitMatches(true);
+    try {
+      const userData = await (await fetch("/api/auth/me")).json();
+      const playerId = userData.user?.faceitPlayerId;
+      if (!playerId) {
+        setFaceitMatches([]);
+        return;
+      }
+      const res = await fetch("/api/faceit/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId }),
+      });
+      const data = await res.json();
+      setFaceitMatches(data.matches || []);
+    } catch {
+      setFaceitMatches([]);
+    } finally {
+      setLoadingFaceitMatches(false);
+    }
+  }, []);
+
+  const connectFaceit = useCallback(async (nickname: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await fetch("/api/faceit/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "connect", nickname }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser((prev) => prev ? {
+          ...prev,
+          faceitNickname: data.faceit.nickname,
+          faceitPlayerId: data.faceit.playerId,
+          faceitLevel: data.faceit.level,
+          faceitElo: data.faceit.elo,
+        } : null);
+        return { success: true };
+      }
+      return { success: false, error: data.error || "Error desconocido" };
+    } catch {
+      return { success: false, error: "Error de conexion" };
+    }
+  }, []);
+
+  const disconnectFaceit = useCallback(async () => {
+    try {
+      await fetch("/api/faceit/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "disconnect" }),
+      });
+      setUser((prev) => prev ? {
+        ...prev,
+        faceitNickname: undefined,
+        faceitPlayerId: undefined,
+        faceitLevel: undefined,
+        faceitElo: undefined,
+      } : null);
+      setFaceitMatches([]);
+      setFaceitStats(null);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const syncFaceitMatches = useCallback(async () => {
+    await fetchFaceitMatches();
+    await fetchFaceitStats();
+  }, [fetchFaceitMatches, fetchFaceitStats]);
+
   useEffect(() => {
     fetchUser().then((u) => {
       if (u) {
@@ -190,12 +391,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
         fetchRecentGames();
         fetchFriends();
         fetchCs2Stats();
+        if (u.faceitPlayerId) {
+          fetchFaceitMatches();
+          fetchFaceitStats();
+        }
       }
     });
-  }, [fetchUser, fetchGames, fetchRecentGames, fetchFriends, fetchCs2Stats]);
+  }, [fetchUser, fetchGames, fetchRecentGames, fetchFriends, fetchCs2Stats, fetchFaceitMatches, fetchFaceitStats]);
 
   return (
-    <UserContext.Provider value={{ user, loading, games, recentGames, friends, cs2Stats, loadingGames, loadingFriends, refresh: fetchUser }}>
+    <UserContext.Provider value={{
+      user, loading, games, recentGames, friends, cs2Stats,
+      loadingGames, loadingFriends,
+      faceitMatches, faceitStats, loadingFaceitMatches,
+      refresh: fetchUser,
+      connectFaceit, disconnectFaceit, syncFaceitMatches,
+    }}>
       {children}
     </UserContext.Provider>
   );

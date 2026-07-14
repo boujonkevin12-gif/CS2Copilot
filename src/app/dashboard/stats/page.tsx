@@ -22,7 +22,11 @@ import {
   ChevronDown,
   BarChart3,
   AlertTriangle,
+  Gamepad2,
+  Link2,
+  Loader2,
 } from "lucide-react";
+import Link from "next/link";
 
 const MAP_NAMES = ["Dust II", "Mirage", "Inferno", "Anubis", "Nuke", "Overpass", "Ancient", "Vertigo"];
 
@@ -134,7 +138,7 @@ function NotAvailable({ label, note }: { label: string; note?: string }) {
 }
 
 export default function StatsPage() {
-  const { user, loading } = useUser();
+  const { user, loading, faceitStats } = useUser();
   const [selectedMap, setSelectedMap] = useState<string | null>(null);
 
   if (loading) {
@@ -163,28 +167,101 @@ export default function StatsPage() {
     );
   }
 
+  const lifetime = faceitStats?.lifetime;
+  const mapStats = faceitStats?.segments?.filter((s) => s.type === "Map" && s.map_name) || [];
+
+  const lMatches = lifetime ? parseInt(lifetime.Matches || "0", 10) : 0;
+  const lWinRate = lifetime ? parseFloat(lifetime["Win Rate %"] || "0") : 0;
+  const lKD = lifetime ? parseFloat(lifetime["Average K/D Ratio"] || "0") : 0;
+  const lHS = lifetime ? parseFloat(lifetime["Average Headshots %"] || "0") : 0;
+  const lKills = lifetime ? parseInt(lifetime.Kills || "0", 10) : 0;
+  const lDeaths = lifetime ? parseInt(lifetime.Deaths || "0", 10) : 0;
+  const lAssists = lifetime ? parseInt(lifetime.Assists || "0", 10) : 0;
+  const lKAST = lifetime ? parseFloat(lifetime["Average KAST"] || "0") : 0;
+  const lADR = lifetime ? parseFloat(lifetime["Average Damage per Round"] || "0") : 0;
+  const lClutches = lifetime ? parseInt(lifetime["Clutches Won"] || "0", 10) : 0;
+  const lRating = lifetime ? parseFloat(lifetime.Rating || "0") : 0;
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
           <Target className="h-6 w-6 text-primary" />
           Estadísticas Detalladas
         </h1>
         <p className="text-sm text-muted mt-1">
-          Análisis profundo de tu rendimiento.
+          {user.faceitNickname
+            ? <>Análisis de tu rendimiento en <span className="text-foreground font-medium">{user.faceitNickname}</span></>
+            : "Análisis profundo de tu rendimiento."}
         </p>
       </motion.div>
 
-      {/* Heatmap */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
+      {!user.faceitPlayerId ? (
+        <GlassCard padding="lg" className="text-center max-w-md mx-auto">
+          <Gamepad2 className="h-12 w-12 text-accent mx-auto mb-4" />
+          <h2 className="text-lg font-semibold mb-2">Conecta FACEIT</h2>
+          <p className="text-sm text-muted mb-4">
+            Vincula tu cuenta de FACEIT para ver estadísticas detalladas por mapa, K/D, win rate y más.
+          </p>
+            <Link href="/dashboard/settings" className="cursor-pointer">
+              <Badge variant="accent" size="sm">
+                <Link2 className="h-3 w-3 mr-1" /> Conectar FACEIT
+              </Badge>
+            </Link>
+        </GlassCard>
+      ) : !faceitStats ? (
+        <GlassCard padding="lg" className="text-center max-w-md mx-auto">
+          <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto mb-3" />
+          <p className="text-sm text-muted">Cargando estadísticas de FACEIT...</p>
+        </GlassCard>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "Partidas", value: lMatches || null, suffix: "", color: "var(--color-primary)" },
+              { label: "Win Rate", value: lWinRate || null, suffix: "%", color: "var(--color-success)" },
+              { label: "K/D Ratio", value: lKD || null, suffix: "", color: "var(--color-accent)" },
+              { label: "Headshot %", value: lHS || null, suffix: "%", color: "var(--color-danger)" },
+            ].map((stat, i) => (
+              <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                <GlassCard padding="sm" hover={false}>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold font-mono" style={{ color: stat.value ? stat.color : undefined }}>
+                      {stat.value !== null ? `${stat.value}${stat.suffix}` : "—"}
+                    </div>
+                    <div className="text-xs text-muted mt-1">{stat.label}</div>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "Kills", value: lKills },
+              { label: "Deaths", value: lDeaths },
+              { label: "Assists", value: lAssists },
+              { label: "KAST", value: lKAST, suffix: "%" },
+              { label: "ADR", value: lADR },
+              { label: "Clutches", value: lClutches },
+              { label: "Rating", value: lRating },
+            ].map((stat, i) => (
+              <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.03 }}>
+                <GlassCard padding="sm" hover={false}>
+                  <div className="text-center">
+                    <div className="text-lg font-bold font-mono">
+                      {stat.value ? (typeof stat.suffix !== "undefined" ? `${stat.value}${stat.suffix}` : stat.value.toLocaleString()) : "—"}
+                    </div>
+                    <div className="text-xs text-muted mt-1">{stat.label}</div>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <GlassCard padding="md">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -216,13 +293,98 @@ export default function StatsPage() {
         </GlassCard>
       </motion.div>
 
-      {/* CT vs TT Winrate */}
+      {faceitStats && mapStats.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <GlassCard padding="md">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold">Win Rate por Mapa</h3>
+                <p className="text-xs text-muted">Datos de FACEIT</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {mapStats.slice(0, 8).sort((a, b) => parseInt(b.matches || "0") - parseInt(a.matches || "0")).map((seg) => {
+                const wr = parseFloat(seg["Win Rate %"] || "0");
+                const name = seg.map_name.replace("de_", "");
+                return (
+                  <div key={seg.map_name} className="flex items-center gap-3">
+                    <span className="text-[11px] text-muted w-16 shrink-0 truncate capitalize">{name}</span>
+                    <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${wr}%` }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                        className="h-full rounded-full bg-success"
+                      />
+                    </div>
+                    <span className="text-xs font-mono w-10 text-right">{wr.toFixed(0)}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </GlassCard>
+        </motion.div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-2 gap-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <GlassCard padding="md">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Crosshair className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold">Accuracy</h3>
+                <p className="text-xs text-muted">Precisión por tipo de disparo</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <NotAvailable label="Headshot" />
+              <NotAvailable label="Bodyshot" />
+              <NotAvailable label="Legshot" />
+            </div>
+            <div className="space-y-2">
+              <div className="text-xs text-muted font-medium mb-2">Por Arma</div>
+              <div className="text-center py-4">
+                <p className="text-xs text-muted">No disponible</p>
+                <p className="text-[10px] text-accent mt-1">Próximamente con CSStats/Leetify</p>
+              </div>
+            </div>
+          </GlassCard>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+          <GlassCard padding="md">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-10 w-10 rounded-xl bg-orange-400/10 flex items-center justify-center">
+                <Flame className="h-5 w-5 text-orange-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold">Spray Control</h3>
+                <p className="text-xs text-muted">Análisis de patrones de spray</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <NotAvailable label="Tap" />
+              <NotAvailable label="Burst" />
+              <NotAvailable label="Spray" />
+            </div>
+            <div className="space-y-2">
+              <div className="text-xs text-muted font-medium mb-2">Por Distancia</div>
+              <div className="text-center py-4">
+                <p className="text-xs text-muted">No disponible</p>
+                <p className="text-[10px] text-accent mt-1">Próximamente con CSStats/Leetify</p>
+              </div>
+            </div>
+          </GlassCard>
+        </motion.div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <GlassCard padding="md" className="h-full">
             <div className="flex items-center gap-3 mb-6">
               <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -243,25 +405,13 @@ export default function StatsPage() {
                 sublabel="No disponible"
               />
             </div>
-            <div className="mt-4 space-y-2">
-              {MAP_NAMES.slice(0, 4).map((name) => (
-                <div key={name} className="flex items-center justify-between text-xs">
-                  <span className="text-muted">{name}</span>
-                  <span className="font-mono text-muted">—</span>
-                </div>
-              ))}
-            </div>
             <div className="mt-3 pt-3 border-t border-white/[0.06] text-center">
               <span className="text-[10px] text-accent">Próximamente con CSStats/Leetify</span>
             </div>
           </GlassCard>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
           <GlassCard padding="md" className="h-full">
             <div className="flex items-center gap-3 mb-6">
               <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
@@ -282,91 +432,14 @@ export default function StatsPage() {
                 sublabel="No disponible"
               />
             </div>
-            <div className="mt-4 space-y-2">
-              {MAP_NAMES.slice(0, 4).map((name) => (
-                <div key={name} className="flex items-center justify-between text-xs">
-                  <span className="text-muted">{name}</span>
-                  <span className="font-mono text-muted">—</span>
-                </div>
-              ))}
-            </div>
             <div className="mt-3 pt-3 border-t border-white/[0.06] text-center">
               <span className="text-[10px] text-accent">Próximamente con CSStats/Leetify</span>
             </div>
           </GlassCard>
         </motion.div>
 
-        {/* Winrate por Mapa */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <GlassCard padding="md" className="h-full">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
-                <BarChart3 className="h-5 w-5 text-success" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Win Rate por Mapa</h3>
-                <p className="text-xs text-muted">Overall en todos los mapas</p>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {MAP_NAMES.map((name) => (
-                <div key={name} className="flex items-center gap-3">
-                  <span className="text-[11px] text-muted w-16 shrink-0 truncate">{name}</span>
-                  <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden" />
-                  <span className="text-xs font-mono w-10 text-right text-muted">—</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 pt-3 border-t border-white/[0.06] text-center">
-              <span className="text-[10px] text-accent">Requiere integración con CSStats/Leetify</span>
-            </div>
-          </GlassCard>
-        </motion.div>
-      </div>
-
-      {/* Pistol Rounds + Clutches */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Pistol Rounds */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-        >
-          <GlassCard padding="md">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                <Swords className="h-5 w-5 text-accent" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Rondas Pistol</h3>
-                <p className="text-xs text-muted">Rondas 1 y 12 de cada mapa</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <NotAvailable label="Win Rate Pistol" note="Próximamente con CSStats/Leetify" />
-              <NotAvailable label="Victorias" note="Próximamente con CSStats/Leetify" />
-            </div>
-
-            <div className="space-y-4">
-              <BarStat label="Pistol CT" value={null} color="var(--color-primary)" />
-              <BarStat label="Pistol TT" value={null} color="var(--color-accent)" />
-              <BarStat label="First Kill Rate" value={null} color="var(--color-success)" />
-            </div>
-          </GlassCard>
-        </motion.div>
-
-        {/* Clutches */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <GlassCard padding="md">
             <div className="flex items-center gap-3 mb-6">
               <div className="h-10 w-10 rounded-xl bg-purple-400/10 flex items-center justify-center">
                 <Award className="h-5 w-5 text-purple-400" />
@@ -376,7 +449,6 @@ export default function StatsPage() {
                 <p className="text-xs text-muted">Situaciones 1vsX</p>
               </div>
             </div>
-
             <div className="space-y-4">
               {["1v1", "1v2", "1v3", "1v4", "1v5"].map((situation) => (
                 <div key={situation}>
@@ -391,149 +463,8 @@ export default function StatsPage() {
                 </div>
               ))}
             </div>
-
-            <div className="mt-4 pt-4 border-t border-white/[0.06] grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <div className="text-lg font-bold text-muted">—</div>
-                <div className="text-[11px] text-muted">Total Clutches</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-muted">—</div>
-                <div className="text-[11px] text-muted">Win Rate Total</div>
-              </div>
-            </div>
             <div className="mt-3 text-center">
               <span className="text-[10px] text-accent">Próximamente con CSStats/Leetify</span>
-            </div>
-          </GlassCard>
-        </motion.div>
-      </div>
-
-      {/* Entry Kills + Opening Deaths */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Entry Kills */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45 }}
-        >
-          <GlassCard padding="md" glow>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-success" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Entry Kills</h3>
-                <p className="text-xs text-muted">Primeras eliminaciones por ronda</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <NotAvailable label="Total Entry Kills" note="Próximamente con CSStats/Leetify" />
-              <NotAvailable label="Por Ronda" note="Próximamente con CSStats/Leetify" />
-            </div>
-
-            <div className="space-y-4">
-              <BarStat label="Success Rate" value={null} color="var(--color-success)" />
-              <BarStat label="Entry K/D" value={null} suffix="" color="var(--color-primary)" />
-            </div>
-          </GlassCard>
-        </motion.div>
-
-        {/* Opening Deaths */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <GlassCard padding="md">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-danger/10 flex items-center justify-center">
-                <Skull className="h-5 w-5 text-danger" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Opening Deaths</h3>
-                <p className="text-xs text-muted">Muertes tempranas por ronda</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <NotAvailable label="Total Opening Deaths" note="Próximamente con CSStats/Leetify" />
-              <NotAvailable label="Por Ronda" note="Próximamente con CSStats/Leetify" />
-            </div>
-
-            <div className="space-y-4">
-              <BarStat label="Traded Rate" value={null} color="var(--color-accent)" />
-              <BarStat label="Survival Rate" value={null} color="var(--color-primary)" />
-            </div>
-          </GlassCard>
-        </motion.div>
-      </div>
-
-      {/* Accuracy + Spray */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Accuracy */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55 }}
-        >
-          <GlassCard padding="md">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Crosshair className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Accuracy</h3>
-                <p className="text-xs text-muted">Precisión por tipo de disparo</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <NotAvailable label="Headshot" />
-              <NotAvailable label="Bodyshot" />
-              <NotAvailable label="Legshot" />
-            </div>
-
-            <div className="space-y-2">
-              <div className="text-xs text-muted font-medium mb-2">Por Arma</div>
-              <div className="text-center py-4">
-                <p className="text-xs text-muted">No disponible</p>
-                <p className="text-[10px] text-accent mt-1">Próximamente con CSStats/Leetify</p>
-              </div>
-            </div>
-          </GlassCard>
-        </motion.div>
-
-        {/* Spray */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <GlassCard padding="md">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-orange-400/10 flex items-center justify-center">
-                <Flame className="h-5 w-5 text-orange-400" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Spray Control</h3>
-                <p className="text-xs text-muted">Análisis de patrones de spray</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <NotAvailable label="Tap" />
-              <NotAvailable label="Burst" />
-              <NotAvailable label="Spray" />
-            </div>
-
-            <div className="space-y-2">
-              <div className="text-xs text-muted font-medium mb-2">Por Distancia</div>
-              <div className="text-center py-4">
-                <p className="text-xs text-muted">No disponible</p>
-                <p className="text-[10px] text-accent mt-1">Próximamente con CSStats/Leetify</p>
-              </div>
             </div>
           </GlassCard>
         </motion.div>
