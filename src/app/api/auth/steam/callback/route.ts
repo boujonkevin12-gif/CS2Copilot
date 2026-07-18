@@ -45,10 +45,11 @@ export async function GET(request: NextRequest) {
     };
 
     const cookieValue = JSON.stringify(minimalProfile);
+    const isSecure = request.url.startsWith("https://");
     const response = NextResponse.redirect(new URL("/dashboard", request.url));
     response.cookies.set("cs2pilot_user", cookieValue, {
       httpOnly: true,
-      secure: true,
+      secure: isSecure,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30,
       path: "/",

@@ -171,9 +171,10 @@ async function handleConnect(nickname: string | undefined, request: NextRequest)
       },
     });
 
+    const isSecure = request.url.startsWith("https://");
     response.cookies.set("cs2pilot_user", JSON.stringify(updatedUser), {
       httpOnly: true,
-      secure: true,
+      secure: isSecure,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30,
       path: "/",
@@ -206,10 +207,11 @@ function handleDisconnect(request: NextRequest) {
   delete userData.faceitLevel;
   delete userData.faceitElo;
 
+  const isSecure = request.url.startsWith("https://");
   const response = NextResponse.json({ success: true });
   response.cookies.set("cs2pilot_user", JSON.stringify(userData), {
     httpOnly: true,
-    secure: true,
+    secure: isSecure,
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 30,
     path: "/",
