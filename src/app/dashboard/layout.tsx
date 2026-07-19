@@ -23,6 +23,7 @@ import {
   User,
   LogOut,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const sidebarLinks = [
   { icon: LayoutDashboard, label: "Resumen", href: "/dashboard" },
@@ -38,8 +39,18 @@ const sidebarLinks = [
 
 function DashboardNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, loading } = useUser();
   const [collapsed, setCollapsed] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // fallback
+    }
+    router.push("/login");
+  };
 
   const initials = user?.name
     ? user.name.slice(0, 2).toUpperCase()
@@ -101,6 +112,13 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           )}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-danger hover:bg-danger/5 transition-all mb-1"
+          >
+            <LogOut className="h-5 w-5 shrink-0" />
+            {!collapsed && <span>Cerrar Sesión</span>}
+          </button>
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-muted hover:text-foreground hover:bg-white/[0.04] transition-all"

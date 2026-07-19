@@ -2,32 +2,32 @@
 
 import { motion } from "framer-motion";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
-import { Users, Trophy, Activity, Globe } from "lucide-react";
+import { Users, Trophy, Activity, Zap } from "lucide-react";
 
 const stats = [
   {
-    icon: Users,
-    value: 150000,
-    suffix: "+",
-    label: "Jugadores Activos",
+    icon: Zap,
+    value: 100,
+    suffix: "%",
+    label: "Datos Reales de Steam",
   },
   {
     icon: Trophy,
-    value: 12000000,
-    suffix: "+",
-    label: "Partidas Analizadas",
+    value: 100,
+    suffix: "%",
+    label: "Integración FACEIT",
   },
   {
     icon: Activity,
-    value: 98,
-    suffix: "%",
-    label: "Tasa de Precisión",
+    value: 1,
+    suffix: "",
+    label: "Motor de Análisis IA",
   },
   {
-    icon: Globe,
-    value: 85,
-    suffix: "+",
-    label: "Países",
+    icon: Users,
+    value: 6,
+    suffix: "",
+    label: "Mapas Soportados",
   },
 ];
 

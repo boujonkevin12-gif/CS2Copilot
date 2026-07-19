@@ -3,98 +3,94 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Package,
-  TrendingUp,
-  TrendingDown,
   Search,
   Grid3X3,
   List,
-  Zap,
-  DollarSign,
-  BarChart3,
-  SlidersHorizontal,
-  X,
-  LogIn,
-  LinkIcon,
+  Loader2,
+  AlertCircle,
+  Shield,
+  ExternalLink,
 } from "lucide-react";
 import { useUser } from "@/lib/user-context";
 
-type Rarity = "Covert" | "Classified" | "Restricted" | "Mil-Spec" | "Industrial" | "Consumer";
-
-const rarityColors: Record<Rarity, { color: string; bg: string; border: string }> = {
-  Covert: { color: "#ef4444", bg: "rgba(239,68,68,0.1)", border: "rgba(239,68,68,0.3)" },
-  Classified: { color: "#a855f7", bg: "rgba(168,85,247,0.1)", border: "rgba(168,85,247,0.3)" },
-  Restricted: { color: "#3b82f6", bg: "rgba(59,130,246,0.1)", border: "rgba(59,130,246,0.3)" },
-  "Mil-Spec": { color: "#06b6d4", bg: "rgba(6,182,212,0.1)", border: "rgba(6,182,212,0.3)" },
-  Industrial: { color: "#64748b", bg: "rgba(100,116,139,0.1)", border: "rgba(100,116,139,0.3)" },
-  Consumer: { color: "#94a3b8", bg: "rgba(148,163,184,0.08)", border: "rgba(148,163,184,0.2)" },
-};
-
-const rarities: Rarity[] = ["Covert", "Classified", "Restricted", "Mil-Spec", "Industrial", "Consumer"];
-const wearTypes = ["Factory New", "Minimal Wear", "Field-Tested", "Well-Worn", "Battle-Scarred"];
-const weaponTypes = ["AK-47", "AWP", "M4A4", "M4A1-S", "Desert Eagle", "Glock-18", "USP-S"];
-
-function EmptyPriceChart() {
-  return (
-    <div className="relative">
-      <div className="flex items-end gap-2 h-48">
-        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-          <div
-            key={i}
-            className="flex-1 flex flex-col items-center gap-2 relative"
-          >
-            <div className="w-full rounded-lg h-2 bg-white/[0.04]" />
-            <span className="text-[11px] text-muted/40">—</span>
-          </div>
-        ))}
-      </div>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center glass rounded-xl px-6 py-4">
-          <BarChart3 className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-          <p className="text-sm font-medium text-muted">No disponible</p>
-          <p className="text-xs text-muted-foreground/70">Requiere integración con Steam Market</p>
-        </div>
-      </div>
-    </div>
-  );
+interface InventoryItem {
+  id: string;
+  name: string;
+  market_hash_name: string;
+  type: string;
+  quality: string;
+  icon_url: string;
+  tradable: boolean;
 }
+
+const QUALITY_COLORS: Record<string, string> = {
+  "Contrabanda": "#e4ae39",
+  "Extraordinario": "#d32ce6",
+  "Excepcional": "#8847ff",
+  "Militar": "#4b69ff",
+  "Industrial": "#5e98d9",
+  "Comercial": "#b0c3d9",
+  "Normal": "#b0c3d9",
+  "Unique": "#ffd700",
+};
 
 export default function InventoryPage() {
   const { user, loading } = useUser();
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
+  const [inventoryError, setInventoryError] = useState("");
   const [search, setSearch] = useState("");
-  const [selectedRarity, setSelectedRarity] = useState<Rarity | null>(null);
-  const [selectedWear, setSelectedWear] = useState<string | null>(null);
-  const [selectedWeapon, setSelectedWeapon] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"price" | "float" | "name">("price");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [showFilters, setShowFilters] = useState(false);
-  const [stattrakOnly, setStattrakOnly] = useState(false);
+  const [selectedQuality, setSelectedQuality] = useState<string | null>(null);
+  const [totalItems, setTotalItems] = useState(0);
+  const [rarityBreakdown, setRarityBreakdown] = useState<Record<string, number>>({});
 
-  const activeFilters = [selectedRarity, selectedWear, selectedWeapon, stattrakOnly ? "StatTrak" : null].filter(Boolean).length;
+  const fetchInventory = useCallback(async () => {
+    if (!user) return;
+    setInventoryLoading(true);
+    setInventoryError("");
+    try {
+      const res = await fetch("/api/steam/inventory");
+      const data = await res.json();
+      if (data.error) {
+        setInventoryError(data.message || "Error al obtener inventario");
+      } else if (data.success) {
+        setInventory(data.items || []);
+        setTotalItems(data.totalItems || 0);
+        setRarityBreakdown(data.rarityBreakdown || {});
+      }
+    } catch {
+      setInventoryError("Error de conexión al obtener inventario");
+    } finally {
+      setInventoryLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchInventory();
+  }, [fetchInventory]);
+
+  const filteredItems = inventory.filter((item) => {
+    const matchesSearch = !search.trim() || item.name.toLowerCase().includes(search.toLowerCase()) || item.market_hash_name.toLowerCase().includes(search.toLowerCase());
+    const matchesQuality = !selectedQuality || item.quality === selectedQuality;
+    return matchesSearch && matchesQuality;
+  });
 
   if (!user && !loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
           <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
-            <LogIn className="h-10 w-10 text-primary" />
+            <Package className="h-10 w-10 text-primary" />
           </div>
           <h2 className="text-xl font-bold mb-2">Conecta tu Steam</h2>
           <p className="text-sm text-muted mb-6 max-w-sm">
-            Conecta tu perfil de Steam para ver tu inventario de CS2, precios en tiempo real y estadísticas de tu colección.
+            Conecta tu perfil de Steam para ver tu inventario de CS2.
           </p>
-          <a
-            href="/api/auth/steam"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary-hover transition-colors"
-          >
-            <LinkIcon className="h-4 w-4" />
+          <a href="/login" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary-hover transition-colors">
             Conectar con Steam
           </a>
         </motion.div>
@@ -102,309 +98,237 @@ export default function InventoryPage() {
     );
   }
 
+  const qualities = Object.keys(rarityBreakdown).sort();
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
           <Package className="h-6 w-6 text-primary" />
           Inventario
         </h1>
         <p className="text-sm text-muted mt-1">
-          Conecta tu perfil de Steam para ver tu inventario
+          Tu inventario de CS2 de Steam {totalItems > 0 && `· ${totalItems} objetos`}
         </p>
       </motion.div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <GlassCard padding="md">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-success" />
+      {inventory.length > 0 && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <GlassCard padding="md">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Package className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="text-xs text-muted">Total Objetos</div>
+                  <div className="text-xl font-bold font-mono">{inventory.length}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-xs text-muted">Valor Total</div>
-                <div className="text-xl font-bold font-mono">—</div>
-              </div>
-            </div>
-            <span className="text-xs text-muted">No disponible</span>
-          </GlassCard>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-          <GlassCard padding="md">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-success" />
-              </div>
-              <div>
-                <div className="text-xs text-muted">Ganancias</div>
-                <div className="text-xl font-bold font-mono">—</div>
-              </div>
-            </div>
-            <span className="text-xs text-muted">No disponible</span>
-          </GlassCard>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <GlassCard padding="md">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-xl bg-danger/10 flex items-center justify-center">
-                <TrendingDown className="h-5 w-5 text-danger" />
-              </div>
-              <div>
-                <div className="text-xs text-muted">Pérdidas</div>
-                <div className="text-xl font-bold font-mono">—</div>
-              </div>
-            </div>
-            <span className="text-xs text-muted">No disponible</span>
-          </GlassCard>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-          <GlassCard padding="md">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Package className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <div className="text-xs text-muted">Total Objetos</div>
-                <div className="text-xl font-bold font-mono">—</div>
-              </div>
-            </div>
-            <span className="text-xs text-muted">No disponible</span>
-          </GlassCard>
-        </motion.div>
-      </div>
-
-      {/* Price History */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <GlassCard padding="md">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
-                <BarChart3 className="h-5 w-5 text-success" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Historial del Precio</h3>
-                <p className="text-xs text-muted">Evolución del valor total del inventario</p>
-              </div>
-            </div>
-            <Badge variant="success" size="sm">
-              —
-            </Badge>
-          </div>
-          <EmptyPriceChart />
-        </GlassCard>
-      </motion.div>
-
-      {/* Filters + Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
-      >
-        <GlassCard padding="sm" hover={false}>
-          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 p-2">
-            {/* Search */}
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar skins..."
-                className="w-full h-9 pl-10 pr-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-              />
-            </div>
-
-            {/* Filter toggle */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                showFilters ? "bg-primary/20 text-primary" : "glass text-muted hover:text-foreground"
-              }`}
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              Filtros
-              {activeFilters > 0 && (
-                <span className="ml-1 h-4 w-4 rounded-full bg-primary text-white text-[10px] flex items-center justify-center">
-                  {activeFilters}
-                </span>
+              {totalItems > inventory.length && (
+                <span className="text-xs text-muted">Mostrando {inventory.length} de {totalItems}</span>
               )}
-            </button>
+            </GlassCard>
+          </motion.div>
 
-            {/* Sort */}
-            <select
-              value={`${sortBy}-${sortDir}`}
-              onChange={(e) => {
-                const [by, dir] = e.target.value.split("-");
-                setSortBy(by as any);
-                setSortDir(dir as any);
-              }}
-              className="h-9 px-3 rounded-xl glass text-xs text-foreground bg-transparent border-none focus:outline-none cursor-pointer"
-            >
-              <option value="price-desc">Mayor precio</option>
-              <option value="price-asc">Menor precio</option>
-              <option value="float-asc">Mejor float</option>
-              <option value="float-desc">Peor float</option>
-              <option value="name-asc">A-Z</option>
-            </select>
-
-            {/* View toggle */}
-            <div className="flex items-center gap-1 glass rounded-lg p-0.5">
-              <button
-                onClick={() => setView("grid")}
-                className={`p-1.5 rounded-md transition-all cursor-pointer ${view === "grid" ? "bg-primary/20 text-primary" : "text-muted hover:text-foreground"}`}
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setView("list")}
-                className={`p-1.5 rounded-md transition-all cursor-pointer ${view === "list" ? "bg-primary/20 text-primary" : "text-muted hover:text-foreground"}`}
-              >
-                <List className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Expanded filters */}
-          <AnimatePresence>
-            {showFilters && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="px-4 pb-4 pt-2 border-t border-white/[0.06] space-y-4">
-                  {/* Rarity */}
-                  <div>
-                    <div className="text-[11px] text-muted font-medium mb-2">Rareza</div>
-                    <div className="flex flex-wrap gap-2">
-                      {rarities.map((r) => (
-                        <button
-                          key={r}
-                          onClick={() => setSelectedRarity(selectedRarity === r ? null : r)}
-                          className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
-                            selectedRarity === r
-                              ? "border-current"
-                              : "border-white/[0.06] hover:border-white/[0.12]"
-                          }`}
-                          style={{
-                            color: selectedRarity === r ? rarityColors[r].color : undefined,
-                            backgroundColor: selectedRarity === r ? rarityColors[r].bg : undefined,
-                          }}
-                        >
-                          {r}
-                        </button>
-                      ))}
-                    </div>
+          {qualities.slice(0, 3).map((quality, i) => (
+            <motion.div key={quality} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.05 }}>
+              <GlassCard padding="md">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${QUALITY_COLORS[quality] || "#b0c3d9"}15` }}>
+                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: QUALITY_COLORS[quality] || "#b0c3d9" }} />
                   </div>
-
-                  {/* Wear */}
                   <div>
-                    <div className="text-[11px] text-muted font-medium mb-2">Desgaste</div>
-                    <div className="flex flex-wrap gap-2">
-                      {wearTypes.map((w) => (
-                        <button
-                          key={w}
-                          onClick={() => setSelectedWear(selectedWear === w ? null : w)}
-                          className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
-                            selectedWear === w
-                              ? "bg-primary/20 text-primary border-primary/30"
-                              : "border-white/[0.06] text-muted hover:border-white/[0.12]"
-                          }`}
-                        >
-                          {w}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Weapon */}
-                  <div>
-                    <div className="text-[11px] text-muted font-medium mb-2">Arma</div>
-                    <div className="flex flex-wrap gap-2">
-                      {weaponTypes.map((w) => (
-                        <button
-                          key={w}
-                          onClick={() => setSelectedWeapon(selectedWeapon === w ? null : w)}
-                          className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
-                            selectedWeapon === w
-                              ? "bg-primary/20 text-primary border-primary/30"
-                              : "border-white/[0.06] text-muted hover:border-white/[0.12]"
-                          }`}
-                        >
-                          {w}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* StatTrak + Clear */}
-                  <div className="flex items-center justify-between">
-                    <button
-                      onClick={() => setStattrakOnly(!stattrakOnly)}
-                      className={`flex items-center gap-2 px-3 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
-                        stattrakOnly
-                          ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
-                          : "border-white/[0.06] text-muted hover:border-white/[0.12]"
-                      }`}
-                    >
-                      <Zap className="h-3 w-3" />
-                      Solo StatTrak™
-                    </button>
-                    {activeFilters > 0 && (
-                      <button
-                        onClick={() => {
-                          setSelectedRarity(null);
-                          setSelectedWear(null);
-                          setSelectedWeapon(null);
-                          setStattrakOnly(false);
-                        }}
-                        className="flex items-center gap-1 text-[11px] text-muted hover:text-foreground transition-colors cursor-pointer"
-                      >
-                        <X className="h-3 w-3" />
-                        Limpiar filtros
-                      </button>
-                    )}
+                    <div className="text-xs text-muted truncate">{quality}</div>
+                    <div className="text-xl font-bold font-mono">{rarityBreakdown[quality] || 0}</div>
                   </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </GlassCard>
-      </motion.div>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
-      {/* Results count */}
+      <GlassCard padding="sm" hover={false}>
+        <div className="flex items-center gap-3 p-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar skins..."
+              className="w-full h-9 pl-10 pr-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+            />
+          </div>
+          <div className="flex items-center gap-1 glass rounded-lg p-0.5">
+            <button
+              onClick={() => setView("grid")}
+              className={`p-1.5 rounded-md transition-all cursor-pointer ${view === "grid" ? "bg-primary/20 text-primary" : "text-muted hover:text-foreground"}`}
+            >
+              <Grid3X3 className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setView("list")}
+              className={`p-1.5 rounded-md transition-all cursor-pointer ${view === "list" ? "bg-primary/20 text-primary" : "text-muted hover:text-foreground"}`}
+            >
+              <List className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {qualities.length > 0 && (
+          <div className="px-4 pb-3 pt-1 border-t border-white/[0.06]">
+            <div className="flex flex-wrap gap-2">
+              {qualities.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => setSelectedQuality(selectedQuality === q ? null : q)}
+                  className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
+                    selectedQuality === q
+                      ? "border-current"
+                      : "border-white/[0.06] hover:border-white/[0.12]"
+                  }`}
+                  style={{
+                    color: selectedQuality === q ? (QUALITY_COLORS[q] || "#b0c3d9") : undefined,
+                    backgroundColor: selectedQuality === q ? `${QUALITY_COLORS[q] || "#b0c3d9"}15` : undefined,
+                  }}
+                >
+                  {q} ({rarityBreakdown[q] || 0})
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </GlassCard>
+
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted">
-          0 objetos
+          {filteredItems.length} objetos
         </span>
       </div>
 
-      {/* Empty state */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-center py-16"
-      >
-        <div className="h-16 w-16 rounded-2xl bg-white/[0.04] flex items-center justify-center mx-auto mb-4">
-          <Package className="h-8 w-8 text-muted-foreground/50" />
+      {inventoryLoading ? (
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto mb-3" />
+            <p className="text-sm text-muted">Cargando inventario de Steam...</p>
+          </div>
         </div>
-        <p className="text-sm font-medium text-muted mb-1">No hay skins disponibles</p>
-        <p className="text-xs text-muted-foreground/70 mb-3">Próximamente con integración de Steam Inventory</p>
-        <p className="text-[11px] text-muted-foreground/50">Requiere integración con Steam Inventory API y Steam Market</p>
-      </motion.div>
+      ) : inventoryError ? (
+        <GlassCard padding="lg" className="text-center">
+          <AlertCircle className="h-12 w-12 text-accent mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No se pudo cargar el inventario</h3>
+          <p className="text-sm text-muted mb-4">{inventoryError}</p>
+          {user?.visibility !== 3 && (
+            <div className="glass rounded-xl p-4 max-w-md mx-auto">
+              <div className="flex items-center gap-2 text-sm text-accent mb-2">
+                <Shield className="h-4 w-4" />
+                <span className="font-medium">Perfil privado</span>
+              </div>
+              <p className="text-xs text-muted">
+                Tu perfil de Steam debe ser <strong>público</strong> para poder consultar el inventario.
+                Ve a tu perfil de Steam → Editar perfil → Privacidad y cambia la visibilidad del inventario a Público.
+              </p>
+            </div>
+          )}
+          <button
+            onClick={fetchInventory}
+            className="mt-4 px-4 py-2 rounded-xl bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
+          >
+            Reintentar
+          </button>
+        </GlassCard>
+      ) : inventory.length === 0 ? (
+        <GlassCard padding="lg" className="text-center">
+          <Package className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+          <p className="text-sm font-medium text-muted mb-1">Inventario vacío o no disponible</p>
+          <p className="text-xs text-muted-foreground/70">No se encontraron objetos en tu inventario de CS2</p>
+        </GlassCard>
+      ) : view === "grid" ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <AnimatePresence>
+            {filteredItems.map((item, i) => (
+              <motion.div
+                key={item.id + i}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: Math.min(i * 0.02, 0.5) }}
+                className="glass rounded-xl p-3 hover:bg-white/[0.04] transition-all group cursor-pointer"
+              >
+                <div className="aspect-square rounded-lg bg-white/[0.04] mb-2 flex items-center justify-center overflow-hidden">
+                  {item.icon_url ? (
+                    <img
+                      src={`https://community.akamai.steamstatic.com/economy/image/${item.icon_url}`}
+                      alt={item.name}
+                      className="w-full h-full object-contain group-hover:scale-110 transition-transform"
+                      onError={(e) => { (e.target as HTMLImageElement).src = ""; (e.target as HTMLImageElement).alt = "Sin imagen"; }}
+                    />
+                  ) : (
+                    <Package className="h-8 w-8 text-muted-foreground/30" />
+                  )}
+                </div>
+                <div className="text-xs font-medium truncate">{item.name}</div>
+                {item.quality && (
+                  <div className="text-[10px] mt-0.5" style={{ color: QUALITY_COLORS[item.quality] || "#b0c3d9" }}>
+                    {item.quality}
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      ) : (
+        <GlassCard padding="sm" hover={false}>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/[0.06]">
+                  <th className="text-left text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Objeto</th>
+                  <th className="text-left text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Tipo</th>
+                  <th className="text-left text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Rareza</th>
+                  <th className="text-center text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Intercambiable</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredItems.map((item, i) => (
+                  <tr key={item.id + i} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                    <td className="py-2.5">
+                      <div className="flex items-center gap-3">
+                        {item.icon_url ? (
+                          <img
+                            src={`https://community.akamai.steamstatic.com/economy/image/${item.icon_url}`}
+                            alt={item.name}
+                            className="h-8 w-8 rounded"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                          />
+                        ) : (
+                          <Package className="h-5 w-5 text-muted-foreground/30" />
+                        )}
+                        <span className="text-sm font-medium truncate max-w-[200px]">{item.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-2.5 text-xs text-muted">{item.type || "—"}</td>
+                    <td className="py-2.5">
+                      <span className="text-xs font-medium" style={{ color: QUALITY_COLORS[item.quality] || "#b0c3d9" }}>
+                        {item.quality || "—"}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-center">
+                      {item.tradable ? (
+                        <span className="text-xs text-success">Sí</span>
+                      ) : (
+                        <span className="text-xs text-muted">No</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </GlassCard>
+      )}
     </div>
   );
 }

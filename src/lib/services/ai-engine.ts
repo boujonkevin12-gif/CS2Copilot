@@ -68,7 +68,7 @@ export function analyzePlayer(
           "Juega 20+ partidas clasificatorias en FACEIT y vuelve a sincronizar.",
           "Permitira un analisis detallado de tu rendimiento"),
       ],
-      trainingPlan: [{ focus: "基础", exercises: ["Juega 20 partidas clasificatorias en FACEIT"] }],
+      trainingPlan: [{ focus: "Basico", exercises: ["Juega 20 partidas clasificatorias en FACEIT"] }],
     };
   }
 
@@ -162,7 +162,7 @@ export function analyzePlayer(
       recommendations.push(rec("clutch", "media", "Entrena situaciones 1vX",
         `Ganaste ${clutches} clutches en ${matches} partidas (${clutchPerMatch.toFixed(2)} por partida). Puedes mejorar tu juego bajo presion.`,
         "Practica clutch scenarios en aim maps. Estudia demos de como se mueven los pros en 1v2+. Manten la calma y juega el tiempo.",
-        "Ganar 1-2 clutches extra por partido puede cambiar el resultado de许多partidos"));
+        "Ganar 1-2 clutches extra por partido puede cambiar el resultado de muchas partidas"));
     }
   }
 

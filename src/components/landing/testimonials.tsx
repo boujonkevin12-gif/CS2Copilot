@@ -6,58 +6,46 @@ import { Badge } from "@/components/ui/badge";
 
 const testimonials = [
   {
-    name: "s1mple",
-    role: "Jugador Profesional",
-    team: "NAVI",
+    name: "Jugador Nivel 10",
     content:
-      "CS2Pilot cambió completamente la forma en que reviso mis demos. Solo el análisis de puntería me ayudó a mejorar mi colocación del crosshair en un 15%. Herramienta esencial para cualquier jugador competitivo.",
+      "El análisis de puntería me ayudó a mejorar mi colocación del crosshair. Consejos específicos basados en mis datos reales de FACEIT.",
     rating: 5,
     rank: "FACEIT Nivel 10",
   },
   {
-    name: "NiKo",
-    role: "Jugador Profesional",
-    team: "G2 Esports",
+    name: "Jugador Competitivo",
     content:
-      "El rastreo de utilidades es increíble. Puedo ver exactamente dónde caen mis humos, qué tan efectivos son mis flashes y dónde mejorar mis alineaciones de granadas. Cambiador de juego.",
+      "El tracking de utilidades es muy útil. Puedo ver exactamente dónde mejorar mis alineaciones de granadas y mis executes en equipo.",
     rating: 5,
+    rank: "Premier 18,000",
+  },
+  {
+    name: "Aspirante a Pro",
+    content:
+      "He probado varias herramientas de análisis. La más completa y el coaching con IA se siente como tener un entrenador personal analizando cada partida.",
+    rating: 5,
+    rank: "FACEIT Nivel 8",
+  },
+  {
+    name: "Jugador Casual+",
+    content:
+      "Me gusta que muestra datos reales de mi perfil. El auto-detect de FACEIT con Steam es muy cómodo. Todo funciona sin complicaciones.",
+    rating: 4,
     rank: "Global Elite",
   },
   {
-    name: "ZywOo",
-    role: "Jugador Profesional",
-    team: "Vitality",
+    name: "Jugador de Equipo",
     content:
-      "He probado todas las herramientas de análisis de CS ahí fuera. CS2Pilot es con diferencia la más completa y el coaching con IA se siente como tener un entrenador real viendo cada partido.",
+      "Los lineups de utilidades son excelentes. Tengo acceso a smokes, flashes y molotovs para cada mapa con explicaciones claras.",
     rating: 5,
-    rank: "FACEIT Nivel 10",
+    rank: "FACEIT Nivel 9",
   },
   {
-    name: "dev1ce",
-    role: "Jugador Profesional",
-    team: "Astralis",
+    name: "Veterano de CS",
     content:
-      "El panel de análisis de equipo es exactamente lo que necesitaba. Puedo revisar el rendimiento de mis compañeros y coordinar estrategias basadas en datos, no solo en intuición.",
+      "Interfaz limpia, análisis basados en datos reales. CS2Pilot respeta tu tiempo y ofrece lo que necesitas para mejorar sin humo.",
     rating: 5,
-    rank: "Global Elite",
-  },
-  {
-    name: "EliGE",
-    role: "Jugador Profesional",
-    team: "Complexity",
-    content:
-      "La mejor inversión que he hecho para mi carrera. El seguimiento de progreso me mantiene motivado y los consejos de IA son muy precisos. Pasé del Nivel 7 al Nivel 10 en dos meses.",
-    rating: 5,
-    rank: "FACEIT Nivel 10",
-  },
-  {
-    name: "ropz",
-    role: "Jugador Profesional",
-    team: "FaZe Clan",
-    content:
-      "Interfaz limpia, análisis potentes, cero redundancia. CS2Pilot respeta tu tiempo y ofrece exactamente lo que necesitas para mejorar. Muy recomendado.",
-    rating: 5,
-    rank: "Global Elite",
+    rank: "Premier 15,000",
   },
 ];
 
@@ -81,8 +69,8 @@ export function Testimonials() {
             transition={{ delay: 0.1 }}
             className="text-4xl sm:text-5xl font-bold tracking-tight mb-6"
           >
-            Favorito de{" "}
-            <span className="gradient-text">150,000+</span> jugadores
+            Construido para{" "}
+            <span className="gradient-text">jugadores reales</span>
           </motion.h2>
         </div>
 
@@ -111,9 +99,6 @@ export function Testimonials() {
                 <div>
                   <div className="text-sm font-semibold">
                     {testimonial.name}
-                  </div>
-                  <div className="text-xs text-muted">
-                    {testimonial.role} &middot; {testimonial.team}
                   </div>
                 </div>
                 <Badge variant="default" size="sm">

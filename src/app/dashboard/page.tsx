@@ -4,7 +4,7 @@ import { motion, useInView } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/lib/user-context";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -33,7 +33,8 @@ function AnimatedNumber({ value, suffix = "", prefix = "", decimals = 0 }: { val
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
-  if (isInView && display === 0) {
+  useEffect(() => {
+    if (!isInView || display !== 0) return;
     const duration = 1500;
     const steps = 60;
     const increment = value / steps;
@@ -47,7 +48,8 @@ function AnimatedNumber({ value, suffix = "", prefix = "", decimals = 0 }: { val
         setDisplay(current);
       }
     }, duration / steps);
-  }
+    return () => clearInterval(timer);
+  }, [isInView, value, display]);
 
   return (
     <span ref={ref}>
@@ -67,7 +69,7 @@ function NotAvailable({ label }: { label: string }) {
 }
 
 export default function DashboardOverview() {
-  const { user, loading, friends, recentGames, cs2Stats } = useUser();
+  const { user, loading, friends, recentGames, cs2Stats, faceitStats } = useUser();
 
   if (loading) {
     return (
@@ -334,16 +336,27 @@ export default function DashboardOverview() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold">FACEIT</h3>
-                <p className="text-xs text-muted">Requiere integración</p>
+                <p className="text-xs text-muted">
+                  {user.faceitNickname ? user.faceitNickname : "Requiere integración"}
+                </p>
               </div>
             </div>
             <div className="glass rounded-xl p-6 text-center">
-              <div className="text-3xl font-bold font-mono text-muted mb-2">—</div>
-              <p className="text-xs text-muted">Conecta FACEIT para ver nivel y ELO</p>
-              <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-primary">
-                <LinkIcon className="h-3 w-3" />
-                <span>Conecta FACEIT</span>
-              </div>
+              {user.faceitPlayerId ? (
+                <>
+                  <div className="text-3xl font-bold font-mono text-primary mb-2">
+                    Nv. {user.faceitLevel ?? "—"}
+                  </div>
+                  <p className="text-xs text-muted">
+                    ELO: <span className="text-foreground font-medium">{user.faceitElo ?? "—"}</span>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold font-mono text-muted mb-2">—</div>
+                  <p className="text-xs text-muted">Conecta FACEIT para ver nivel y ELO</p>
+                </>
+              )}
             </div>
           </GlassCard>
         </motion.div>
@@ -356,16 +369,27 @@ export default function DashboardOverview() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Win Rate</h3>
-                <p className="text-xs text-muted">Requiere datos de partidas</p>
+                <p className="text-xs text-muted">
+                  {faceitStats?.lifetime ? "FACEIT" : "Requiere datos de partidas"}
+                </p>
               </div>
             </div>
             <div className="glass rounded-xl p-6 text-center">
-              <div className="text-3xl font-bold font-mono text-muted mb-2">—</div>
-              <p className="text-xs text-muted">No disponible sin historial</p>
-              <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-success">
-                <LinkIcon className="h-3 w-3" />
-                <span>Próximamente con Leetify</span>
-              </div>
+              {faceitStats?.lifetime ? (
+                <>
+                  <div className="text-3xl font-bold font-mono text-success mb-2">
+                    {faceitStats.lifetime["Win Rate %"] || "—"}%
+                  </div>
+                  <p className="text-xs text-muted">
+                    {faceitStats.lifetime.Matches || "0"} partidas jugadas
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="text-3xl font-bold font-mono text-muted mb-2">—</div>
+                  <p className="text-xs text-muted">No disponible sin historial</p>
+                </>
+              )}
             </div>
           </GlassCard>
         </motion.div>

@@ -13,15 +13,16 @@ import {
   Play,
   Eye,
   RotateCcw,
-  ChevronRight,
   Star,
   Clock,
   Target,
   Crosshair,
-  ArrowRight,
   Box,
   Maximize2,
   BookOpen,
+  Download,
+  ExternalLink,
+  CheckCircle2,
 } from "lucide-react";
 
 type GrenadeType = "smokes" | "molotovs" | "flashes" | "he";
@@ -337,9 +338,88 @@ function MapOverview({ selectedMap, grenadeType }: { selectedMap: MapName; grena
   );
 }
 
+function generateCFG(mapName: string, lineupName: string): string {
+  return `// CS2Pilot Practice Config - ${lineupName} (${mapName})
+// Generado automáticamente por CS2Pilot
+
+// Infinitas grenades
+mp_buytime 60
+mp_buy_anywhere 1
+sv_infinite_ammo 1
+sv_cheats 1
+
+// Sin restricciones de tiempo
+mp_roundtime_defuse 60
+mp_roundtime_hostage 60
+mp_maxrounds 0
+mp_freezetime 0
+
+// Noclip para practicar posiciones
+sv_noclip 1
+
+// Bots vacíos
+bot_kick
+
+// Mostrar trayectoria de granadas
+sv_grenade_trajectory 1
+sv_grenade_trajectory_thickness 0.1
+sv_grenade_trajectory_time 10
+sv_grenade_trajectory_dash 1
+
+// Cámara de granadas
+cl_sim_grenade_trajectory 1
+
+// Crosshair grande para practicar
+cl_crosshairsize 5
+cl_crosshairthickness 1
+cl_crosshairgap 0
+cl_crosshairdot 0
+
+// Info de daño
+developer 1
+con_filter_enable 2
+con_filter_text "Damage Given"
+
+// Mostrar impactos
+sv_showimpacts 1
+
+// Sonido de práctica
+sv_showimpacts_time 5
+
+echo "=========================================="
+echo "  CS2Pilot Practice Config cargado"
+echo "  Mapa: ${mapName}"
+echo "  Lineup: ${lineupName}"
+echo "=========================================="
+`;
+}
+
+function generateLaunchURL(mapName: string): string {
+  const mapConsoleName = `de_${mapName.toLowerCase()}`;
+  return `steam://rungameid/730//+map+${mapConsoleName}`;
+}
+
 function LineupCard({ lineup, index }: { lineup: GrenadeLineup; index: number }) {
   const typeInfo = grenadeTypes.find((t) => t.id === lineup.type)!;
-  const difficultyColor = lineup.difficulty === "Fácil" ? "text-success" : lineup.difficulty === "Media" ? "text-accent" : "text-danger";
+
+  const handleDownloadCFG = () => {
+    const cfg = generateCFG(lineup.name.split(" ")[1] || lineup.name, lineup.name);
+    const blob = new Blob([cfg], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cs2pilot_${lineup.name.toLowerCase().replace(/\s+/g, "_")}.cfg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleLaunchCS2 = () => {
+    const mapId = lineup.name.split(" ")[1] || lineup.name;
+    const url = generateLaunchURL(mapId);
+    window.location.href = url;
+  };
 
   return (
     <motion.div
@@ -347,7 +427,7 @@ function LineupCard({ lineup, index }: { lineup: GrenadeLineup; index: number })
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <div className="glass rounded-xl p-4 hover:bg-white/[0.04] transition-all group cursor-pointer">
+      <div className="glass rounded-xl p-4 hover:bg-white/[0.04] transition-all group">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: typeInfo.bgColor }}>
@@ -380,14 +460,20 @@ function LineupCard({ lineup, index }: { lineup: GrenadeLineup; index: number })
           </div>
         </div>
 
-        <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer">
-            <Play className="h-3 w-3" />
-            Ver lineup
+        <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center gap-2">
+          <button
+            onClick={handleDownloadCFG}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+          >
+            <Download className="h-3 w-3" />
+            Descargar CFG
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-white/[0.04] text-muted hover:bg-white/[0.08] transition-colors cursor-pointer">
-            <RotateCcw className="h-3 w-3" />
-            Practice
+          <button
+            onClick={handleLaunchCS2}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-success/10 text-success hover:bg-success/20 transition-colors cursor-pointer"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Probar en CS2
           </button>
         </div>
       </div>
@@ -422,11 +508,17 @@ export default function UtilityPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="glass rounded-lg px-3 py-1.5 flex items-center gap-2">
-            <Box className="h-4 w-4 text-primary" />
-            <span className="text-xs text-muted">Vista 3D</span>
-            <Badge variant="accent" size="sm">Próximamente</Badge>
-          </div>
+          <a
+            href="steam://rungameid/730//+map+de_dust2"
+            onClick={(e) => {
+              const confirmed = window.confirm("Esto abrirá CS2 y cargará Dust II en modo práctica con config de entrenamiento. ¿Continuar?");
+              if (!confirmed) e.preventDefault();
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-success/10 text-success text-sm font-medium hover:bg-success/20 transition-colors"
+          >
+            <Play className="h-4 w-4" />
+            Abrir CS2
+          </a>
         </div>
       </motion.div>
 
@@ -560,7 +652,7 @@ export default function UtilityPage() {
         </AnimatePresence>
       </div>
 
-      {/* 3D Preview Placeholder */}
+      {/* Practice Mode */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -568,26 +660,42 @@ export default function UtilityPage() {
       >
         <GlassCard padding="lg" className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-accent/[0.03]" />
-          <div className="relative z-10 text-center">
-            <motion.div
-              className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4"
-              animate={{ rotateY: [0, 360] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-            >
-              <Box className="h-8 w-8 text-primary" />
-            </motion.div>
-            <h3 className="text-lg font-bold mb-2">
-              Vista 3D <span className="gradient-text">Próximamente</span>
-            </h3>
-            <p className="text-sm text-muted max-w-md mx-auto">
-              Visualiza los lineups en un mapa 3D interactivo. Podrás recorrer la trayectoria
-              de cada granada y ver los puntos exactos de lanzamiento y aterrizaje.
-            </p>
-            <div className="flex items-center justify-center gap-3 mt-4">
-              <Badge variant="accent" size="md">
-                <Zap className="h-3 w-3 mr-1" />
-                En desarrollo
-              </Badge>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-12 w-12 rounded-xl bg-success/10 flex items-center justify-center">
+                <Play className="h-6 w-6 text-success" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold">Modo Práctica</h3>
+                <p className="text-xs text-muted">Configura CS2 automáticamente para practicar lineups</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <div className="glass rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Download className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">Descarga CFG</span>
+                </div>
+                <p className="text-xs text-muted">Cada lineup tiene un botón para descargar un .cfg con comandos de entrenamiento (infinite ammo, noclip, trajectory, etc.)</p>
+              </div>
+              <div className="glass rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <ExternalLink className="h-4 w-4 text-success" />
+                  <span className="text-sm font-medium">Abre CS2</span>
+                </div>
+                <p className="text-xs text-muted">Haz clic en "Probar en CS2" para abrir Steam directamente en el mapa correspondiente. Ejecuta el CFG en la consola con <code className="text-primary">exec</code>.</p>
+              </div>
+              <div className="glass rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="h-4 w-4 text-accent" />
+                  <span className="text-sm font-medium">Practica</span>
+                </div>
+                <p className="text-xs text-muted">Con el CFG cargado tendrás: grenades infinitas, noclip, trayectoria visible, bots eliminados y más.</p>
+              </div>
+            </div>
+            <div className="text-xs text-muted">
+              <strong>Tip:</strong> Después de descargar el CFG, abre la consola de CS2 (<code className="text-primary">~</code>) y escribe{" "}
+              <code className="text-primary">exec cs2pilot_[nombre_del_lineup]</code> para cargar la configuración.
             </div>
           </div>
         </GlassCard>
