@@ -8,10 +8,10 @@ class SteamService {
   private apiKey: string;
 
   constructor() {
-    if (!STEAM_API_KEY) {
-      throw new Error("STEAM_API_KEY is not set in environment variables");
+    this.apiKey = STEAM_API_KEY || "";
+    if (!this.apiKey) {
+      console.warn("[SteamService] STEAM_API_KEY is not set — Steam API calls will fail");
     }
-    this.apiKey = STEAM_API_KEY;
   }
 
   private async fetch<T>(url: string): Promise<T | null> {
@@ -165,7 +165,7 @@ class SteamService {
   }
 
   async getFullProfile(steamId: string): Promise<SteamPlayer> {
-    const [summary, bans, level, ownedGames, recentGames, friends] = await Promise.all([
+    const results = await Promise.allSettled([
       this.getPlayerSummary(steamId),
       this.getPlayerBans(steamId),
       this.getSteamLevel(steamId),
@@ -173,6 +173,19 @@ class SteamService {
       this.getRecentlyPlayedGames(steamId),
       this.getFriendsList(steamId),
     ]);
+
+    const pick = <T>(r: PromiseSettledResult<T>, fallback: T): T =>
+      r.status === "fulfilled" ? r.value : fallback;
+
+    const summary = pick(results[0], null);
+    const bans = pick(results[1], {
+      communityBanned: false, vacBanned: false, numberOfVACBans: 0,
+      numberOfGameBans: 0, daysSinceLastBan: 0,
+    });
+    const level = pick(results[2], { player_level: 0, player_xp: 0, player_xp_needed: 0 });
+    const ownedGames = pick(results[3], []);
+    const recentGames = pick(results[4], []);
+    const friends = pick(results[5], []);
 
     const cs2Game = ownedGames.find((g) => g.appid === CS2_APPID);
 

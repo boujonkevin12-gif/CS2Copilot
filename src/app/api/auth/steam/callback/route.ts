@@ -55,7 +55,44 @@ export async function GET(request: NextRequest) {
       path: "/",
     });
     return response;
-  } catch {
-    return NextResponse.redirect(new URL("/login?error=steam_api_error", request.url));
+  } catch (err) {
+    console.error("[SteamCallback] getFullProfile failed:", err);
+
+    // Fallback: save minimal profile with just the steamId so login still works
+    const isSecure = request.url.startsWith("https://");
+    const fallbackProfile = {
+      steamId,
+      name: "Jugador",
+      avatar: null,
+      avatarMedium: null,
+      avatarSmall: null,
+      profileUrl: `https://steamcommunity.com/profiles/${steamId}`,
+      country: null,
+      visibility: 0,
+      lastLogoff: 0,
+      createdAt: 0,
+      steamLevel: 0,
+      steamXp: 0,
+      steamXpNeeded: 0,
+      bans: {
+        communityBanned: false,
+        vacBanned: false,
+        numberOfVACBans: 0,
+        numberOfGameBans: 0,
+        daysSinceLastBan: 0,
+      },
+      cs2: null,
+      totalGames: 0,
+    };
+
+    const response = NextResponse.redirect(new URL("/dashboard", request.url));
+    response.cookies.set("cs2pilot_user", JSON.stringify(fallbackProfile), {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
+    return response;
   }
 }
