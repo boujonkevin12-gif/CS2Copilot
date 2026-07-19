@@ -70,11 +70,13 @@ const settingsSections = [
 ];
 
 export default function SettingsPage() {
-  const { user, connectFaceit, disconnectFaceit } = useUser();
+  const { user, connectFaceit, autoLinkFaceit, disconnectFaceit } = useUser();
   const router = useRouter();
   const [faceitNickname, setFaceitNickname] = useState("");
   const [faceitLoading, setFaceitLoading] = useState(false);
   const [faceitError, setFaceitError] = useState("");
+  const [autoDetecting, setAutoDetecting] = useState(false);
+  const [autoDetectResult, setAutoDetectResult] = useState<string | null>(null);
 
   const initials = (user?.name || "U")
     .split(" ")
@@ -83,10 +85,27 @@ export default function SettingsPage() {
     .slice(0, 2)
     .toUpperCase();
 
-  const handleLogout = () => {
-    document.cookie =
-      "cs2pilot_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // fallback
+    }
     router.push("/login");
+  };
+
+  const handleAutoDetect = async () => {
+    setAutoDetecting(true);
+    setAutoDetectResult(null);
+    setFaceitError("");
+    const result = await autoLinkFaceit();
+    setAutoDetecting(false);
+    if (result.success) {
+      setAutoDetectResult(`Conectado: ${result.faceit?.nickname} (Nivel ${result.faceit?.level ?? "?"}, ELO ${result.faceit?.elo ?? "?"})`);
+    } else {
+      setAutoDetectResult(null);
+      setFaceitError(result.error || "No se encontro cuenta de FACEIT vinculada a tu Steam");
+    }
   };
 
   const handleConnectFaceit = async () => {
@@ -191,10 +210,28 @@ export default function SettingsPage() {
         ) : (
           <div className="space-y-3">
             <div className="flex gap-2">
+              <Button
+                variant="accent"
+                size="sm"
+                onClick={handleAutoDetect}
+                disabled={autoDetecting || faceitLoading}
+                icon={autoDetecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+              >
+                {autoDetecting ? "Buscando..." : "Auto-detectar por Steam"}
+              </Button>
+            </div>
+            {autoDetectResult && (
+              <div className="flex items-center gap-2 text-xs text-success">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                {autoDetectResult}
+              </div>
+            )}
+            <div className="text-xs text-muted">— o ingresa tu nickname manualmente —</div>
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={faceitNickname}
-                onChange={(e) => { setFaceitNickname(e.target.value); setFaceitError(""); }}
+                onChange={(e) => { setFaceitNickname(e.target.value); setFaceitError(""); setAutoDetectResult(null); }}
                 placeholder="Tu nickname de FACEIT"
                 className="flex-1 h-9 px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                 onKeyDown={(e) => e.key === "Enter" && handleConnectFaceit()}

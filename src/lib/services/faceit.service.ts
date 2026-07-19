@@ -184,6 +184,12 @@ class FaceitApiService {
     return this.request<FaceitPlayer>(`/players?nickname=${encodeURIComponent(nickname)}`);
   }
 
+  async getPlayerBySteamId(steamId64: string): Promise<FaceitPlayer | null> {
+    return this.request<FaceitPlayer>(
+      `/players?game=cs2&game_player_id=${encodeURIComponent(steamId64)}`
+    );
+  }
+
   async getPlayerById(playerId: string): Promise<FaceitPlayer | null> {
     return this.request<FaceitPlayer>(`/players/${playerId}`);
   }

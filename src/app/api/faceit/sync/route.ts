@@ -1,17 +1,41 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { getFaceitService } from "@/lib/services/faceit.service";
 
-export async function GET(request: NextRequest) {
+function parseUserCookie(request: NextRequest): Record<string, unknown> | null {
   const cookie = request.cookies.get("cs2pilot_user");
-  if (!cookie) {
-    return NextResponse.json({ error: "No hay sesion activa" }, { status: 401 });
-  }
-
-  let userData: Record<string, unknown>;
+  if (!cookie) return null;
   try {
-    userData = JSON.parse(cookie.value);
+    return JSON.parse(cookie.value);
   } catch {
-    return NextResponse.json({ error: "Sesion invalida" }, { status: 401 });
+    return null;
+  }
+}
+
+function setCookie(request: NextRequest, data: Record<string, unknown>): NextResponse {
+  const isSecure = request.url.startsWith("https://");
+  const response = NextResponse.json({ success: true });
+  const cookieSize = new TextEncoder().encode(JSON.stringify(data)).length;
+  if (cookieSize > 4000) {
+    return NextResponse.json({ error: "Sesion demasiado grande" }, { status: 500 });
+  }
+  response.cookies.set("cs2pilot_user", JSON.stringify(data), {
+    httpOnly: true,
+    secure: isSecure,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 30,
+    path: "/",
+  });
+  return response;
+}
+
+function getUserJsonResponse(data: Record<string, unknown>, extra?: Record<string, unknown>) {
+  return { ...data, ...extra };
+}
+
+export async function GET(request: NextRequest) {
+  const userData = parseUserCookie(request);
+  if (!userData) {
+    return NextResponse.json({ error: "No hay sesion activa" }, { status: 401 });
   }
 
   const playerId = userData.faceitPlayerId as string | undefined;
@@ -29,26 +53,197 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  let body: { playerId?: string; action?: string; nickname?: string };
+  let body: Record<string, unknown>;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Cuerpo de solicitud invalido" }, { status: 400 });
+    body = {};
   }
 
-  if (body.action === "connect") {
-    return handleConnect(body.nickname, request);
+  const action = body.action as string | undefined;
+
+  if (action === "connect" || action === "autolink") {
+    return handleAutoLink(request);
   }
 
-  if (body.action === "disconnect") {
+  if (action === "connect-by-nickname") {
+    return handleConnectByNickname(body.nickname as string | undefined, request);
+  }
+
+  if (action === "disconnect") {
     return handleDisconnect(request);
   }
 
-  const { playerId } = body;
+  const playerId = body.playerId as string | undefined;
   if (!playerId) {
     return NextResponse.json({ error: "Se requiere el campo playerId" }, { status: 400 });
   }
 
+  return handleSyncMatches(playerId);
+}
+
+async function handleAutoLink(request: NextRequest) {
+  const userData = parseUserCookie(request);
+  if (!userData) {
+    return NextResponse.json({ error: "No hay sesion activa" }, { status: 401 });
+  }
+
+  const steamId = userData.steamId as string | undefined;
+  if (!steamId) {
+    return NextResponse.json({ error: "No se encontro Steam ID en la sesion" }, { status: 400 });
+  }
+
+  try {
+    const faceit = getFaceitService();
+    const player = await faceit.getPlayerBySteamId(steamId);
+
+    if (!player) {
+      return NextResponse.json(
+        { error: "No se encontro una cuenta de FACEIT vinculada a tu Steam.", linked: false },
+        { status: 404 }
+      );
+    }
+
+    if (player.steam_id_64 && player.steam_id_64 !== steamId) {
+      return NextResponse.json(
+        { error: "La cuenta de FACEIT encontrada no coincide con tu Steam ID." },
+        { status: 403 }
+      );
+    }
+
+    const updatedUser = {
+      ...userData,
+      faceitPlayerId: player.player_id,
+      faceitNickname: player.nickname,
+      faceitLevel: player.games?.cs2?.level ?? null,
+      faceitElo: player.games?.cs2?.elo ?? null,
+      faceitLinkedAt: new Date().toISOString(),
+    };
+
+    const response = NextResponse.json({
+      success: true,
+      linked: true,
+      faceit: {
+        nickname: player.nickname,
+        playerId: player.player_id,
+        level: player.games?.cs2?.level ?? null,
+        elo: player.games?.cs2?.elo ?? null,
+        avatar: player.avatar,
+      },
+    });
+
+    const isSecure = request.url.startsWith("https://");
+    response.cookies.set("cs2pilot_user", JSON.stringify(updatedUser), {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
+
+    return response;
+  } catch {
+    return NextResponse.json(
+      { error: "Error al buscar cuenta de FACEIT. Intenta de nuevo." },
+      { status: 500 }
+    );
+  }
+}
+
+async function handleConnectByNickname(nickname: string | undefined, request: NextRequest) {
+  if (!nickname || !nickname.trim()) {
+    return NextResponse.json({ error: "Se requiere el nickname de FACEIT" }, { status: 400 });
+  }
+
+  const userData = parseUserCookie(request);
+  if (!userData) {
+    return NextResponse.json({ error: "No hay sesion activa" }, { status: 401 });
+  }
+
+  try {
+    const faceit = getFaceitService();
+    const player = await faceit.getPlayerByNickname(nickname.trim());
+
+    if (!player) {
+      return NextResponse.json(
+        { error: "Jugador no encontrado en FACEIT. Verifica el nickname." },
+        { status: 404 }
+      );
+    }
+
+    const steamId = userData.steamId as string | undefined;
+    if (steamId && player.steam_id_64 && player.steam_id_64 !== steamId) {
+      return NextResponse.json(
+        { error: "Esa cuenta de FACEIT no esta vinculada a tu Steam." },
+        { status: 403 }
+      );
+    }
+
+    const updatedUser = {
+      ...userData,
+      faceitPlayerId: player.player_id,
+      faceitNickname: player.nickname,
+      faceitLevel: player.games?.cs2?.level ?? null,
+      faceitElo: player.games?.cs2?.elo ?? null,
+      faceitLinkedAt: new Date().toISOString(),
+    };
+
+    const response = NextResponse.json({
+      success: true,
+      linked: true,
+      faceit: {
+        nickname: player.nickname,
+        playerId: player.player_id,
+        level: player.games?.cs2?.level ?? null,
+        elo: player.games?.cs2?.elo ?? null,
+        avatar: player.avatar,
+      },
+    });
+
+    const isSecure = request.url.startsWith("https://");
+    response.cookies.set("cs2pilot_user", JSON.stringify(updatedUser), {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
+
+    return response;
+  } catch {
+    return NextResponse.json(
+      { error: "Error al conectar con FACEIT. Intenta de nuevo." },
+      { status: 500 }
+    );
+  }
+}
+
+function handleDisconnect(request: NextRequest) {
+  const userData = parseUserCookie(request);
+  if (!userData) {
+    return NextResponse.json({ error: "No hay sesion activa" }, { status: 401 });
+  }
+
+  delete userData.faceitPlayerId;
+  delete userData.faceitNickname;
+  delete userData.faceitLevel;
+  delete userData.faceitElo;
+  delete userData.faceitLinkedAt;
+
+  const isSecure = request.url.startsWith("https://");
+  const response = NextResponse.json({ success: true });
+  response.cookies.set("cs2pilot_user", JSON.stringify(userData), {
+    httpOnly: true,
+    secure: isSecure,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 30,
+    path: "/",
+  });
+
+  return response;
+}
+
+async function handleSyncMatches(playerId: string) {
   try {
     const faceit = getFaceitService();
 
@@ -123,99 +318,4 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Error al sincronizar datos de FACEIT" }, { status: 500 });
   }
-}
-
-async function handleConnect(nickname: string | undefined, request: NextRequest) {
-  if (!nickname || !nickname.trim()) {
-    return NextResponse.json({ error: "Se requiere el nickname de FACEIT" }, { status: 400 });
-  }
-
-  const cookie = request.cookies.get("cs2pilot_user");
-  if (!cookie) {
-    return NextResponse.json({ error: "No hay sesion activa" }, { status: 401 });
-  }
-
-  let userData: Record<string, unknown>;
-  try {
-    userData = JSON.parse(cookie.value);
-  } catch {
-    return NextResponse.json({ error: "Sesion invalida" }, { status: 401 });
-  }
-
-  try {
-    const faceit = getFaceitService();
-    const player = await faceit.getPlayerByNickname(nickname.trim());
-
-    if (!player) {
-      return NextResponse.json(
-        { error: "Jugador no encontrado en FACEIT. Verifica el nickname." },
-        { status: 404 }
-      );
-    }
-
-    const updatedUser = { ...userData,
-      faceitNickname: player.nickname,
-      faceitPlayerId: player.player_id,
-      faceitLevel: player.games?.cs2?.level ?? null,
-      faceitElo: player.games?.cs2?.elo ?? null,
-    };
-
-    const response = NextResponse.json({
-      success: true,
-      faceit: {
-        nickname: player.nickname,
-        playerId: player.player_id,
-        level: player.games?.cs2?.level ?? null,
-        elo: player.games?.cs2?.elo ?? null,
-        avatar: player.avatar,
-      },
-    });
-
-    const isSecure = request.url.startsWith("https://");
-    response.cookies.set("cs2pilot_user", JSON.stringify(updatedUser), {
-      httpOnly: true,
-      secure: isSecure,
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30,
-      path: "/",
-    });
-
-    return response;
-  } catch {
-    return NextResponse.json(
-      { error: "Error al conectar con FACEIT. Intenta de nuevo." },
-      { status: 500 }
-    );
-  }
-}
-
-function handleDisconnect(request: NextRequest) {
-  const cookie = request.cookies.get("cs2pilot_user");
-  if (!cookie) {
-    return NextResponse.json({ error: "No hay sesion activa" }, { status: 401 });
-  }
-
-  let userData: Record<string, unknown>;
-  try {
-    userData = JSON.parse(cookie.value);
-  } catch {
-    return NextResponse.json({ error: "Sesion invalida" }, { status: 401 });
-  }
-
-  delete userData.faceitNickname;
-  delete userData.faceitPlayerId;
-  delete userData.faceitLevel;
-  delete userData.faceitElo;
-
-  const isSecure = request.url.startsWith("https://");
-  const response = NextResponse.json({ success: true });
-  response.cookies.set("cs2pilot_user", JSON.stringify(userData), {
-    httpOnly: true,
-    secure: isSecure,
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 30,
-    path: "/",
-  });
-
-  return response;
 }

@@ -200,6 +200,7 @@ interface UserContextType {
   loadingFaceitMatches: boolean;
   refresh: () => Promise<void>;
   connectFaceit: (nickname: string) => Promise<{ success: boolean; error?: string }>;
+  autoLinkFaceit: () => Promise<{ success: boolean; error?: string; faceit?: { nickname: string; level: number | null; elo: number | null } }>;
   disconnectFaceit: () => Promise<void>;
   syncFaceitMatches: () => Promise<void>;
 }
@@ -218,6 +219,7 @@ const UserContext = createContext<UserContextType>({
   loadingFaceitMatches: false,
   refresh: async () => {},
   connectFaceit: async () => ({ success: false }),
+  autoLinkFaceit: async () => ({ success: false }),
   disconnectFaceit: async () => {},
   syncFaceitMatches: async () => {},
 });
@@ -339,7 +341,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const res = await fetch("/api/faceit/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "connect", nickname }),
+        body: JSON.stringify({ action: "connect-by-nickname", nickname }),
       });
       const data = await res.json();
       if (data.success) {
@@ -353,6 +355,30 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return { success: true };
       }
       return { success: false, error: data.error || "Error desconocido" };
+    } catch {
+      return { success: false, error: "Error de conexion" };
+    }
+  }, []);
+
+  const autoLinkFaceit = useCallback(async (): Promise<{ success: boolean; error?: string; faceit?: { nickname: string; level: number | null; elo: number | null } }> => {
+    try {
+      const res = await fetch("/api/faceit/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "autolink" }),
+      });
+      const data = await res.json();
+      if (data.success && data.linked) {
+        setUser((prev) => prev ? {
+          ...prev,
+          faceitNickname: data.faceit.nickname,
+          faceitPlayerId: data.faceit.playerId,
+          faceitLevel: data.faceit.level,
+          faceitElo: data.faceit.elo,
+        } : null);
+        return { success: true, faceit: data.faceit };
+      }
+      return { success: false, error: data.error || "No se encontro cuenta de FACEIT" };
     } catch {
       return { success: false, error: "Error de conexion" };
     }
@@ -405,7 +431,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       loadingGames, loadingFriends,
       faceitMatches, faceitStats, loadingFaceitMatches,
       refresh: fetchUser,
-      connectFaceit, disconnectFaceit, syncFaceitMatches,
+      connectFaceit, autoLinkFaceit, disconnectFaceit, syncFaceitMatches,
     }}>
       {children}
     </UserContext.Provider>
