@@ -1,9 +1,12 @@
+import { Readable } from "stream";
+
 export interface ParsedDemo {
   map: string;
   serverName: string;
   duration: number;
   rounds: ParsedRound[];
   playerStats: ParsedPlayerStats;
+  allPlayers?: ParsedPlayerStats[];
   error?: string;
 }
 
@@ -28,6 +31,13 @@ export interface ParsedPlayerStats {
   kd: number;
   hsPercent: number;
   adr: number;
+  mvps: number;
+  score: number;
+  utilityDamage: number;
+  enemiesFlashed: number;
+  enemy3Ks: number;
+  enemy4Ks: number;
+  enemy5Ks: number;
 }
 
 function emptyStats(): ParsedPlayerStats {
@@ -36,61 +46,136 @@ function emptyStats(): ParsedPlayerStats {
     headshotKills: 0, totalDamage: 0, weaponKills: {},
     clutchWins: {}, aceRounds: [], firstDeathRounds: [],
     kd: 0, hsPercent: 0, adr: 0,
+    mvps: 0, score: 0, utilityDamage: 0, enemiesFlashed: 0,
+    enemy3Ks: 0, enemy4Ks: 0, enemy5Ks: 0,
   };
 }
 
 export async function parseDemoFile(buffer: Buffer): Promise<ParsedDemo | null> {
   try {
-    const demofile = await import("demofile");
-    const DemoFileClass = demofile.DemoFile;
+    const { DemoReader, EntityMode } = await import("cs2parser");
 
-    return new Promise((resolve) => {
-      const demo = new DemoFileClass();
-      const timeout = setTimeout(() => {
-        resolve({
-          map: "unknown", serverName: "desconocido", duration: 0, rounds: [],
-          playerStats: emptyStats(),
-          error: "Timeout: la demo tardo demasiado. Asegurate de que sea un archivo .dem valido.",
-        });
-        demo.cancel();
-      }, 15000);
+    const parser = new DemoReader();
+    let roundCount = 0;
+    const rounds: ParsedRound[] = [];
+    const weaponKillsMap: Record<string, Record<string, number>> = {};
+    const playerClutches: Record<string, Record<string, number>> = {};
+    const playerFirstDeaths: Record<string, number[]> = {};
 
-      demo.on("start", () => {
-        clearTimeout(timeout);
-        const map = demo.header.mapName || "unknown";
-        const serverName = demo.header.serverName || "desconocido";
-        resolve({
-          map, serverName, duration: 0, rounds: [],
-          playerStats: emptyStats(),
-          error: "Demo detectada correctamente, pero el parseo detallado de CS2 aun no esta soportado. La libreria actual solo soporta CS:GO.",
-        });
-      });
+    parser.gameEvents.on("round_end", () => {
+      roundCount++;
+    });
 
-      demo.on("error", () => {
-        clearTimeout(timeout);
-        resolve({
-          map: "unknown", serverName: "desconocido", duration: 0, rounds: [],
-          playerStats: emptyStats(),
-          error: "No se pudo leer la demo. Verifica que el archivo no este corrupto y que sea de CS2.",
-        });
-      });
-
-      try {
-        demo.parse(buffer);
-      } catch {
-        clearTimeout(timeout);
-        resolve({
-          map: "unknown", serverName: "desconocido", duration: 0, rounds: [],
-          playerStats: emptyStats(),
-          error: "Error al procesar el archivo. El formato de la demo no es compatible con la libreria actual.",
-        });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parser.gameEvents.on("player_death", (event: any) => {
+      const attacker = event.attackerPlayer as { name?: string; steamId?: string } | undefined;
+      const weapon = String(event.weapon || "");
+      if (attacker && attacker.steamId) {
+        const sid = attacker.steamId;
+        if (!weaponKillsMap[sid]) weaponKillsMap[sid] = {};
+        weaponKillsMap[sid][weapon] = (weaponKillsMap[sid][weapon] || 0) + 1;
       }
     });
-  } catch (err) {
+
+    const bufferStream = Readable.from(buffer);
+
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        parser.cancel();
+        resolve();
+      }, 30000);
+
+      parser.on("end", () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+
+      parser.on("error", () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+
+      parser.parseDemo(bufferStream, { entities: EntityMode.ALL }).catch(() => {
+        clearTimeout(timeout);
+        resolve();
+      });
+    });
+
+    const mapName = parser.header?.map_name || "unknown";
+    const serverName = parser.header?.server_name || "desconocido";
+
+    const allPlayers: ParsedPlayerStats[] = [];
+    let firstPlayer: ParsedPlayerStats | null = null;
+
+    for (const player of parser.playerControllers) {
+      if (!player || !player.name || player.steamId === "0") continue;
+
+      const totalRounds = Math.max(roundCount, 1);
+      const kills = player.kills;
+      const deaths = player.deaths;
+      const assists = player.assists;
+      const hsKills = player.headshotKills;
+      const totalDmg = player.damage;
+      const kd = deaths > 0 ? Math.round((kills / deaths) * 100) / 100 : kills;
+      const hsPercent = kills > 0 ? Math.round((hsKills / kills) * 1000) / 10 : 0;
+      const adr = totalRounds > 0 ? Math.round((totalDmg / totalRounds) * 10) / 10 : 0;
+
+      const stats: ParsedPlayerStats = {
+        name: player.name,
+        steamId: player.steamId,
+        kills,
+        deaths,
+        assists,
+        headshotKills: hsKills,
+        totalDamage: totalDmg,
+        weaponKills: weaponKillsMap[player.steamId] || {},
+        clutchWins: {},
+        aceRounds: [],
+        firstDeathRounds: playerFirstDeaths[player.steamId] || [],
+        kd,
+        hsPercent,
+        adr,
+        mvps: player.mvps,
+        score: player.score,
+        utilityDamage: player.utilityDamage,
+        enemiesFlashed: player.enemiesFlashed,
+        enemy3Ks: player.enemy3Ks,
+        enemy4Ks: player.enemy4Ks,
+        enemy5Ks: player.enemy5Ks,
+      };
+
+      allPlayers.push(stats);
+
+      if (!firstPlayer || kills > firstPlayer.kills) {
+        firstPlayer = stats;
+      }
+    }
+
+    if (!firstPlayer && allPlayers.length > 0) {
+      firstPlayer = allPlayers[0];
+    }
+
     return {
-      map: "unknown", serverName: "desconocido", duration: 0, rounds: [],
+      map: mapName,
+      serverName,
+      duration: parser.currentTime || 0,
+      rounds: Array.from({ length: roundCount }, (_, i) => ({
+        roundNum: i + 1,
+        winner: "",
+        length: 0,
+      })),
+      playerStats: firstPlayer || emptyStats(),
+      allPlayers,
+    };
+  } catch (err) {
+    console.error("[DemoParser] Error:", err);
+    return {
+      map: "unknown",
+      serverName: "desconocido",
+      duration: 0,
+      rounds: [],
       playerStats: emptyStats(),
-      error: `No se pudo cargar el parser: ${err instanceof Error ? err.message : "error desconocido"}.`,
+      error: `Error al parsear la demo: ${err instanceof Error ? err.message : "error desconocido"}`,
     };
   }
 }
