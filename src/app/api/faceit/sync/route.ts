@@ -249,7 +249,12 @@ async function handleSyncMatches(playerId: string) {
 
     const matchHistory = await faceit.getMatchHistory(playerId, 0, 20);
     if (!matchHistory || matchHistory.items.length === 0) {
-      return NextResponse.json({ error: "No se encontraron partidas para este jugador" }, { status: 404 });
+      return NextResponse.json({
+        playerId,
+        syncedAt: new Date().toISOString(),
+        totalMatches: 0,
+        matches: [],
+      });
     }
 
     const syncResults = await Promise.all(

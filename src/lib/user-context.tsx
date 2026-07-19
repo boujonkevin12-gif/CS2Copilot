@@ -313,11 +313,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const fetchFaceitMatches = useCallback(async () => {
+  const fetchFaceitMatches = useCallback(async (overridePlayerId?: string) => {
     setLoadingFaceitMatches(true);
     try {
-      const userData = await (await fetch("/api/auth/me")).json();
-      const playerId = userData.user?.faceitPlayerId;
+      const playerId = overridePlayerId || user?.faceitPlayerId;
       if (!playerId) {
         setFaceitMatches([]);
         return;
@@ -334,7 +333,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingFaceitMatches(false);
     }
-  }, []);
+  }, [user?.faceitPlayerId]);
 
   const connectFaceit = useCallback(async (nickname: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -406,9 +405,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const syncFaceitMatches = useCallback(async () => {
-    await fetchFaceitMatches();
+    const playerId = user?.faceitPlayerId;
+    if (!playerId) return;
+    await fetchFaceitMatches(playerId);
     await fetchFaceitStats();
-  }, [fetchFaceitMatches, fetchFaceitStats]);
+  }, [user?.faceitPlayerId, fetchFaceitMatches, fetchFaceitStats]);
 
   useEffect(() => {
     fetchUser().then((u) => {
@@ -418,7 +419,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         fetchFriends();
         fetchCs2Stats();
         if (u.faceitPlayerId) {
-          fetchFaceitMatches();
+          fetchFaceitMatches(u.faceitPlayerId);
           fetchFaceitStats();
         }
       }
