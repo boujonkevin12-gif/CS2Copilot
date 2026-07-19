@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSteamService } from "@/lib/services";
+import { getFaceitService } from "@/lib/services/faceit.service";
 
 function extractSteamId(claimedId: string): string | null {
   const match = claimedId?.match(/\/id\/(\d+)$/);
@@ -24,8 +25,7 @@ export async function GET(request: NextRequest) {
     const steamService = getSteamService();
     const fullProfile = await steamService.getFullProfile(steamId);
 
-    // Store ONLY essential data in cookie (must fit under 4KB)
-    const minimalProfile = {
+    const minimalProfile: Record<string, unknown> = {
       steamId: fullProfile.steamId,
       name: fullProfile.name,
       avatar: fullProfile.avatar,
@@ -44,6 +44,21 @@ export async function GET(request: NextRequest) {
       totalGames: fullProfile.totalGames,
     };
 
+    // Auto-link FACEIT if a player is found by Steam ID
+    try {
+      const faceit = getFaceitService();
+      const faceitPlayer = await faceit.getPlayerBySteamId(steamId);
+      if (faceitPlayer) {
+        minimalProfile.faceitPlayerId = faceitPlayer.player_id;
+        minimalProfile.faceitNickname = faceitPlayer.nickname;
+        minimalProfile.faceitLevel = faceitPlayer.games?.cs2?.level ?? null;
+        minimalProfile.faceitElo = faceitPlayer.games?.cs2?.elo ?? null;
+        minimalProfile.faceitLinkedAt = new Date().toISOString();
+      }
+    } catch {
+      // FACEIT lookup failed — login continues without FACEIT
+    }
+
     const cookieValue = JSON.stringify(minimalProfile);
     const isSecure = request.url.startsWith("https://");
     const response = NextResponse.redirect(new URL("/dashboard", request.url));
@@ -60,7 +75,7 @@ export async function GET(request: NextRequest) {
 
     // Fallback: save minimal profile with just the steamId so login still works
     const isSecure = request.url.startsWith("https://");
-    const fallbackProfile = {
+    const fallbackProfile: Record<string, unknown> = {
       steamId,
       name: "Jugador",
       avatar: null,
@@ -84,6 +99,21 @@ export async function GET(request: NextRequest) {
       cs2: null,
       totalGames: 0,
     };
+
+    // Even in fallback, try to auto-link FACEIT
+    try {
+      const faceit = getFaceitService();
+      const faceitPlayer = await faceit.getPlayerBySteamId(steamId);
+      if (faceitPlayer) {
+        fallbackProfile.faceitPlayerId = faceitPlayer.player_id;
+        fallbackProfile.faceitNickname = faceitPlayer.nickname;
+        fallbackProfile.faceitLevel = faceitPlayer.games?.cs2?.level ?? null;
+        fallbackProfile.faceitElo = faceitPlayer.games?.cs2?.elo ?? null;
+        fallbackProfile.faceitLinkedAt = new Date().toISOString();
+      }
+    } catch {
+      // ignore
+    }
 
     const response = NextResponse.redirect(new URL("/dashboard", request.url));
     response.cookies.set("cs2pilot_user", JSON.stringify(fallbackProfile), {
