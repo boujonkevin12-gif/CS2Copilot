@@ -71,11 +71,11 @@ export default function ProfilePage() {
   const createdAtDate = user.createdAt ? new Date(user.createdAt * 1000).toLocaleDateString("es-AR", { month: "long", year: "numeric" }) : "Desconocido";
   const lastLogoffDate = user.lastLogoff ? new Date(user.lastLogoff * 1000).toLocaleString("es-AR") : "Desconocido";
   const ls = faceitStats?.lifetime;
-  const lMatches = ls ? parseInt(ls.Matches || "0", 10) : 0;
-  const lWinRate = ls ? parseFloat(ls["Win Rate %"] || "0") : 0;
-  const lKD = ls ? parseFloat(ls["Average K/D Ratio"] || "0") : 0;
-  const lHS = ls ? parseFloat(ls["Average Headshots %"] || "0") : 0;
-  const lADR = ls ? parseFloat(ls["Average Damage per Round"] || "0") : 0;
+  const lMatches = ls ? parseInt(String(ls.Matches || "0"), 10) : 0;
+  const lWinRate = ls ? parseFloat(String(ls["Win Rate %"] || "0")) : 0;
+  const lKD = ls ? parseFloat(String(ls["Average K/D Ratio"] || "0")) : 0;
+  const lHS = ls ? parseFloat(String(ls["Average Headshots %"] || "0")) : 0;
+  const lADR = ls ? parseFloat(String(ls["ADR"] || "0")) : 0;
 
   const steamStats = [
     { label: "Steam Level", value: user.steamLevel, color: "text-primary" },

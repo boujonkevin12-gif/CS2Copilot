@@ -31,17 +31,17 @@ export async function POST(request: NextRequest) {
       const stats = await faceit.getPlayerStats(faceitPlayerId);
       if (stats?.lifetime) {
         lifetimeStats = {
-          matches: stats.lifetime.Matches || "0",
-          winRate: stats.lifetime["Win Rate %"] || "0",
-          kd: stats.lifetime["Average K/D Ratio"] || "0",
-          hsPercent: stats.lifetime["Average Headshots %"] || "0",
-          adr: stats.lifetime["Average Damage per Round"] || "0",
-          kast: stats.lifetime["Average KAST"] || "0",
-          clutches: stats.lifetime["Clutches Won"] || "0",
-          rating: stats.lifetime.Rating || "0",
-          kills: stats.lifetime.Kills || "0",
-          deaths: stats.lifetime.Deaths || "0",
-          assists: stats.lifetime.Assists || "0",
+          matches: String(stats.lifetime.Matches || "0"),
+          winRate: String(stats.lifetime["Win Rate %"] || "0"),
+          kd: String(stats.lifetime["Average K/D Ratio"] || "0"),
+          hsPercent: String(stats.lifetime["Average Headshots %"] || "0"),
+          adr: String(stats.lifetime["ADR"] || "0"),
+          kast: "0",
+          clutches: String((Number(stats.lifetime["Total 1v1 Wins"]) || 0) + (Number(stats.lifetime["Total 1v2 Wins"]) || 0)),
+          rating: "0",
+          kills: String(stats.lifetime["Total Kills with extended stats"] || "0"),
+          deaths: "0",
+          assists: "0",
         };
       }
     } catch {

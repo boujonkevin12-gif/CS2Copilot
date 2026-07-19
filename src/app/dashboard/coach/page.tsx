@@ -178,12 +178,12 @@ export default function CoachPage() {
 
   const generateAiResponse = (question: string): string => {
     const ls = faceitStats?.lifetime;
-    const kd = ls ? parseFloat(ls["Average K/D Ratio"] || "0") : 0;
-    const hs = ls ? parseFloat(ls["Average Headshots %"] || "0") : 0;
-    const wr = ls ? parseFloat(ls["Win Rate %"] || "0") : 0;
-    const adr = ls ? parseFloat(ls["Average Damage per Round"] || "0") : 0;
-    const kast = ls ? parseFloat(ls["Average KAST"] || "0") : 0;
-    const matches = ls ? parseInt(ls.Matches || "0") : 0;
+    const kd = ls ? parseFloat(String(ls["Average K/D Ratio"] || "0")) : 0;
+    const hs = ls ? parseFloat(String(ls["Average Headshots %"] || "0")) : 0;
+    const wr = ls ? parseFloat(String(ls["Win Rate %"] || "0")) : 0;
+    const adr = ls ? parseFloat(String(ls["ADR"] || "0")) : 0;
+    const kast = 0;
+    const matches = ls ? parseInt(String(ls.Matches || "0")) : 0;
     const name = user?.faceitNickname || user?.name || "jugador";
 
     const q = question.toLowerCase();

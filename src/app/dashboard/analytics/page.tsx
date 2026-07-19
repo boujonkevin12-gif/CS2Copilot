@@ -48,25 +48,25 @@ export default function AnalyticsPage() {
   const ls = faceitStats?.lifetime;
   const mapStats = faceitStats?.segments?.filter((s) => s.type === "Map" && s.map_name) || [];
 
-  const lMatches = ls ? parseInt(ls.Matches || "0", 10) : 0;
-  const lWinRate = ls ? parseFloat(ls["Win Rate %"] || "0") : 0;
-  const lKD = ls ? parseFloat(ls["Average K/D Ratio"] || "0") : 0;
-  const lHS = ls ? parseFloat(ls["Average Headshots %"] || "0") : 0;
-  const lKAST = ls ? parseFloat(ls["Average KAST"] || "0") : 0;
-  const lADR = ls ? parseFloat(ls["Average Damage per Round"] || "0") : 0;
-  const lRating = ls ? parseFloat(ls.Rating || "0") : 0;
+  const lMatches = ls ? parseInt(String(ls.Matches || "0"), 10) : 0;
+  const lWinRate = ls ? parseFloat(String(ls["Win Rate %"] || "0")) : 0;
+  const lKD = ls ? parseFloat(String(ls["Average K/D Ratio"] || "0")) : 0;
+  const lHS = ls ? parseFloat(String(ls["Average Headshots %"] || "0")) : 0;
+  const lKAST = 0;
+  const lADR = ls ? parseFloat(String(ls["ADR"] || "0")) : 0;
+  const lTotalDamage = ls ? parseInt(String(ls["Total Damage"] || "0"), 10) : 0;
 
   const summaryStats = [
     { label: "Total de Partidas", value: lMatches || null, icon: Flame, color: "text-accent", bg: "bg-accent/10" },
-    { label: "Rating Promedio", value: lRating || null, suffix: "", icon: TrendingUp, color: "text-success", bg: "bg-success/10" },
     { label: "ADR Promedio", value: lADR || null, icon: Zap, color: "text-primary", bg: "bg-primary/10" },
+    { label: "Daño Total", value: lTotalDamage || null, icon: TrendingUp, color: "text-success", bg: "bg-success/10" },
     { label: "Horas Jugadas", value: user.cs2?.hoursPlayed ? Math.round(user.cs2.hoursPlayed) : null, suffix: "h", icon: Clock, color: "text-purple-400", bg: "bg-purple-400/10" },
   ];
 
   const aimStats = [
     { label: "Headshot %", value: lHS || 0, icon: Crosshair, color: "var(--color-primary)" },
     { label: "K/D Ratio", value: lKD ? Math.min((lKD / 2) * 100, 100) : 0, sub: lKD ? lKD.toFixed(2) : "—", icon: Target, color: "var(--color-success)" },
-    { label: "KAST %", value: lKAST || 0, sub: lKAST ? `${lKAST.toFixed(1)}%` : "—", icon: Target, color: "var(--color-accent)" },
+    { label: "Win Rate", value: lWinRate || 0, sub: lWinRate ? `${lWinRate.toFixed(1)}%` : "—", icon: Target, color: "var(--color-accent)" },
     { label: "ADR", value: lADR ? Math.min((lADR / 120) * 100, 100) : 0, sub: lADR ? lADR.toFixed(0) : "—", icon: Flame, color: "#a855f7" },
   ];
 

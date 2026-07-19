@@ -122,28 +122,7 @@ export interface FaceitMatchStats {
 export interface FaceitPlayerStats {
   player_id: string;
   lifetime: {
-    Matches: string;
-    "Win Rate %": string;
-    "Average K/D Ratio": string;
-    "Average Headshots %": string;
-    "Average K/R Ratio": string;
-    Kills: string;
-    Deaths: string;
-    Assists: string;
-    Headshots: string;
-    "Ace Rounds": string;
-    "Penta Kills": string;
-    "Quadro Kills": string;
-    "Triple Kills": string;
-    "Double Kills": string;
-    MVPs: string;
-    "Average Damage per Round": string;
-    "Clutches Won": string;
-    "Total Damage Dealt": string;
-    "Average KAST": string;
-    "Sniper Kills per Round": string;
-    "In Matches Won": string;
-    Rating: string;
+    [key: string]: string | string[] | number;
   };
   segments: Array<{
     type: string;
@@ -152,15 +131,7 @@ export interface FaceitPlayerStats {
     mode: string;
     wins: string;
     matches: string;
-    "Win Rate %": string;
-    "Average K/D Ratio": string;
-    "Average Headshots %": string;
-    "K/D Ratio": string;
-    "K/R Ratio": string;
-    Kills: string;
-    Deaths: string;
-    Assists: string;
-    Headshots: string;
+    [key: string]: string;
   }>;
 }
 

@@ -170,17 +170,16 @@ export default function StatsPage() {
   const lifetime = faceitStats?.lifetime;
   const mapStats = faceitStats?.segments?.filter((s) => s.type === "Map" && s.map_name) || [];
 
-  const lMatches = lifetime ? parseInt(lifetime.Matches || "0", 10) : 0;
-  const lWinRate = lifetime ? parseFloat(lifetime["Win Rate %"] || "0") : 0;
-  const lKD = lifetime ? parseFloat(lifetime["Average K/D Ratio"] || "0") : 0;
-  const lHS = lifetime ? parseFloat(lifetime["Average Headshots %"] || "0") : 0;
-  const lKills = lifetime ? parseInt(lifetime.Kills || "0", 10) : 0;
-  const lDeaths = lifetime ? parseInt(lifetime.Deaths || "0", 10) : 0;
-  const lAssists = lifetime ? parseInt(lifetime.Assists || "0", 10) : 0;
-  const lKAST = lifetime ? parseFloat(lifetime["Average KAST"] || "0") : 0;
-  const lADR = lifetime ? parseFloat(lifetime["Average Damage per Round"] || "0") : 0;
-  const lClutches = lifetime ? parseInt(lifetime["Clutches Won"] || "0", 10) : 0;
-  const lRating = lifetime ? parseFloat(lifetime.Rating || "0") : 0;
+  const lMatches = lifetime ? parseInt(String(lifetime.Matches || "0"), 10) : 0;
+  const lWinRate = lifetime ? parseFloat(String(lifetime["Win Rate %"] || "0")) : 0;
+  const lKD = lifetime ? parseFloat(String(lifetime["Average K/D Ratio"] || "0")) : 0;
+  const lHS = lifetime ? parseFloat(String(lifetime["Average Headshots %"] || "0")) : 0;
+  const lKills = lifetime ? parseInt(String(lifetime["Total Kills with extended stats"] || "0"), 10) : 0;
+  const lTotalDamage = lifetime ? parseInt(String(lifetime["Total Damage"] || "0"), 10) : 0;
+  const lADR = lifetime ? parseFloat(String(lifetime["ADR"] || "0")) : 0;
+  const l1v1Wins = lifetime ? parseInt(String(lifetime["Total 1v1 Wins"] || "0"), 10) : 0;
+  const l1v2Wins = lifetime ? parseInt(String(lifetime["Total 1v2 Wins"] || "0"), 10) : 0;
+  const lClutches = l1v1Wins + l1v2Wins;
 
   return (
     <div className="space-y-6">
@@ -238,19 +237,16 @@ export default function StatsPage() {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: "Kills", value: lKills },
-              { label: "Deaths", value: lDeaths },
-              { label: "Assists", value: lAssists },
-              { label: "KAST", value: lKAST, suffix: "%" },
-              { label: "ADR", value: lADR },
-              { label: "Clutches", value: lClutches },
-              { label: "Rating", value: lRating },
+              { label: "Kills (total)", value: lKills || null },
+              { label: "Daño Total", value: lTotalDamage || null },
+              { label: "ADR", value: lADR || null },
+              { label: "Clutches (1v1+1v2)", value: lClutches || null },
             ].map((stat, i) => (
               <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.03 }}>
                 <GlassCard padding="sm" hover={false}>
                   <div className="text-center">
                     <div className="text-lg font-bold font-mono">
-                      {stat.value ? (typeof stat.suffix !== "undefined" ? `${stat.value}${stat.suffix}` : stat.value.toLocaleString()) : "—"}
+                      {stat.value ? stat.value.toLocaleString() : "—"}
                     </div>
                     <div className="text-xs text-muted mt-1">{stat.label}</div>
                   </div>

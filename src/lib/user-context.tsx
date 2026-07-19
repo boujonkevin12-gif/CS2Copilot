@@ -120,25 +120,7 @@ interface FaceitMatchData {
 interface FaceitLifetimeStats {
   player_id: string;
   lifetime: {
-    Matches: string;
-    "Win Rate %": string;
-    "Average K/D Ratio": string;
-    "Average Headshots %": string;
-    "Average K/R Ratio": string;
-    Kills: string;
-    Deaths: string;
-    Assists: string;
-    Headshots: string;
-    "Ace Rounds": string;
-    "Quadro Kills": string;
-    "Triple Kills": string;
-    "Double Kills": string;
-    MVPs: string;
-    "Average Damage per Round": string;
-    "Clutches Won": string;
-    "Total Damage Dealt": string;
-    "Average KAST": string;
-    Rating: string;
+    [key: string]: string | string[] | number;
   };
   segments: Array<{
     type: string;
