@@ -57,8 +57,13 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (err) {
+    console.error("[DemoUpload] Route error:", err);
     return NextResponse.json(
-      { error: "Error al procesar la demo", details: err instanceof Error ? err.message : "error desconocido" },
+      {
+        error: "Error al procesar la demo",
+        details: err instanceof Error ? err.message : "error desconocido",
+        hint: "Asegurate de que el archivo sea una demo valida de CS2 (.dem)",
+      },
       { status: 500 }
     );
   }

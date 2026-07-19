@@ -162,7 +162,12 @@ export default function CoachPage() {
       const data = await res.json();
 
       if (data.error) {
-        setDemoError(data.error);
+        setDemoError(data.details ? `${data.error}: ${data.details}` : data.error);
+      } else if (data.warning) {
+        setDemoResult(data.data);
+        if (data.data) {
+          await fetchAnalysis({ playerStats: data.data.playerStats });
+        }
       } else {
         setDemoResult(data.data);
         if (data.data) {
