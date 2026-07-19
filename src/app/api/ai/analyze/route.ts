@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const demoData = body.demoData as { playerStats?: { kd?: number; hsPercent?: number; adr?: number; kills?: number; deaths?: number } } | undefined;
+  const demoData = body.demoData as { playerStats?: { kd?: number; hsPercent?: number; adr?: number; kills?: number; deaths?: number }; map?: string; serverName?: string; fileName?: string; fileSize?: number } | undefined;
   let matchStats = undefined;
 
   if (demoData?.playerStats) {
@@ -59,7 +59,16 @@ export async function POST(request: NextRequest) {
       kills: demoData.playerStats.kills || 0,
       deaths: demoData.playerStats.deaths || 0,
       result: "unknown",
-      map: "unknown",
+      map: demoData.map || "unknown",
+    }];
+  } else if (demoData?.map) {
+    matchStats = [{
+      kd: 0,
+      hsPercent: 0,
+      kills: 0,
+      deaths: 0,
+      result: "unknown",
+      map: demoData.map,
     }];
   }
 

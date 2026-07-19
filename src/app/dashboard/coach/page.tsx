@@ -151,31 +151,39 @@ export default function CoachPage() {
     setDemoError("");
     setDemoResult(null);
 
-    const formData = new FormData();
-    formData.append("demo", file);
-
     try {
-      const res = await fetch("/api/demo/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
+      const { parseDemoHeader } = await import("@/lib/demo-header-parser");
+      const arrayBuffer = await file.arrayBuffer();
+      const header = parseDemoHeader(arrayBuffer);
 
-      if (data.error) {
-        setDemoError(data.details ? `${data.error}: ${data.details}` : data.error);
-      } else if (data.warning) {
-        setDemoResult(data.data);
-        if (data.data) {
-          await fetchAnalysis({ playerStats: data.data.playerStats });
-        }
-      } else {
-        setDemoResult(data.data);
-        if (data.data) {
-          await fetchAnalysis({ playerStats: data.data.playerStats });
-        }
+      if (!header) {
+        setDemoError("No se pudo leer el encabezado de la demo. Asegurate de que sea un archivo .dem de CS2 valido.");
+        setDemoUploading(false);
+        return;
       }
+
+      const demoData = {
+        map: header.map,
+        serverName: header.serverName,
+        fileName: file.name,
+        fileSize: file.size,
+      };
+
+      setDemoResult({
+        map: header.map,
+        serverName: header.serverName,
+        duration: header.duration,
+        rounds: 0,
+        playerStats: {
+          name: "", kills: 0, deaths: 0, assists: 0,
+          kd: 0, hsPercent: 0, adr: 0,
+          weaponKills: {}, clutchWins: {}, aceRounds: [],
+        },
+      });
+
+      await fetchAnalysis({ demoData });
     } catch {
-      setDemoError("Error al subir la demo");
+      setDemoError("Error al leer la demo. Verifica que el archivo no este corrupto.");
     } finally {
       setDemoUploading(false);
     }
