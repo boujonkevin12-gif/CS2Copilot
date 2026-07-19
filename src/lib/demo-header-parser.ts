@@ -2,10 +2,10 @@ export interface DemoHeaderInfo {
   map: string;
   serverName: string;
   gameDir: string;
-  maxClients: number;
-  networkProtocol: number;
   duration: number;
   tickCount: number;
+  roundCount: number;
+  playbackFrames: number;
 }
 
 const KNOWN_MAPS = [
@@ -14,38 +14,23 @@ const KNOWN_MAPS = [
   "cs_office", "cs_militia", "cs_assault", "cs_italy",
   "dz_blacksite", "dz_frostbite",
   "ar_shoots", "ar_baggage",
-  "wingman_",
 ];
 
-function extractAsciiStrings(data: Uint8Array, minLength: number): string[] {
-  const results: string[] = [];
-  let current = "";
-  for (let i = 0; i < data.length; i++) {
-    const byte = data[i];
-    if (byte >= 0x20 && byte <= 0x7e) {
-      current += String.fromCharCode(byte);
-    } else {
-      if (current.length >= minLength) {
-        results.push(current);
-      }
-      current = "";
-    }
-  }
-  if (current.length >= minLength) results.push(current);
-  return results;
-}
+let snappyUncompress: ((input: Uint8Array) => Uint8Array) | null = null;
+let snappyLoaded = false;
 
-function findMapName(strings: string[]): string {
-  for (const s of strings) {
-    const lower = s.toLowerCase();
-    for (const map of KNOWN_MAPS) {
-      if (lower.startsWith(map)) return map;
-    }
-    if (/^de_[a-z0-9]+$/i.test(s) || /^cs_[a-z0-9]+$/i.test(s) || /^dz_[a-z0-9]+$/i.test(s)) {
-      return s.toLowerCase();
-    }
+async function loadSnappy() {
+  if (snappyLoaded) return;
+  snappyLoaded = true;
+  try {
+    const mod = await import("snappyjs");
+    snappyUncompress = (input: Uint8Array) => {
+      const result = (mod as { uncompress: (data: Uint8Array) => Uint8Array }).uncompress(input);
+      return result instanceof Uint8Array ? result : new Uint8Array(result);
+    };
+  } catch {
+    snappyUncompress = null;
   }
-  return "unknown";
 }
 
 function readVarint(data: Uint8Array, offset: number): [number, number] {
@@ -62,168 +47,235 @@ function readVarint(data: Uint8Array, offset: number): [number, number] {
   return [result, pos];
 }
 
-function readProtobufField(data: Uint8Array, offset: number): [number, number, number] | null {
-  if (offset >= data.length) return null;
-  const [tag, pos1] = readVarint(data, offset);
-  if (tag === 0 && pos1 === offset) return null;
-  const fieldNumber = tag >> 3;
-  const wireType = tag & 0x07;
-  if (wireType === 0) {
-    const [value, pos2] = readVarint(data, pos1);
-    return [fieldNumber, value, pos2];
-  }
-  if (wireType === 2) {
-    const [length, pos2] = readVarint(data, pos1);
-    return [fieldNumber, length, pos2];
-  }
-  return [fieldNumber, 0, pos1 + 4];
+function readFloat(data: Uint8Array, offset: number): number {
+  if (offset + 4 > data.length) return 0;
+  const view = new DataView(data.buffer, data.byteOffset + offset, 4);
+  return view.getFloat32(0, true);
 }
 
-function tryParseProtobuf(data: Uint8Array, offset: number, size: number): DemoHeaderInfo | null {
+function skipField(data: Uint8Array, wireType: number, offset: number): number {
+  if (wireType === 0) { const [, n] = readVarint(data, offset); return n; }
+  if (wireType === 1) return offset + 8;
+  if (wireType === 2) { const [l, n] = readVarint(data, offset); return n + l; }
+  if (wireType === 5) return offset + 4;
+  return offset;
+}
+
+function readString(data: Uint8Array, offset: number): [string, number] {
+  const [len, strPos] = readVarint(data, offset);
+  if (len > 1024 || strPos + len > data.length) return ["", offset];
+  const str = new TextDecoder("utf-8", { fatal: false }).decode(data.slice(strPos, strPos + len));
+  return [str, strPos + len];
+}
+
+function extractAsciiStrings(data: Uint8Array, minLength: number): string[] {
+  const results: string[] = [];
+  let current = "";
+  for (let i = 0; i < data.length; i++) {
+    const byte = data[i];
+    if (byte >= 0x20 && byte <= 0x7e) {
+      current += String.fromCharCode(byte);
+    } else {
+      if (current.length >= minLength) results.push(current);
+      current = "";
+    }
+  }
+  if (current.length >= minLength) results.push(current);
+  return results;
+}
+
+function findMapName(strings: string[]): string {
+  for (const s of strings) {
+    const lower = s.toLowerCase();
+    for (const map of KNOWN_MAPS) {
+      if (lower === map || lower.startsWith(map + " ") || lower.startsWith(map + "\x00")) return map;
+    }
+    if (/^de_[a-z0-9]+$/i.test(s) || /^cs_[a-z0-9]+$/i.test(s) || /^dz_[a-z0-9]+$/i.test(s)) {
+      return s.toLowerCase();
+    }
+  }
+  return "unknown";
+}
+
+export async function parseDemoHeader(buffer: ArrayBuffer): Promise<DemoHeaderInfo | null> {
   try {
-    const end = Math.min(offset + size, data.length);
-    let pos = offset;
+    await loadSnappy();
+
+    const data = new Uint8Array(buffer);
+    if (data.length < 64) return null;
+
     const result: DemoHeaderInfo = {
       map: "unknown",
       serverName: "desconocido",
       gameDir: "",
-      maxClients: 0,
-      networkProtocol: 0,
       duration: 0,
       tickCount: 0,
+      roundCount: 0,
+      playbackFrames: 0,
     };
 
-    let fieldsParsed = 0;
-    while (pos < end) {
-      if (data[pos] === 0) break;
-      const field = readProtobufField(data, pos);
-      if (!field) break;
-      const [fieldNumber, valueOrLength, pos1] = field;
+    let pos = 16;
 
-      if (fieldNumber >= 1 && fieldNumber <= 6 && wireTypeIsString(fieldNumber, data, pos)) {
-        const [length, strPos] = readVarint(data, pos1);
-        if (length > 0 && strPos + length <= end && length < 512) {
-          const str = new TextDecoder("utf-8", { fatal: false }).decode(data.slice(strPos, strPos + length));
-          const isPrintable = /^[\x20-\x7e]+$/.test(str);
-          if (isPrintable && fieldNumber === 1) result.map = str;
-          else if (isPrintable && fieldNumber === 2) result.serverName = str;
-          else if (isPrintable && fieldNumber === 3) result.gameDir = str;
-          pos = strPos + length;
-          fieldsParsed++;
-          continue;
+    const [cmd, p1] = readVarint(data, pos);
+    pos = p1;
+    const [, p2] = readVarint(data, pos);
+    pos = p2;
+    const [headerSize, p3] = readVarint(data, pos);
+    pos = p3;
+
+    const actualCmd = cmd & ~64;
+
+    if (actualCmd === 1 && headerSize > 0 && headerSize < 100000 && pos + headerSize <= data.length) {
+      const end = pos + headerSize;
+      while (pos < end) {
+        if (data[pos] === 0) break;
+        const [tag, tp1] = readVarint(data, pos);
+        if (tag === 0) break;
+        const fn = tag >> 3;
+        const wt = tag & 0x07;
+
+        if (wt === 2) {
+          if (fn === 3) { const [s, sp] = readString(data, tp1); result.serverName = s; pos = sp; }
+          else if (fn === 5) { const [s, sp] = readString(data, tp1); result.map = s.toLowerCase(); pos = sp; }
+          else if (fn === 6) { const [s, sp] = readString(data, tp1); result.gameDir = s; pos = sp; }
+          else { pos = skipField(data, wt, tp1); }
+        } else {
+          pos = skipField(data, wt, tp1);
         }
       }
-
-      if (fieldNumber === 4) { result.networkProtocol = valueOrLength; pos = pos1; fieldsParsed++; }
-      else if (fieldNumber === 5) { result.maxClients = valueOrLength; pos = pos1; fieldsParsed++; }
-      else if (fieldNumber === 8) { result.duration = valueOrLength / 100; pos = pos1; fieldsParsed++; }
-      else if (fieldNumber === 6) { result.tickCount = valueOrLength; pos = pos1; fieldsParsed++; }
-      else { pos = pos1; }
+      pos = end;
     }
 
-    if (fieldsParsed >= 1 && result.map !== "unknown") return result;
-    return null;
-  } catch {
-    return null;
-  }
-}
+    let attempts = 0;
+    while (pos + 10 < data.length && attempts < 5) {
+      attempts++;
+      const savePos = pos;
+      const [fiCmd, fp1] = readVarint(data, pos);
+      pos = fp1;
+      const [, fp2] = readVarint(data, pos);
+      pos = fp2;
+      const [fiSize, fp3] = readVarint(data, pos);
+      pos = fp3;
 
-function wireTypeIsString(fieldNumber: number, data: Uint8Array, offset: number): boolean {
-  if (offset >= data.length) return false;
-  const tag = data[offset] & 0x07;
-  return tag === 2;
-}
-
-export function parseDemoHeader(buffer: ArrayBuffer): DemoHeaderInfo | null {
-  try {
-    const data = new Uint8Array(buffer);
-    if (data.length < 16) return null;
-
-    const strings = extractAsciiStrings(data, 3);
-    const mapName = findMapName(strings);
-
-    let serverName = "desconocido";
-    for (const s of strings) {
-      if (s.length >= 5 && s.length <= 64 && !s.toLowerCase().startsWith("de_") && !s.toLowerCase().startsWith("cs_")) {
-        const lower = s.toLowerCase();
-        if (lower.includes("server") || lower.includes("match") || lower.includes("cs2") ||
-            lower.includes("retake") || lower.includes("warmup") || lower.includes("faceit") ||
-            lower.includes("1v1") || lower.includes("aim") || lower.includes("dm") ||
-            lower.includes("hub") || lower.includes("lobby") || lower.includes("game")) {
-          serverName = s;
-          break;
-        }
+      if (fiSize === 0 || fiSize > 2000000 || pos + fiSize > data.length) {
+        pos = savePos + 1;
+        continue;
       }
-    }
 
-    if (serverName === "desconocido") {
-      for (const s of strings) {
-        if (s.length >= 8 && s.length <= 64 && !s.toLowerCase().startsWith("de_") && !s.toLowerCase().startsWith("cs_")) {
-          if (/^[a-zA-Z0-9_\-\.\s\[\]#]+$/.test(s)) {
-            serverName = s;
-            break;
-          }
-        }
-      }
-    }
+      const actualFiCmd = fiCmd & ~64;
 
-    let pos = 0;
-    const [cmd, pos1] = readVarint(data, pos);
-    pos = pos1;
-    const [tickVal, pos2] = readVarint(data, pos);
-    pos = pos2;
-    const [sizeVal, pos3] = readVarint(data, pos);
-    pos = pos3;
-
-    if (cmd >= 0 && cmd <= 30 && sizeVal > 0 && sizeVal < 100000) {
-      const protobufResult = tryParseProtobuf(data, pos, sizeVal);
-      if (protobufResult && protobufResult.map !== "unknown") {
-        return protobufResult;
-      }
-    }
-
-    if (mapName !== "unknown") {
-      return {
-        map: mapName,
-        serverName,
-        gameDir: "game",
-        maxClients: 10,
-        networkProtocol: 0,
-        duration: 0,
-        tickCount: 0,
-      };
-    }
-
-    for (let i = 0; i < Math.min(data.length, 65536); i++) {
-      if (data[i] === 0x01 && i + 3 < data.length) {
-        const tryPos = i;
-        const [tryCmd, tp1] = readVarint(data, tryPos);
-        if (tryCmd === 1) {
-          const [, tp2] = readVarint(data, tp1);
-          const [trySize, tp3] = readVarint(data, tp2);
-          if (trySize > 0 && trySize < 100000) {
-            const innerStrings = extractAsciiStrings(data.slice(tp3, tp3 + Math.min(trySize, 4096)), 3);
-            const innerMap = findMapName(innerStrings);
-            if (innerMap !== "unknown") {
-              return {
-                map: innerMap,
-                serverName,
-                gameDir: "game",
-                maxClients: 10,
-                networkProtocol: 0,
-                duration: 0,
-                tickCount: 0,
-              };
+      if (actualFiCmd === 2) {
+        let frameData: Uint8Array = data.slice(pos, pos + fiSize);
+        if ((fiCmd & 64) !== 0 && snappyUncompress) {
+          try {
+            const decompressed = snappyUncompress(frameData);
+            if (decompressed && decompressed.length > 0) {
+              frameData = new Uint8Array(decompressed);
             }
+          } catch {
+            // try raw
           }
         }
+        parseFileInfo(frameData, result);
+        break;
       }
+
+      pos += fiSize;
     }
 
-    return null;
+    if (result.map === "unknown") {
+      const strings = extractAsciiStrings(data.subarray(0, Math.min(data.length, 65536)), 3);
+      result.map = findMapName(strings);
+    }
+
+    return result.map !== "unknown" ? result : null;
   } catch {
     return null;
   }
+}
+
+function parseFileInfo(data: Uint8Array, result: DemoHeaderInfo): void {
+  let pos = 0;
+  const end = data.length;
+
+  while (pos < end) {
+    if (data[pos] === 0) break;
+    const [tag, tp1] = readVarint(data, pos);
+    if (tag === 0) break;
+    const fn = tag >> 3;
+    const wt = tag & 0x07;
+
+    if (fn === 1 && wt === 5) {
+      result.duration = readFloat(data, tp1);
+      pos = tp1 + 4;
+    } else if (fn === 2 && wt === 0) {
+      const [ticks] = readVarint(data, tp1);
+      result.tickCount = ticks;
+      pos = tp1;
+    } else if (fn === 3 && wt === 0) {
+      const [frames] = readVarint(data, tp1);
+      result.playbackFrames = frames;
+      pos = tp1;
+    } else if (fn === 4 && wt === 2) {
+      const [nestedLen, nestedPos] = readVarint(data, tp1);
+      const nestedEnd = Math.min(nestedPos + nestedLen, end);
+      parseGameInfo(data, nestedPos, nestedEnd, result);
+      pos = nestedEnd;
+    } else {
+      pos = skipField(data, wt, tp1);
+    }
+  }
+}
+
+function parseGameInfo(data: Uint8Array, start: number, end: number, result: DemoHeaderInfo): void {
+  let pos = start;
+  while (pos < end) {
+    if (data[pos] === 0) break;
+    const [tag, tp1] = readVarint(data, pos);
+    if (tag === 0) break;
+    const fn = tag >> 3;
+    const wt = tag & 0x07;
+
+    if (fn === 5 && wt === 2) {
+      const [csLen, csPos] = readVarint(data, tp1);
+      const csEnd = Math.min(csPos + csLen, end);
+      parseCSGameInfo(data, csPos, csEnd, result);
+      pos = csEnd;
+    } else {
+      pos = skipField(data, wt, tp1);
+    }
+  }
+}
+
+function parseCSGameInfo(data: Uint8Array, start: number, end: number, result: DemoHeaderInfo): void {
+  let pos = start;
+  let roundCount = 0;
+  while (pos < end) {
+    if (data[pos] === 0) break;
+    const [tag, tp1] = readVarint(data, pos);
+    if (tag === 0) break;
+    const fn = tag >> 3;
+    const wt = tag & 0x07;
+
+    if (fn === 1 && wt === 0) {
+      roundCount++;
+      const [, nr] = readVarint(data, tp1);
+      pos = nr;
+    } else if (fn === 1 && wt === 2) {
+      const [arrLen, arrPos] = readVarint(data, tp1);
+      const arrEnd = Math.min(arrPos + arrLen, end);
+      let apos = arrPos;
+      while (apos < arrEnd) {
+        const [, av] = readVarint(data, apos);
+        roundCount++;
+        apos = av;
+      }
+      pos = arrEnd;
+    } else {
+      pos = skipField(data, wt, tp1);
+    }
+  }
+  result.roundCount = roundCount;
 }
 
 export function getDemoSizeLabel(bytes: number): string {

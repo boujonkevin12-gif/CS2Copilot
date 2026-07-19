@@ -154,7 +154,7 @@ export default function CoachPage() {
     try {
       const { parseDemoHeader } = await import("@/lib/demo-header-parser");
       const arrayBuffer = await file.arrayBuffer();
-      const header = parseDemoHeader(arrayBuffer);
+      const header = await parseDemoHeader(arrayBuffer);
 
       if (!header) {
         setDemoError("No se pudo leer el encabezado de la demo. Asegurate de que sea un archivo .dem de CS2 valido.");
@@ -167,13 +167,15 @@ export default function CoachPage() {
         serverName: header.serverName,
         fileName: file.name,
         fileSize: file.size,
+        duration: header.duration,
+        roundCount: header.roundCount,
       };
 
       setDemoResult({
         map: header.map,
         serverName: header.serverName,
         duration: header.duration,
-        rounds: 0,
+        rounds: header.roundCount,
         playerStats: {
           name: "", kills: 0, deaths: 0, assists: 0,
           kd: 0, hsPercent: 0, adr: 0,
@@ -385,8 +387,19 @@ export default function CoachPage() {
                   <CheckCircle2 className="h-8 w-8 text-success mx-auto" />
                   <p className="text-sm font-medium">{demoResult.map}</p>
                   <p className="text-xs text-muted">
-                    K/D: {demoResult.playerStats.kd} · HS: {demoResult.playerStats.hsPercent}% · Rounds: {demoResult.rounds}
+                    {demoResult.serverName && demoResult.serverName !== "desconocido" ? `${demoResult.serverName} · ` : ""}
+                    {demoResult.rounds > 0 ? `${demoResult.rounds} rondas` : ""}
+                    {demoResult.duration > 0 ? ` · ${Math.round(demoResult.duration)}s` : ""}
                   </p>
+                  {faceitStats?.lifetime && (
+                    <div className="text-[10px] text-muted-foreground pt-1 border-t border-white/5">
+                      <span>K/D: {String(faceitStats.lifetime["Average K/D Ratio"] || "—")}</span>
+                      <span className="mx-1">·</span>
+                      <span>HS: {String(faceitStats.lifetime["Average Headshots %"] || "—")}%</span>
+                      <span className="mx-1">·</span>
+                      <span>ADR: {String(faceitStats.lifetime["ADR"] || "—")}</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-2">

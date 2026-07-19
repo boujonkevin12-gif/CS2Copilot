@@ -49,10 +49,10 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const demoData = body.demoData as { playerStats?: { kd?: number; hsPercent?: number; adr?: number; kills?: number; deaths?: number }; map?: string; serverName?: string; fileName?: string; fileSize?: number } | undefined;
+  const demoData = body.demoData as { playerStats?: { kd?: number; hsPercent?: number; adr?: number; kills?: number; deaths?: number }; map?: string; serverName?: string; fileName?: string; fileSize?: number; duration?: number; roundCount?: number } | undefined;
   let matchStats = undefined;
 
-  if (demoData?.playerStats) {
+  if (demoData?.playerStats && (demoData.playerStats.kd || demoData.playerStats.kills)) {
     matchStats = [{
       kd: demoData.playerStats.kd || 0,
       hsPercent: demoData.playerStats.hsPercent || 0,
@@ -62,14 +62,17 @@ export async function POST(request: NextRequest) {
       map: demoData.map || "unknown",
     }];
   } else if (demoData?.map) {
-    matchStats = [{
-      kd: 0,
-      hsPercent: 0,
-      kills: 0,
-      deaths: 0,
-      result: "unknown",
-      map: demoData.map,
-    }];
+    const ls = lifetimeStats;
+    if (ls) {
+      matchStats = [{
+        kd: parseFloat(ls.kd) || 0,
+        hsPercent: parseFloat(ls.hsPercent) || 0,
+        kills: 0,
+        deaths: 0,
+        result: "unknown",
+        map: demoData.map,
+      }];
+    }
   }
 
   const analysis = analyzePlayer(lifetimeStats, matchStats);
@@ -77,6 +80,13 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     hasFaceitData: !!lifetimeStats,
     faceitNickname: userData.faceitNickname || null,
+    demoInfo: demoData?.map ? {
+      map: demoData.map,
+      serverName: demoData.serverName || null,
+      fileName: demoData.fileName || null,
+      duration: demoData.duration || null,
+      roundCount: demoData.roundCount || null,
+    } : null,
     analysis,
   });
 }
