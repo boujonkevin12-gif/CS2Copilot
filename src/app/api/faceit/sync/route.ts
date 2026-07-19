@@ -260,56 +260,45 @@ async function handleSyncMatches(playerId: string) {
     const syncResults = await Promise.all(
       matchHistory.items.map(async (match) => {
         const stats = await faceit.getMatchStats(match.match_id);
+
+        let mapName = "";
+        let resultTeam = "";
+        let scoreTeam = "";
+        let playerStats: Record<string, string> | null = null;
+
+        if (stats && stats.rounds && stats.rounds.length > 0) {
+          const round = stats.rounds[0];
+          mapName = round.round_stats?.Map || "";
+          scoreTeam = round.round_stats?.Score || "";
+
+          const teamEntries = round.teams;
+          if (teamEntries && teamEntries.length >= 2) {
+            for (const team of teamEntries) {
+              const isPlayerTeam = team.players.some((p) => p.player_id === playerId);
+              if (isPlayerTeam) {
+                resultTeam = team.team_stats?.["Team Win"] === "1" ? "win" : "lose";
+                const foundPlayer = team.players.find((p) => p.player_id === playerId);
+                if (foundPlayer) {
+                  playerStats = foundPlayer.player_stats;
+                }
+                break;
+              }
+            }
+          }
+        }
+
         return {
           matchId: match.match_id,
-          map: match.map,
-          mode: match.mode,
+          map: mapName,
+          mode: match.game_mode || "",
           status: match.status,
           startedAt: match.started_at,
           finishedAt: match.finished_at,
           teams: match.teams,
-          stats: stats
-            ? {
-                rounds: stats.rounds.map((round) => ({
-                  roundId: round.round_id,
-                  map: round.map,
-                  team1: {
-                    teamId: round.team1.team_id,
-                    name: round.team1.name,
-                    score: parseInt(round.team1.team_stats.Score || "0", 10),
-                    result: round.team1.team_stats.Result,
-                    players: round.team1.players.map((p) => ({
-                      playerId: p.player_id,
-                      nickname: p.nickname,
-                      kills: parseInt(p.player_stats.Kills || "0", 10),
-                      deaths: parseInt(p.player_stats.Deaths || "0", 10),
-                      assists: parseInt(p.player_stats.Assists || "0", 10),
-                      kd: parseFloat(p.player_stats["K/D Ratio"] || "0"),
-                      hsPercent: parseFloat(p.player_stats["HS%"] || "0"),
-                      headshots: parseInt(p.player_stats.Headshots || "0", 10),
-                      totalDamage: parseInt(p.player_stats["Total Damage"] || "0", 10),
-                    })),
-                  },
-                  team2: {
-                    teamId: round.team2.team_id,
-                    name: round.team2.name,
-                    score: parseInt(round.team2.team_stats.Score || "0", 10),
-                    result: round.team2.team_stats.Result,
-                    players: round.team2.players.map((p) => ({
-                      playerId: p.player_id,
-                      nickname: p.nickname,
-                      kills: parseInt(p.player_stats.Kills || "0", 10),
-                      deaths: parseInt(p.player_stats.Deaths || "0", 10),
-                      assists: parseInt(p.player_stats.Assists || "0", 10),
-                      kd: parseFloat(p.player_stats["K/D Ratio"] || "0"),
-                      hsPercent: parseFloat(p.player_stats["HS%"] || "0"),
-                      headshots: parseInt(p.player_stats.Headshots || "0", 10),
-                      totalDamage: parseInt(p.player_stats["Total Damage"] || "0", 10),
-                    })),
-                  },
-                })),
-              }
-            : null,
+          results: match.results,
+          playerResult: resultTeam,
+          playerScore: scoreTeam,
+          playerStats,
         };
       })
     );
@@ -320,7 +309,8 @@ async function handleSyncMatches(playerId: string) {
       totalMatches: syncResults.length,
       matches: syncResults,
     });
-  } catch {
+  } catch (err) {
+    console.error("[SyncMatches] Error:", err);
     return NextResponse.json({ error: "Error al sincronizar datos de FACEIT" }, { status: 500 });
   }
 }

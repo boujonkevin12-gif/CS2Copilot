@@ -32,28 +32,51 @@ export interface FaceitPlayerShort {
   elo: number;
 }
 
+export interface FaceitMatchTeamPlayer {
+  player_id: string;
+  nickname: string;
+  avatar: string;
+  skill_level: number;
+  game_player_id: string;
+  game_player_name: string;
+  faceit_url: string;
+}
+
+export interface FaceitMatchTeam {
+  team_id: string;
+  nickname: string;
+  avatar: string;
+  type: string;
+  players: FaceitMatchTeamPlayer[];
+}
+
 export interface FaceitMatch {
   match_id: string;
-  map: string;
-  mode: string;
+  game_id: string;
+  game_mode: string;
   status: string;
-  round: number;
-  teams: {
-    [key: string]: {
-      team_id: string;
-      name: string;
-      players: FaceitPlayerShort[];
-    };
-  };
+  region: string;
+  max_players: number;
+  teams_size: number;
   started_at: number;
   finished_at: number;
-  regions: string[];
+  results?: {
+    winner: string;
+    score: {
+      faction1: number;
+      faction2: number;
+    };
+  };
+  teams: {
+    [key: string]: FaceitMatchTeam;
+  };
 }
 
 export interface FaceitMatchHistoryResponse {
   items: FaceitMatch[];
   start: number;
   end: number;
+  total?: number;
 }
 
 export interface FaceitMatchPlayer {
@@ -61,52 +84,38 @@ export interface FaceitMatchPlayer {
   nickname: string;
   avatar: string;
   player_stats: {
-    "Match Score": string;
-    "K/D Ratio": string;
-    "K/D": string;
-    "Kills": string;
-    "Deaths": string;
-    "Assists": string;
-    "HS%": string;
-    "Headshots": string;
-    "MVPs": string;
-    "Quadro Kills": string;
-    "Aces": string;
-    "Clutch Wins": string;
-    "Total Damage": string;
-    "Result": string;
-    "Score": string;
-    "Pistol Round Kills": string;
-    "2+ Kills Round": string;
-    "3+ Kills Round": string;
-    "4+ Kills Round": string;
-    "Ace Rounds": string;
-    "TR Win": string;
-    "CT Win": string;
-    "Half Time Score": string;
+    [key: string]: string;
   };
 }
 
-export interface FaceitMatchTeam {
+export interface FaceitMatchTeamInStats {
   team_id: string;
-  name: string;
-  players: FaceitMatchPlayer[];
+  premade: boolean;
   team_stats: {
-    Score: string;
-    "Overtime score": string;
-    "Rounds won": string;
-    "Rounds lost": string;
-    Result: string;
+    [key: string]: string;
   };
+  players: FaceitMatchPlayer[];
 }
 
 export interface FaceitMatchStats {
   match_id: string;
   rounds: {
-    round_id: string;
-    map: string;
-    team1: FaceitMatchTeam;
-    team2: FaceitMatchTeam;
+    best_of?: string;
+    competition_id?: string;
+    game_id?: string;
+    game_mode?: string;
+    match_id?: string;
+    match_round?: string;
+    played?: string;
+    round_stats: {
+      Map?: string;
+      Rounds?: string;
+      Winner?: string;
+      Score?: string;
+      Region?: string;
+      [key: string]: string | undefined;
+    };
+    teams: FaceitMatchTeamInStats[];
   }[];
 }
 

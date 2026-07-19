@@ -97,53 +97,24 @@ interface FaceitMatchData {
   finishedAt: number;
   teams: Record<string, {
     team_id: string;
-    name: string;
+    nickname: string;
+    avatar: string;
     players: Array<{
       player_id: string;
       nickname: string;
       avatar: string;
     }>;
   }>;
-  stats?: {
-    rounds: Array<{
-      roundId: string;
-      map: string;
-      team1: {
-        teamId: string;
-        name: string;
-        score: number;
-        result: string;
-        players: Array<{
-          playerId: string;
-          nickname: string;
-          kills: number;
-          deaths: number;
-          assists: number;
-          kd: number;
-          hsPercent: number;
-          headshots: number;
-          totalDamage: number;
-        }>;
-      };
-      team2: {
-        teamId: string;
-        name: string;
-        score: number;
-        result: string;
-        players: Array<{
-          playerId: string;
-          nickname: string;
-          kills: number;
-          deaths: number;
-          assists: number;
-          kd: number;
-          hsPercent: number;
-          headshots: number;
-          totalDamage: number;
-        }>;
-      };
-    }>;
+  results?: {
+    winner: string;
+    score: {
+      faction1: number;
+      faction2: number;
+    };
   };
+  playerResult: string;
+  playerScore: string;
+  playerStats: Record<string, string> | null;
 }
 
 interface FaceitLifetimeStats {

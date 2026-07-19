@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
 
     const matches = matchHistory.items.map((match) => ({
       matchId: match.match_id,
-      map: match.map,
-      mode: match.mode,
+      mode: match.game_mode,
       status: match.status,
       teams: match.teams,
+      results: match.results,
       startedAt: match.started_at,
       finishedAt: match.finished_at,
     }));

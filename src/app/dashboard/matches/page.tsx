@@ -42,55 +42,33 @@ function formatDuration(started: number, finished: number) {
 }
 
 type MatchType = {
+  matchId: string;
+  map: string;
+  mode: string;
+  status: string;
+  startedAt: number;
+  finishedAt: number;
   teams: Record<string, { team_id: string; players: { player_id: string }[] }>;
-  stats?: {
-    rounds: {
-      team1: { result: string; players: { playerId: string }[] };
-      team2: { result: string; players: { playerId: string }[] };
-    }[];
-  };
+  playerResult: string;
+  playerStats: Record<string, string> | null;
 };
 
-type PlayerStatsType = {
-  teams: Record<string, { team_id: string; players: { player_id: string }[] }>;
-  stats?: {
-    rounds: {
-      team1: { players: { playerId: string; kills: number; deaths: number; assists: number; hsPercent: number; kd: number }[] };
-      team2: { players: { playerId: string; kills: number; deaths: number; assists: number; hsPercent: number; kd: number }[] };
-    }[];
-  };
-};
-
-function getMatchResult(match: MatchType, faceitPlayerId: string): { result: string; color: string } {
-  if (!match.stats?.rounds?.length) return { result: "?", color: "text-muted" };
-  const round = match.stats.rounds[0];
-  const teamKeys = Object.keys(match.teams);
-  for (const key of teamKeys) {
-    const team = match.teams[key];
-    const isOnTeam = team.players.some((p) => p.player_id === faceitPlayerId);
-    if (isOnTeam) {
-      const teamStats = key === teamKeys[0] ? round.team1 : round.team2;
-      if (teamStats.result === "win") return { result: "Victoria", color: "text-success" };
-      if (teamStats.result === "lose") return { result: "Derrota", color: "text-danger" };
-      return { result: teamStats.result || "?", color: "text-muted" };
-    }
-  }
+function getMatchResult(match: { playerResult: string; results?: { winner: string; score: { faction1: number; faction2: number } }; teams: Record<string, { team_id: string; players: { player_id: string }[] }> }, faceitPlayerId: string): { result: string; color: string } {
+  if (match.playerResult === "win") return { result: "Victoria", color: "text-success" };
+  if (match.playerResult === "lose") return { result: "Derrota", color: "text-danger" };
   return { result: "?", color: "text-muted" };
 }
 
-function getPlayerStats(match: PlayerStatsType, faceitPlayerId: string) {
-  if (!match.stats?.rounds?.length) return null;
-  const round = match.stats.rounds[0];
-  const teamKeys = Object.keys(match.teams);
-  for (const key of teamKeys) {
-    const team = match.teams[key];
-    const isOnTeam = team.players.some((p) => p.player_id === faceitPlayerId);
-    if (isOnTeam) {
-      const teamStats = key === teamKeys[0] ? round.team1 : round.team2;
-      return teamStats.players.find((p) => p.playerId === faceitPlayerId) || null;
-    }
-  }
-  return null;
+function getPlayerStats(match: { playerStats: Record<string, string> | null }, faceitPlayerId: string) {
+  if (!match.playerStats) return null;
+  const ps = match.playerStats;
+  return {
+    kills: parseInt(ps.Kills || "0", 10),
+    deaths: parseInt(ps.Deaths || "0", 10),
+    assists: parseInt(ps.Assists || "0", 10),
+    kd: parseFloat(ps["K/D Ratio"] || ps["K/D"] || "0"),
+    hsPercent: parseFloat(ps["HS%"] || "0"),
+  };
 }
 
 export default function MatchesPage() {
