@@ -56,7 +56,7 @@ class SteamService {
 
   async getSteamLevel(steamId: string) {
     const data = await this.fetch<{ response: { player_level: number; player_xp: number; player_xp_needed: number } }>(
-      `https://api.steampowered.com/ISteamUser/GetSteamLevel/v1/?key=${this.apiKey}&steamid=${steamId}`
+      `https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=${this.apiKey}&steamid=${steamId}`
     );
     return data?.response || { player_level: 0, player_xp: 0, player_xp_needed: 0 };
   }
