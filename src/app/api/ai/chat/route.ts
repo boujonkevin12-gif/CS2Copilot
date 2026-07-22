@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFaceitService } from "@/lib/services/faceit.service";
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "meta-llama/llama-4-maverick:free";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const MODEL = "llama-3.3-70b-versatile";
 
 interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Sesión inválida" }, { status: 401 });
   }
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "API key no configurada" }, { status: 500 });
   }
@@ -146,13 +146,11 @@ export async function POST(request: NextRequest) {
   messages.push({ role: "user", content: body.message });
 
   try {
-    const response = await fetch(OPENROUTER_URL, {
+    const response = await fetch(GROQ_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://cs2pilot.vercel.app",
-        "X-Title": "CS2Pilot Coach",
       },
       body: JSON.stringify({
         model: MODEL,
@@ -165,7 +163,7 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("OpenRouter error:", response.status, errText);
+      console.error("Groq error:", response.status, errText);
       return NextResponse.json(
         { error: "Error al conectar con la IA. Intenta de nuevo." },
         { status: 502 }
