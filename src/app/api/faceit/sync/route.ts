@@ -115,8 +115,8 @@ async function handleAutoLink(request: NextRequest) {
       ...userData,
       faceitPlayerId: player.player_id,
       faceitNickname: player.nickname,
-      faceitLevel: player.games?.cs2?.level ?? null,
-      faceitElo: player.games?.cs2?.elo ?? null,
+      faceitLevel: player.games?.cs2?.skill_level ?? null,
+      faceitElo: player.games?.cs2?.faceit_elo ?? null,
       faceitLinkedAt: new Date().toISOString(),
     };
 
@@ -126,8 +126,8 @@ async function handleAutoLink(request: NextRequest) {
       faceit: {
         nickname: player.nickname,
         playerId: player.player_id,
-        level: player.games?.cs2?.level ?? null,
-        elo: player.games?.cs2?.elo ?? null,
+        level: player.games?.cs2?.skill_level ?? null,
+        elo: player.games?.cs2?.faceit_elo ?? null,
         avatar: player.avatar,
       },
     });
@@ -183,8 +183,8 @@ async function handleConnectByNickname(nickname: string | undefined, request: Ne
       ...userData,
       faceitPlayerId: player.player_id,
       faceitNickname: player.nickname,
-      faceitLevel: player.games?.cs2?.level ?? null,
-      faceitElo: player.games?.cs2?.elo ?? null,
+      faceitLevel: player.games?.cs2?.skill_level ?? null,
+      faceitElo: player.games?.cs2?.faceit_elo ?? null,
       faceitLinkedAt: new Date().toISOString(),
     };
 
@@ -194,8 +194,8 @@ async function handleConnectByNickname(nickname: string | undefined, request: Ne
       faceit: {
         nickname: player.nickname,
         playerId: player.player_id,
-        level: player.games?.cs2?.level ?? null,
-        elo: player.games?.cs2?.elo ?? null,
+        level: player.games?.cs2?.skill_level ?? null,
+        elo: player.games?.cs2?.faceit_elo ?? null,
         avatar: player.avatar,
       },
     });

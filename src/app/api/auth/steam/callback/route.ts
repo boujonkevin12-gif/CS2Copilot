@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
       if (faceitPlayer) {
         minimalProfile.faceitPlayerId = faceitPlayer.player_id;
         minimalProfile.faceitNickname = faceitPlayer.nickname;
-        minimalProfile.faceitLevel = faceitPlayer.games?.cs2?.level ?? null;
-        minimalProfile.faceitElo = faceitPlayer.games?.cs2?.elo ?? null;
+        minimalProfile.faceitLevel = faceitPlayer.games?.cs2?.skill_level ?? null;
+        minimalProfile.faceitElo = faceitPlayer.games?.cs2?.faceit_elo ?? null;
         minimalProfile.faceitLinkedAt = new Date().toISOString();
       }
     } catch {
@@ -107,8 +107,8 @@ export async function GET(request: NextRequest) {
       if (faceitPlayer) {
         fallbackProfile.faceitPlayerId = faceitPlayer.player_id;
         fallbackProfile.faceitNickname = faceitPlayer.nickname;
-        fallbackProfile.faceitLevel = faceitPlayer.games?.cs2?.level ?? null;
-        fallbackProfile.faceitElo = faceitPlayer.games?.cs2?.elo ?? null;
+        fallbackProfile.faceitLevel = faceitPlayer.games?.cs2?.skill_level ?? null;
+        fallbackProfile.faceitElo = faceitPlayer.games?.cs2?.faceit_elo ?? null;
         fallbackProfile.faceitLinkedAt = new Date().toISOString();
       }
     } catch {

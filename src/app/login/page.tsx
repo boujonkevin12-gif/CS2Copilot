@@ -155,184 +155,24 @@ function CTCharacter() {
     >
       <div className="relative">
         <div className="absolute -inset-20 bg-primary/[0.04] rounded-full blur-[80px]" />
-        <svg
-          viewBox="0 0 240 480"
-          className="w-52 h-auto relative z-10 drop-shadow-[0_0_40px_rgba(59,130,246,0.3)]"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+        <motion.div
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         >
-          <defs>
-            <linearGradient id="ct-body" x1="120" y1="0" x2="120" y2="480" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.95" />
-              <stop offset="30%" stopColor="#3b82f6" stopOpacity="0.85" />
-              <stop offset="70%" stopColor="#1e40af" stopOpacity="0.75" />
-              <stop offset="100%" stopColor="#1e3a5f" stopOpacity="0.6" />
-            </linearGradient>
-            <linearGradient id="ct-vest" x1="120" y1="120" x2="120" y2="280" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#1e3a8a" stopOpacity="0.7" />
-            </linearGradient>
-            <linearGradient id="ct-helmet" x1="120" y1="20" x2="120" y2="100" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#7dd3fc" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#0369a1" stopOpacity="0.8" />
-            </linearGradient>
-            <linearGradient id="ct-visor" x1="100" y1="55" x2="140" y2="75" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#bae6fd" stopOpacity="0.6" />
-              <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#0c4a6e" stopOpacity="0.5" />
-            </linearGradient>
-            <linearGradient id="ct-gun" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-              <stop offset="0%" stopColor="#94a3b8" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#475569" stopOpacity="0.6" />
-            </linearGradient>
-            <linearGradient id="ct-glow" x1="120" y1="0" x2="120" y2="480" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
-            </linearGradient>
-            <filter id="ct-blur">
-              <feGaussianBlur stdDeviation="3" />
-            </filter>
-          </defs>
-          <motion.g
-            animate={{ y: [0, -6, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          >
-            {/* Helmet */}
-            <path d="M88 30 Q88 18 120 15 Q152 18 152 30 L155 65 Q155 80 140 85 L100 85 Q85 80 85 65 Z" fill="url(#ct-helmet)" opacity="0.9" />
-            {/* Helmet top ridge */}
-            <path d="M95 25 Q120 12 145 25" stroke="#7dd3fc" strokeWidth="1.5" fill="none" opacity="0.5" />
-            {/* Night vision mount */}
-            <rect x="108" y="28" width="24" height="6" rx="2" fill="#475569" opacity="0.7" />
-            <circle cx="114" cy="28" r="4" fill="#334155" opacity="0.6" />
-            <circle cx="126" cy="28" r="4" fill="#334155" opacity="0.6" />
-            {/* NVG tubes */}
-            <rect x="110" y="18" width="6" height="14" rx="2" fill="#1e293b" opacity="0.7" />
-            <rect x="124" y="18" width="6" height="14" rx="2" fill="#1e293b" opacity="0.7" />
-            <circle cx="113" cy="18" r="3" fill="#22c55e" opacity="0.4" />
-            <circle cx="127" cy="18" r="3" fill="#22c55e" opacity="0.4" />
-            {/* Visor / Gas mask */}
-            <path d="M92 60 Q120 52 148 60 L146 78 Q120 85 94 78 Z" fill="url(#ct-visor)" opacity="0.8" />
-            <path d="M92 60 Q120 52 148 60" stroke="#bae6fd" strokeWidth="0.8" fill="none" opacity="0.5" />
-            {/* Visor reflection */}
-            <path d="M98 58 Q115 54 130 58 L128 62 Q115 59 100 62 Z" fill="#e0f2fe" opacity="0.2" />
-            {/* Gas mask filter left */}
-            <ellipse cx="92" cy="75" rx="10" ry="8" fill="#334155" opacity="0.7" />
-            <ellipse cx="92" cy="75" rx="7" ry="5" fill="#475569" opacity="0.5" />
-            <circle cx="92" cy="75" r="3" fill="#64748b" opacity="0.4" />
-            {/* Gas mask filter right */}
-            <ellipse cx="148" cy="75" rx="10" ry="8" fill="#334155" opacity="0.7" />
-            <ellipse cx="148" cy="75" rx="7" ry="5" fill="#475569" opacity="0.5" />
-            <circle cx="148" cy="75" r="3" fill="#64748b" opacity="0.4" />
-            {/* Mask center piece */}
-            <path d="M108 70 L120 68 L132 70 L135 82 L120 86 L105 82 Z" fill="#1e293b" opacity="0.6" />
-            {/* Chin strap */}
-            <path d="M95 82 Q120 90 145 82" stroke="#475569" strokeWidth="1" fill="none" opacity="0.5" />
-
-            {/* Neck / Collar */}
-            <path d="M95 85 L100 95 L140 95 L145 85" fill="url(#ct-body)" opacity="0.7" />
-            {/* Collar flaps */}
-            <path d="M95 85 L88 100 L100 95" fill="#1e40af" opacity="0.5" />
-            <path d="M145 85 L152 100 L140 95" fill="#1e40af" opacity="0.5" />
-
-            {/* Body / Tactical vest */}
-            <path d="M75 95 L165 95 L170 200 L70 200 Z" fill="url(#ct-vest)" opacity="0.85" />
-            {/* Vest panel lines */}
-            <line x1="90" y1="100" x2="88" y2="195" stroke="#60a5fa" strokeWidth="0.5" opacity="0.3" />
-            <line x1="150" y1="100" x2="152" y2="195" stroke="#60a5fa" strokeWidth="0.5" opacity="0.3" />
-            {/* Center zipper */}
-            <line x1="120" y1="95" x2="120" y2="200" stroke="#1e3a8a" strokeWidth="1" opacity="0.4" />
-            {/* Magazine pouches */}
-            <rect x="82" y="110" width="18" height="35" rx="3" fill="#1e3a8a" opacity="0.6" />
-            <rect x="82" y="110" width="18" height="35" rx="3" stroke="#60a5fa" strokeWidth="0.5" fill="none" opacity="0.3" />
-            <rect x="140" y="110" width="18" height="35" rx="3" fill="#1e3a8a" opacity="0.6" />
-            <rect x="140" y="110" width="18" height="35" rx="3" stroke="#60a5fa" strokeWidth="0.5" fill="none" opacity="0.3" />
-            {/* Radio pouch */}
-            <rect x="105" y="100" width="30" height="12" rx="2" fill="#1e3a8a" opacity="0.5" />
-            {/* Radio */}
-            <rect x="108" y="102" width="6" height="8" rx="1" fill="#475569" opacity="0.6" />
-            <line x1="111" y1="100" x2="111" y2="102" stroke="#64748b" strokeWidth="1" opacity="0.5" />
-            {/* Utility pouches */}
-            <rect x="95" y="155" width="14" height="14" rx="2" fill="#1e3a8a" opacity="0.5" />
-            <rect x="131" y="155" width="14" height="14" rx="2" fill="#1e3a8a" opacity="0.5" />
-            {/* Shoulder armor */}
-            <ellipse cx="72" cy="100" rx="12" ry="8" fill="#1e3a8a" opacity="0.6" />
-            <ellipse cx="168" cy="100" rx="12" ry="8" fill="#1e3a8a" opacity="0.6" />
-
-            {/* Left arm */}
-            <path d="M68 100 L50 115 L42 195 L55 200 L62 115" fill="url(#ct-body)" opacity="0.75" />
-            {/* Left arm sleeve details */}
-            <line x1="52" y1="130" x2="56" y2="130" stroke="#60a5fa" strokeWidth="0.5" opacity="0.3" />
-            <line x1="48" y1="150" x2="53" y2="150" stroke="#60a5fa" strokeWidth="0.5" opacity="0.3" />
-            {/* Left glove */}
-            <path d="M42 192 L38 210 L58 212 L55 195 Z" fill="#334155" opacity="0.7" />
-            {/* Left elbow pad */}
-            <ellipse cx="48" cy="165" rx="7" ry="5" fill="#1e3a8a" opacity="0.5" />
-
-            {/* Right arm - holding M4A4 */}
-            <path d="M172 100 L188 115 L195 175 L182 180 L178 120" fill="url(#ct-body)" opacity="0.75" />
-            {/* Right arm sleeve */}
-            <line x1="186" y1="130" x2="182" y2="130" stroke="#60a5fa" strokeWidth="0.5" opacity="0.3" />
-            {/* Right elbow pad */}
-            <ellipse cx="190" cy="155" rx="7" ry="5" fill="#1e3a8a" opacity="0.5" />
-            {/* Right glove */}
-            <path d="M188 172 L192 195 L205 197 L200 170 Z" fill="#334155" opacity="0.7" />
-
-            {/* M4A4 Rifle */}
-            <g opacity="0.8">
-              {/* Stock */}
-              <path d="M195 168 L210 155 L212 172 L198 185 Z" fill="#475569" opacity="0.7" />
-              {/* Receiver body */}
-              <rect x="165" y="158" width="38" height="10" rx="2" fill="#64748b" opacity="0.7" />
-              {/* Barrel */}
-              <rect x="140" y="159" width="28" height="5" rx="1" fill="#94a3b8" opacity="0.6" />
-              {/* Muzzle */}
-              <rect x="135" y="157" width="8" height="9" rx="1" fill="#64748b" opacity="0.6" />
-              {/* Magazine */}
-              <path d="M175 168 L172 200 L180 200 L182 168 Z" fill="#475569" opacity="0.6" />
-              {/* Grip */}
-              <path d="M195 168 L192 195 L198 195 L200 168 Z" fill="#334155" opacity="0.6" />
-              {/* Sight rail */}
-              <rect x="160" y="155" width="30" height="3" rx="1" fill="#94a3b8" opacity="0.5" />
-              {/* Red dot sight */}
-              <rect x="170" y="148" width="12" height="7" rx="2" fill="#475569" opacity="0.6" />
-              <circle cx="176" cy="148" r="2" fill="#ef4444" opacity="0.4" />
-              {/* Foregrip */}
-              <rect x="150" y="168" width="8" height="15" rx="2" fill="#334155" opacity="0.5" />
-            </g>
-
-            {/* Left leg */}
-            <path d="M70 200 L62 340 L82 342 L90 205" fill="url(#ct-body)" opacity="0.75" />
-            {/* Knee pad left */}
-            <ellipse cx="70" cy="290" rx="10" ry="8" fill="#1e3a8a" opacity="0.6" />
-            <ellipse cx="70" cy="290" rx="7" ry="5" fill="#2563eb" opacity="0.3" />
-            {/* Left leg pocket */}
-            <rect x="68" y="220" width="14" height="12" rx="2" fill="#1e3a8a" opacity="0.4" />
-
-            {/* Right leg */}
-            <path d="M150 205 L158 340 L178 340 L170 200" fill="url(#ct-body)" opacity="0.75" />
-            {/* Knee pad right */}
-            <ellipse cx="168" cy="290" rx="10" ry="8" fill="#1e3a8a" opacity="0.6" />
-            <ellipse cx="168" cy="290" rx="7" ry="5" fill="#2563eb" opacity="0.3" />
-            {/* Right leg pocket */}
-            <rect x="160" y="220" width="14" height="12" rx="2" fill="#1e3a8a" opacity="0.4" />
-
-            {/* Combat boots */}
-            <path d="M55 338 L88 338 L92 365 L88 370 L50 370 L46 365 Z" fill="#1e293b" opacity="0.8" />
-            <path d="M155 338 L185 338 L188 365 L185 370 L150 370 L148 365 Z" fill="#1e293b" opacity="0.8" />
-            {/* Boot laces */}
-            <line x1="65" y1="342" x2="78" y2="342" stroke="#475569" strokeWidth="0.5" opacity="0.4" />
-            <line x1="63" y1="348" x2="80" y2="348" stroke="#475569" strokeWidth="0.5" opacity="0.4" />
-            <line x1="163" y1="342" x2="178" y2="342" stroke="#475569" strokeWidth="0.5" opacity="0.4" />
-            <line x1="160" y1="348" x2="180" y2="348" stroke="#475569" strokeWidth="0.5" opacity="0.4" />
-            {/* Boot soles */}
-            <rect x="46" y="368" width="44" height="5" rx="2" fill="#0f172a" opacity="0.7" />
-            <rect x="148" y="368" width="40" height="5" rx="2" fill="#0f172a" opacity="0.7" />
-
-            {/* Glow silhouette */}
-            <ellipse cx="120" cy="230" rx="80" ry="200" fill="url(#ct-glow)" filter="url(#ct-blur)" opacity="0.12" />
-          </motion.g>
-        </svg>
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <img
+            src="/agents/ct-sas.png"
+            alt="CS2 CT Agent"
+            className="w-64 h-auto relative z-10 drop-shadow-[0_0_40px_rgba(59,130,246,0.3)]"
+            style={{
+              opacity: 0.3,
+              filter: "drop-shadow(0 0 30px rgba(59,130,246,0.25))",
+              maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
+              transform: "translateX(-25%)",
+            }}
+          />
+        </motion.div>
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
           <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
           <span className="text-[10px] text-primary/60 font-mono uppercase tracking-widest">Counter-Terrorist</span>
           <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -352,175 +192,24 @@ function TCharacter() {
     >
       <div className="relative">
         <div className="absolute -inset-20 bg-accent/[0.04] rounded-full blur-[80px]" />
-        <svg
-          viewBox="0 0 240 480"
-          className="w-52 h-auto relative z-10 drop-shadow-[0_0_40px_rgba(249,115,22,0.3)]"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+        <motion.div
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         >
-          <defs>
-            <linearGradient id="t-body" x1="120" y1="0" x2="120" y2="480" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#fdba74" stopOpacity="0.95" />
-              <stop offset="30%" stopColor="#f97316" stopOpacity="0.85" />
-              <stop offset="70%" stopColor="#c2410c" stopOpacity="0.75" />
-              <stop offset="100%" stopColor="#7c2d12" stopOpacity="0.6" />
-            </linearGradient>
-            <linearGradient id="t-jacket" x1="120" y1="100" x2="120" y2="280" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#ea580c" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="#9a3412" stopOpacity="0.7" />
-            </linearGradient>
-            <linearGradient id="t-balaclava" x1="120" y1="20" x2="120" y2="100" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#fed7aa" stopOpacity="0.9" />
-              <stop offset="60%" stopColor="#c2410c" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#7c2d12" stopOpacity="0.7" />
-            </linearGradient>
-            <linearGradient id="t-glow" x1="120" y1="0" x2="120" y2="480" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#fdba74" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
-            </linearGradient>
-            <filter id="t-blur">
-              <feGaussianBlur stdDeviation="3" />
-            </filter>
-          </defs>
-          <motion.g
-            animate={{ y: [0, -6, 0] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          >
-            {/* Head shape */}
-            <ellipse cx="120" cy="55" rx="24" ry="28" fill="url(#t-balaclava)" opacity="0.9" />
-            {/* Balaclava */}
-            <path d="M92 32 Q92 18 120 15 Q148 18 148 32 L150 68 Q150 82 135 85 L105 85 Q90 82 90 68 Z" fill="url(#t-balaclava)" opacity="0.85" />
-            {/* Balaclava knit texture */}
-            <path d="M95 28 Q120 18 145 28" stroke="#ea580c" strokeWidth="0.8" fill="none" opacity="0.3" />
-            <path d="M93 35 Q120 25 147 35" stroke="#ea580c" strokeWidth="0.5" fill="none" opacity="0.25" />
-            <path d="M92 42 Q120 32 148 42" stroke="#ea580c" strokeWidth="0.5" fill="none" opacity="0.2" />
-            {/* Eye holes */}
-            <path d="M100 48 Q108 44 116 48 L114 58 Q108 62 102 58 Z" fill="#1c1917" opacity="0.85" />
-            <path d="M124 48 Q132 44 140 48 L138 58 Q132 62 126 58 Z" fill="#1c1917" opacity="0.85" />
-            {/* Eyes */}
-            <ellipse cx="109" cy="52" rx="4" ry="3" fill="#fef3c7" opacity="0.6" />
-            <circle cx="110" cy="52" r="1.5" fill="#1c1917" opacity="0.8" />
-            <ellipse cx="133" cy="52" rx="4" ry="3" fill="#fef3c7" opacity="0.6" />
-            <circle cx="134" cy="52" r="1.5" fill="#1c1917" opacity="0.8" />
-            {/* Eye glint */}
-            <circle cx="111" cy="51" r="0.8" fill="white" opacity="0.5" />
-            <circle cx="135" cy="51" r="0.8" fill="white" opacity="0.5" />
-            {/* Nose bump under balaclava */}
-            <path d="M118 56 Q120 60 122 56" stroke="#c2410c" strokeWidth="0.5" fill="none" opacity="0.3" />
-            {/* Mouth slit */}
-            <path d="M112 65 Q120 68 128 65" stroke="#1c1917" strokeWidth="0.8" fill="none" opacity="0.4" />
-
-            {/* Neck */}
-            <path d="M105 82 L110 95 L130 95 L135 82" fill="url(#t-body)" opacity="0.7" />
-
-            {/* Body - Leather jacket */}
-            <path d="M72 95 L168 95 L172 205 L68 205 Z" fill="url(#t-jacket)" opacity="0.85" />
-            {/* Jacket collar - popped */}
-            <path d="M95 85 L88 100 L105 95" fill="#9a3412" opacity="0.6" />
-            <path d="M145 85 L152 100 L135 95" fill="#9a3412" opacity="0.6" />
-            {/* Jacket zipper */}
-            <line x1="120" y1="95" x2="120" y2="205" stroke="#7c2d12" strokeWidth="1.2" opacity="0.4" />
-            <path d="M118 95 L120 92 L122 95" fill="#94a3b8" opacity="0.4" />
-            {/* Jacket seam lines */}
-            <line x1="88" y1="100" x2="86" y2="200" stroke="#c2410c" strokeWidth="0.5" opacity="0.3" />
-            <line x1="152" y1="100" x2="154" y2="200" stroke="#c2410c" strokeWidth="0.5" opacity="0.3" />
-            {/* Shoulder seams */}
-            <path d="M72 95 Q85 100 95 95" stroke="#7c2d12" strokeWidth="0.5" fill="none" opacity="0.3" />
-            <path d="M168 95 Q155 100 145 95" stroke="#7c2d12" strokeWidth="0.5" fill="none" opacity="0.3" />
-            {/* Chest pocket */}
-            <path d="M82 115 L108 115 L106 140 L84 140 Z" fill="#9a3412" opacity="0.4" />
-            <line x1="82" y1="115" x2="108" y2="115" stroke="#c2410c" strokeWidth="0.5" opacity="0.3" />
-            {/* Pocket flap */}
-            <path d="M84 115 L106 115 L105 120 L85 120 Z" fill="#7c2d12" opacity="0.3" />
-            {/* Belt */}
-            <rect x="70" y="185" width="100" height="8" rx="2" fill="#1c1917" opacity="0.6" />
-            <rect x="112" y="183" width="16" height="12" rx="2" fill="#78716c" opacity="0.5" />
-            {/* Belt buckle */}
-            <rect x="115" y="186" width="10" height="6" rx="1" fill="#a8a29e" opacity="0.4" />
-
-            {/* Left arm - leather sleeve */}
-            <path d="M68 100 L48 115 L38 200 L55 205 L62 115" fill="url(#t-body)" opacity="0.75" />
-            {/* Left arm cuff */}
-            <rect x="38" y="192" width="20" height="8" rx="2" fill="#1c1917" opacity="0.4" />
-            {/* Left glove - fingerless */}
-            <path d="M38 198 L34 218 L58 220 L55 200 Z" fill="#44403c" opacity="0.7" />
-            <path d="M40 198 L52 198" stroke="#292524" strokeWidth="1" opacity="0.4" />
-            {/* Left elbow patch */}
-            <ellipse cx="45" cy="165" rx="8" ry="6" fill="#7c2d12" opacity="0.4" />
-
-            {/* Right arm - holding AK-47 */}
-            <path d="M172 100 L190 115 L198 180 L184 185 L180 120" fill="url(#t-body)" opacity="0.75" />
-            {/* Right arm cuff */}
-            <rect x="188" y="172" width="14" height="8" rx="2" fill="#1c1917" opacity="0.4" />
-            {/* Right glove */}
-            <path d="M192 178 L196 200 L210 202 L205 176 Z" fill="#44403c" opacity="0.7" />
-            {/* Right elbow patch */}
-            <ellipse cx="193" cy="155" rx="8" ry="6" fill="#7c2d12" opacity="0.4" />
-
-            {/* AK-47 Rifle */}
-            <g opacity="0.8">
-              {/* Stock - wooden */}
-              <path d="M200 170 L218 155 L222 178 L204 190 Z" fill="#92400e" opacity="0.7" />
-              <path d="M200 170 L218 155 L222 178 L204 190 Z" stroke="#78350f" strokeWidth="0.5" fill="none" opacity="0.3" />
-              {/* Receiver */}
-              <rect x="160" y="162" width="44" height="12" rx="2" fill="#57534e" opacity="0.7" />
-              {/* Barrel */}
-              <rect x="128" y="164" width="35" height="6" rx="1" fill="#78716c" opacity="0.6" />
-              {/* Muzzle brake */}
-              <rect x="122" y="162" width="10" height="10" rx="1" fill="#57534e" opacity="0.6" />
-              {/* Curved magazine */}
-              <path d="M172 174 L165 215 Q168 220 175 215 L180 174 Z" fill="#292524" opacity="0.7" />
-              {/* Magazine ribs */}
-              <line x1="168" y1="180" x2="168" y2="210" stroke="#44403c" strokeWidth="0.5" opacity="0.3" />
-              <line x1="172" y1="178" x2="172" y2="212" stroke="#44403c" strokeWidth="0.5" opacity="0.3" />
-              {/* Pistol grip */}
-              <path d="M198 174 L194 205 L202 205 L204 174 Z" fill="#292524" opacity="0.6" />
-              {/* Sight */}
-              <rect x="165" y="158" width="8" height="4" rx="1" fill="#57534e" opacity="0.5" />
-              <rect x="140" y="160" width="6" height="3" rx="1" fill="#57534e" opacity="0.5" />
-              {/* Wood furniture grain */}
-              <line x1="204" y1="172" x2="218" y2="160" stroke="#a16207" strokeWidth="0.3" opacity="0.2" />
-              <line x1="202" y1="176" x2="220" y2="165" stroke="#a16207" strokeWidth="0.3" opacity="0.2" />
-            </g>
-
-            {/* Left leg - cargo pants */}
-            <path d="M68 205 L60 340 L82 342 L92 210" fill="url(#t-body)" opacity="0.75" />
-            {/* Cargo pocket */}
-            <rect x="62" y="250" width="16" height="16" rx="2" fill="#9a3412" opacity="0.4" />
-            <path d="M64 250 L76 250 L75 253 L65 253 Z" fill="#7c2d12" opacity="0.3" />
-            {/* Knee area */}
-            <path d="M64 285 Q72 280 80 285" stroke="#c2410c" strokeWidth="0.5" fill="none" opacity="0.3" />
-
-            {/* Right leg - cargo pants */}
-            <path d="M148 210 L158 340 L178 340 L172 205" fill="url(#t-body)" opacity="0.75" />
-            {/* Cargo pocket */}
-            <rect x="162" y="250" width="16" height="16" rx="2" fill="#9a3412" opacity="0.4" />
-            <path d="M164 250 L176 250 L175 253 L165 253 Z" fill="#7c2d12" opacity="0.3" />
-            {/* Knee area */}
-            <path d="M162 285 Q170 280 178 285" stroke="#c2410c" strokeWidth="0.5" fill="none" opacity="0.3" />
-
-            {/* Combat boots - worn leather */}
-            <path d="M52 338 L88 338 L92 365 L88 372 L48 372 L44 365 Z" fill="#292524" opacity="0.8" />
-            <path d="M155 338 L185 338 L188 365 L185 372 L150 372 L146 365 Z" fill="#292524" opacity="0.8" />
-            {/* Boot worn marks */}
-            <path d="M55 342 L82 342" stroke="#44403c" strokeWidth="0.5" opacity="0.3" />
-            <path d="M52 348 L84 348" stroke="#44403c" strokeWidth="0.5" opacity="0.3" />
-            <path d="M158 342 L182 342" stroke="#44403c" strokeWidth="0.5" opacity="0.3" />
-            <path d="M155 348 L184 348" stroke="#44403c" strokeWidth="0.5" opacity="0.3" />
-            {/* Boot laces */}
-            <line x1="64" y1="342" x2="76" y2="342" stroke="#78716c" strokeWidth="0.6" opacity="0.4" />
-            <line x1="62" y1="348" x2="78" y2="348" stroke="#78716c" strokeWidth="0.6" opacity="0.4" />
-            <line x1="164" y1="342" x2="176" y2="342" stroke="#78716c" strokeWidth="0.6" opacity="0.4" />
-            <line x1="162" y1="348" x2="178" y2="348" stroke="#78716c" strokeWidth="0.6" opacity="0.4" />
-            {/* Boot soles */}
-            <rect x="44" y="370" width="46" height="5" rx="2" fill="#0c0a09" opacity="0.7" />
-            <rect x="146" y="370" width="44" height="5" rx="2" fill="#0c0a09" opacity="0.7" />
-
-            {/* Glow silhouette */}
-            <ellipse cx="120" cy="230" rx="80" ry="200" fill="url(#t-glow)" filter="url(#t-blur)" opacity="0.12" />
-          </motion.g>
-        </svg>
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <img
+            src="/agents/t-terrorist.png"
+            alt="CS2 Terrorist Agent"
+            className="w-64 h-auto relative z-10 drop-shadow-[0_0_40px_rgba(249,115,22,0.3)]"
+            style={{
+              opacity: 0.3,
+              filter: "drop-shadow(0 0 30px rgba(249,115,22,0.25))",
+              maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
+              transform: "translateX(25%)",
+            }}
+          />
+        </motion.div>
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
           <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
           <span className="text-[10px] text-accent/60 font-mono uppercase tracking-widest">Terrorist</span>
           <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />

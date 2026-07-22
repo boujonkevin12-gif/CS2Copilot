@@ -191,51 +191,9 @@ export default function CoachPage() {
     }
   };
 
-  const generateAiResponse = (question: string): string => {
-    const ls = faceitStats?.lifetime;
-    const kd = ls ? parseFloat(String(ls["Average K/D Ratio"] || "0")) : 0;
-    const hs = ls ? parseFloat(String(ls["Average Headshots %"] || "0")) : 0;
-    const wr = ls ? parseFloat(String(ls["Win Rate %"] || "0")) : 0;
-    const adr = ls ? parseFloat(String(ls["ADR"] || "0")) : 0;
-    const kast = 0;
-    const matches = ls ? parseInt(String(ls.Matches || "0")) : 0;
-    const name = user?.faceitNickname || user?.name || "jugador";
-
-    const q = question.toLowerCase();
-
-    if (q.includes("aim") || q.includes("punteria") || q.includes("mira")) {
-      if (hs < 40) {
-        return `**Análisis de Aim para ${name}:**\n\nTu headshot rate es de ${hs.toFixed(0)}%, lo cual indica que tu crosshair placement necesita mejora.\n\n**Plan de acción:**\n- Crosshair siempre a nivel de cabeza\n- Aim Botz: 15 min/día\n- Deathmatch 2-3 partidas sin grenades\n- Pre-aim en mapas workshop\n\n**Meta:** Subir HS% a 50%+ en 2 semanas.\n\n*Basado en tus estadísticas reales de FACEIT.*`;
-      }
-      return `**Análisis de Aim para ${name}:**\n\nTu HS% de ${hs.toFixed(0)}% es ${hs >= 50 ? "bueno" : "aceptable"}. Tu K/D de ${kd.toFixed(2)} ${kd >= 1.2 ? "refleja buen aim" : "puede mejorar"}.\n\n**Siguientes pasos:**\n- Practica flick shots en Aim Botz\n- Trabaja tracking en DM\n- Enfoca en headshots más que en cantidad de kills\n\n*Basado en datos reales de FACEIT.*`;
-    }
-
-    if (q.includes("elo") || q.includes("subir") || q.includes("rank")) {
-      return `**Análisis de climbing para ${name}:**\n\nCon ${matches} partidas y un win rate de ${wr.toFixed(0)}%, ${wr >= 50 ? "vas bien" : "hay margen de mejora"}.\n\n**Claves para subir:**\n- Win rate > 50% es lo mínimo para subir ELO\n- K/D de ${kd.toFixed(2)} ${kd >= 1.0 ? "es positivo" : "necesita mejorar"}\n- Juega con consistentes teammates\n- Enfoca en 2-3 mapas que domines\n- Analiza tus demos perdidas\n\n*Consistencia > spikes de rendimiento.*`;
-    }
-
-    if (q.includes("mirage") || q.includes("mapa") || q.includes("map")) {
-      return `**Guía rápida de Mirage:**\n\n**CT Side:**\n- Smoke mid from CT spawn\n- Jungle smoke desde A ramp\n- Retake B con molotov de van\n\n**T Side:**\n- Execute A: Smoke jungle + CT, flash over palace\n- Mid control: Smoke top mid, molotov window\n- B split: Short + apartments simultaneously\n\n**Tips:**\n- Mid control es clave\n- No fuerces A/B solo\n- Comunica rotaciones\n\n*Practica los smokes en modo entrenamiento.*`;
-    }
-
-    if (q.includes("k/d") || q.includes("kd") || q.includes("muerte")) {
-      return `**Análisis K/D para ${name}:**\n\nTu K/D actual: **${kd.toFixed(2)}**\n${kd >= 1.2 ? "Excelente — estás eliminando más de lo que mueres." : kd >= 1.0 ? "Aceptable — estás balanceado." : "Necesita mejora — estás muriendo más de lo que eliminas."}\n\n**Para mejorar tu K/D:**\n- No hagas dry peeks (siempre con flash)\n- Retira si estás en desventaja\n- Juega posiciones más seguras\n- Trading kills > plays individuales\n- ${kd < 1.0 ? "Enfoca en survivality primero" : "Mantén tu estilo y refina la consistencia"}\n\n*K/D de 1.1+ es lo ideal para escalar.*`;
-    }
-
-    if (q.includes("grena") || q.includes("smoke") || q.includes("flash") || q.includes("utility")) {
-      return `**Guía de Utility para ${name}:**\n\nLas grenades son la herramienta más subestimada en CS2.\n\n**Prioridades:**\n1. Smoke para mid/map control\n2. Flash para entries y retakes\n3. Molotov para clear positions\n4. HE para daño en executes\n\n**Por mapa - aprende primero:**\n- Dust II: Long corner smoke, CT smoke\n- Mirage: Jungle, CT, window smokes\n- Inferno: Banana control, arch side\n- Nuke: Ramp, outside smokes\n\n**Ejercicio:** 10 min/día practicando lineups en entrenamiento.\n\n*3 smokes bien ejecutados pueden ganar una ronda completa.*`;
-    }
-
-    if (q.includes("mental") || q.includes("tilt") || q.includes("psicolog") || q.includes("calma")) {
-      return `**Mentalidad para ${name}:**\n\n${matches} partidas jugadas — sabes que CS2 puede ser frustrante.\n\n**Reglas de mentalidad:**\n- Si pierdes 2 seguidas: 5 min de descanso\n- No批评 teammates — enfoca en tu juego\n- Cada ronda es nueva (olvida la anterior)\n- Focus en proceso, no en resultado\n- Celebra los small wins\n\n**Antes de jugar:**\n- Warmup 10 min (DM o aim training)\n- Warmup 5 min (clutch scenarios)\n- Respira profundo antes de empezar\n\n*Los pros pierden el 45% de sus partidas. Es normal.*`;
-    }
-
-    return `**Análisis para ${name}:**\n\nBasado en tus ${matches} partidas con K/D ${kd.toFixed(2)} y WR ${wr.toFixed(0)}%:\n\n${analysis?.recommendations.slice(0, 3).map((r) => `- **${r.title}**: ${r.description}`).join("\n") || "- Juega más partidas para obtener un análisis personalizado"}\n\n¿Qué aspecto específico quieres que analice? Puedo revisar:\n- Aim y puntería\n- Posicionamiento\n- Utility / grenades\n- Mentalidad\n- Estrategia por mapa`;
-  };
-
-  const handleSend = (text?: string) => {
+  const handleSend = async (text?: string) => {
     const messageText = text || input.trim();
-    if (!messageText) return;
+    if (!messageText || isTyping) return;
 
     const userMessage: Message = {
       id: generateId(),
@@ -248,17 +206,42 @@ export default function CoachPage() {
     setInput("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      const responseText = generateAiResponse(messageText);
+    try {
+      const history = messages.slice(-10).map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: messageText, history }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Error al obtener respuesta");
+      }
+
       const assistantMessage: Message = {
         id: generateId(),
         role: "assistant",
-        content: responseText,
+        content: data.reply,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
+    } catch (err) {
+      const errorMessage: Message = {
+        id: generateId(),
+        role: "assistant",
+        content: "Hubo un error al conectar con el Coach IA. Por favor intenta de nuevo.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 800 + Math.random() * 700);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

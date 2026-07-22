@@ -12,10 +12,11 @@ export interface FaceitPlayer {
     cs2?: {
       region: string;
       country: string;
-      level: number;
-      elo: number;
-      skill_level_10: number;
+      game_player_id: string;
+      skill_level: number;
       faceit_elo: number;
+      game_player_name: string;
+      skill_level_label: string;
     };
   };
   friends: string[];

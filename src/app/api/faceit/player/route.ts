@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
       country: player.country,
       games: {
         cs2: {
-          level: player.games?.cs2?.level ?? null,
-          elo: player.games?.cs2?.elo ?? null,
+          level: player.games?.cs2?.skill_level ?? null,
+          elo: player.games?.cs2?.faceit_elo ?? null,
         },
       },
     });

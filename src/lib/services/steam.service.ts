@@ -133,13 +133,54 @@ class SteamService {
     const roundsWon = stats.get("total_rounds_won") || 0;
     const shotsFired = stats.get("total_shots_fired") || 0;
     const shotsHit = stats.get("total_shots_hit") || 0;
+    const matchesPlayed = stats.get("total_matches_played") || 0;
+    const matchesWon = stats.get("total_matches_won") || wins;
+
+    const rifleKills = (stats.get("total_kills_ak47") || 0)
+      + (stats.get("total_kills_m4a1") || 0)
+      + (stats.get("total_kills_m4a4") || 0)
+      + (stats.get("total_kills_famas") || 0)
+      + (stats.get("total_kills_galilar") || 0)
+      + (stats.get("total_kills_aug") || 0)
+      + (stats.get("total_kills_sg556") || 0);
+
+    const sniperKills = (stats.get("total_kills_awp") || 0)
+      + (stats.get("total_kills_ssg08") || 0)
+      + (stats.get("total_kills_scar20") || 0)
+      + (stats.get("total_kills_g3sg1") || 0);
+
+    const smgKills = (stats.get("total_kills_mp9") || 0)
+      + (stats.get("total_kills_mac10") || 0)
+      + (stats.get("total_kills_mp7") || 0)
+      + (stats.get("total_kills_ump45") || 0)
+      + (stats.get("total_kills_p90") || 0)
+      + (stats.get("total_kills_bizon") || 0)
+      + (stats.get("total_kills_mp5sd") || 0);
+
+    const shotgunKills = (stats.get("total_kills_nova") || 0)
+      + (stats.get("total_kills_xm1014") || 0)
+      + (stats.get("total_kills_mag7") || 0)
+      + (stats.get("total_kills_sawedoff") || 0);
+
+    const pistolKills = (stats.get("total_kills_glock") || 0)
+      + (stats.get("total_kills_usp") || 0)
+      + (stats.get("total_kills_p250") || 0)
+      + (stats.get("total_kills_fiveseven") || 0)
+      + (stats.get("total_kills_deagle") || 0)
+      + (stats.get("total_kills_tec9") || 0)
+      + (stats.get("total_kills_cz75") || 0)
+      + (stats.get("total_kills_hkp2000") || 0)
+      + (stats.get("total_kills_elite") || 0);
+
+    const mgKills = (stats.get("total_kills_negev") || 0)
+      + (stats.get("total_kills_m249") || 0);
 
     return {
       totalKills: kills,
       totalDeaths: deaths,
       totalAssists: stats.get("total_assists") || 0,
-      totalWins: wins,
-      totalLosses: Math.max(0, roundsPlayed > 0 ? (stats.get("total_matches_won") || 0) : 0),
+      totalWins: matchesPlayed > 0 ? matchesWon : wins,
+      totalLosses: matchesPlayed > 0 ? Math.max(0, matchesPlayed - matchesWon) : 0,
       totalMVPs: stats.get("total_mvps") || 0,
       totalRoundsPlayed: roundsPlayed,
       totalRoundsWon: roundsWon,
@@ -151,15 +192,15 @@ class SteamService {
       totalKnifeKills: stats.get("total_kills_knife") || 0,
       totalGrenadeKills: stats.get("total_kills_hegrenade") || 0,
       totalFlashbangEnemies: stats.get("total_flashbang Enemies") || stats.get("total_enemies_flashed") || 0,
-      totalSniperKills: stats.get("total_kill_alerts") || 0,
-      totalRifleKills: stats.get("total_kill_alerts") || 0,
-      totalSmgKills: 0,
-      totalShotgunKills: 0,
-      totalMachinegunKills: 0,
-      totalPistolKills: 0,
+      totalSniperKills: sniperKills,
+      totalRifleKills: rifleKills,
+      totalSmgKills: smgKills,
+      totalShotgunKills: shotgunKills,
+      totalMachinegunKills: mgKills,
+      totalPistolKills: pistolKills,
       totalHSPct: kills > 0 ? Math.round((headshots / kills) * 1000) / 10 : 0,
       totalKD: deaths > 0 ? Math.round((kills / deaths) * 100) / 100 : kills,
-      totalWinPct: roundsPlayed > 0 ? Math.round((roundsWon / roundsPlayed) * 1000) / 10 : 0,
+      totalWinPct: matchesPlayed > 0 ? Math.round((matchesWon / matchesPlayed) * 1000) / 10 : (roundsPlayed > 0 ? Math.round((roundsWon / roundsPlayed) * 1000) / 10 : 0),
       accuracy: shotsFired > 0 ? Math.round((shotsHit / shotsFired) * 1000) / 10 : 0,
     };
   }
