@@ -22,19 +22,42 @@ import {
   Flame,
   User,
   LogOut,
+  Plus,
+  ChevronDown,
+  Bookmark,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-const sidebarLinks = [
-  { icon: LayoutDashboard, label: "Resumen", href: "/dashboard" },
-  { icon: User, label: "Perfil", href: "/dashboard/profile" },
-  { icon: History, label: "Historial de Partidas", href: "/dashboard/matches" },
-  { icon: BarChart3, label: "Análisis", href: "/dashboard/analytics" },
-  { icon: Target, label: "Estadísticas", href: "/dashboard/stats" },
-  { icon: Package, label: "Inventario", href: "/dashboard/inventory" },
-  { icon: Flame, label: "Utilidades", href: "/dashboard/utility" },
-  { icon: Sparkles, label: "Coach IA", href: "/dashboard/coach" },
-  { icon: Settings, label: "Configuración", href: "/dashboard/settings" },
+const sidebarGroups = [
+  {
+    title: "Principal",
+    links: [
+      { icon: LayoutDashboard, label: "Resumen", href: "/dashboard" },
+      { icon: User, label: "Perfil", href: "/dashboard/profile" },
+      { icon: History, label: "Historial de Partidas", href: "/dashboard/matches" },
+    ],
+  },
+  {
+    title: "Análisis",
+    links: [
+      { icon: BarChart3, label: "Análisis", href: "/dashboard/analytics" },
+      { icon: Target, label: "Estadísticas", href: "/dashboard/stats" },
+      { icon: Package, label: "Inventario", href: "/dashboard/inventory" },
+    ],
+  },
+  {
+    title: "Utilidades",
+    links: [
+      { icon: Sparkles, label: "Coach IA", href: "/dashboard/coach", badge: "Nuevo" },
+      { icon: Flame, label: "Utilidades", href: "/dashboard/utility" },
+    ],
+  },
+  {
+    title: "Configuración",
+    links: [
+      { icon: Settings, label: "Configuración", href: "/dashboard/settings" },
+    ],
+  },
 ];
 
 function DashboardNav({ children }: { children: React.ReactNode }) {
@@ -60,7 +83,7 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen overflow-hidden">
       <aside
         className={cn(
-          "flex flex-col border-r border-white/[0.06] bg-surface/50 backdrop-blur-xl transition-all duration-300",
+          "flex flex-col border-r border-white/[0.06] bg-[#0d0d11]/80 backdrop-blur-xl transition-all duration-300",
           collapsed ? "w-[68px]" : "w-64"
         )}
       >
@@ -75,29 +98,49 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
           )}
         </div>
 
-        <nav className="flex-1 p-3 space-y-1">
-          {sidebarLinks.map((link) => {
-            const isActive =
-              link.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(link.href);
+        <nav className="flex-1 p-3 space-y-5 overflow-y-auto">
+          {sidebarGroups.map((group) => (
+            <div key={group.title}>
+              {!collapsed && (
+                <div className="px-3 mb-1.5 text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+                  {group.title}
+                </div>
+              )}
+              <div className="space-y-1">
+                {group.links.map((link) => {
+                  const isActive =
+                    link.href === "/dashboard"
+                      ? pathname === "/dashboard"
+                      : pathname.startsWith(link.href);
 
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                  isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted hover:text-foreground hover:bg-white/[0.04]"
-                )}
-              >
-                <link.icon className="h-5 w-5 shrink-0" />
-                {!collapsed && <span>{link.label}</span>}
-              </Link>
-            );
-          })}
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                        isActive
+                          ? "bg-primary/15 text-primary"
+                          : "text-muted hover:text-foreground hover:bg-white/[0.04]"
+                      )}
+                    >
+                      <link.icon className="h-5 w-5 shrink-0" />
+                      {!collapsed && (
+                        <span className="flex-1 flex items-center gap-2">
+                          {link.label}
+                          {link.badge && (
+                            <span className="text-[9px] font-bold uppercase tracking-wide bg-primary text-white rounded-full px-1.5 py-0.5">
+                              {link.badge}
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         <div className="p-3 border-t border-white/[0.06]">
@@ -136,23 +179,36 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex h-16 items-center justify-between border-b border-white/[0.06] px-6 bg-surface/30 backdrop-blur-xl">
+        <header className="flex h-16 items-center justify-between gap-4 border-b border-white/[0.06] px-6 bg-[#0d0d11]/60 backdrop-blur-xl">
           <div className="flex items-center gap-4 flex-1">
             <div className="relative max-w-md flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Buscar partidas, estadísticas..."
-                className="w-full h-9 pl-10 pr-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all"
+                placeholder="Buscar partidas, jugadores, mapas..."
+                className="w-full h-9 pl-10 pr-12 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all"
               />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground border border-white/[0.08] rounded-md px-1.5 py-0.5">
+                ⌘K
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard/analytics"
+              className="gradient-btn hidden sm:flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20"
+            >
+              <Plus className="h-4 w-4" />
+              Analizar demo
+            </Link>
             <button className="relative p-2 rounded-xl text-muted hover:text-foreground hover:bg-white/[0.04] transition-all">
               <Bell className="h-5 w-5" />
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-accent" />
             </button>
-            <div className="flex items-center gap-3 pl-3 border-l border-white/[0.06]">
+            <button className="relative p-2 rounded-xl text-muted hover:text-foreground hover:bg-white/[0.04] transition-all">
+              <Bookmark className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-2 pl-3 border-l border-white/[0.06]">
               {user?.avatar ? (
                 <img
                   src={user.avatar}
@@ -172,6 +228,7 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
                   {user?.steamLevel ? `Steam Level ${user.steamLevel}` : "Conectado"}
                 </div>
               </div>
+              <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
             </div>
           </div>
         </header>

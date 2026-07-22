@@ -20,6 +20,8 @@ import {
   Award,
   Flame,
   MapPin,
+  CheckCircle2,
+  ExternalLink,
 } from "lucide-react";
 
 function AnimatedNumber({ value, suffix = "", prefix = "", decimals = 0 }: { value: number; suffix?: string; prefix?: string; decimals?: number }) {
@@ -63,14 +65,14 @@ function StatCard({ icon: Icon, iconColor, label, value, sub, delay }: {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}>
       <GlassCard padding="md">
-        <div className="flex items-center justify-between mb-3">
-          <div className={`h-10 w-10 rounded-xl flex items-center justify-center`} style={{ backgroundColor: `${iconColor}15` }}>
-            <Icon className="h-5 w-5" style={{ color: iconColor }} />
+        <div className="flex items-start justify-between mb-3">
+          <div className="text-xs text-muted">{label}</div>
+          <div className="h-9 w-9 rounded-full flex items-center justify-center ring-1 shrink-0" style={{ backgroundColor: `${iconColor}15`, boxShadow: `inset 0 0 0 1px ${iconColor}30` }}>
+            <Icon className="h-4 w-4" style={{ color: iconColor }} />
           </div>
         </div>
         <div className="text-2xl font-bold font-mono">{value}</div>
-        <div className="text-xs text-muted mt-1">{label}</div>
-        {sub && <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>}
+        {sub && <div className="text-[11px] mt-1" style={{ color: iconColor }}>{sub}</div>}
       </GlassCard>
     </motion.div>
   );
@@ -256,48 +258,70 @@ export default function DashboardOverview() {
     <div className="space-y-6">
       {/* Welcome Banner */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <GlassCard padding="lg" glow>
+        <GlassCard padding="lg" glow className="overflow-visible">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <div className="relative">
+              <div className="absolute -inset-3 rounded-full bg-primary/20 blur-2xl" />
               {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="h-16 w-16 rounded-2xl border border-white/[0.1] shadow-lg shadow-primary/20" />
+                <img src={user.avatar} alt={user.name} className="relative h-20 w-20 rounded-full border border-white/[0.1] shadow-lg shadow-primary/20" />
               ) : (
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-primary/20">
+                <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-primary/20">
                   {initials}
                 </div>
               )}
-              <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-success flex items-center justify-center">
-                <div className="h-2.5 w-2.5 rounded-full bg-white" />
+              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary flex items-center justify-center border-2 border-background text-[10px] font-bold text-white">
+                {user.steamLevel}
               </div>
             </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold tracking-tight">
-                Bienvenido, <span className="gradient-text">{user.name}</span>
+                ¡Bienvenido de nuevo, <span className="gradient-text">{user.name}</span>!
               </h1>
-              <p className="text-sm text-muted mt-1">
+              <div className="flex items-center gap-1.5 mt-2 text-success text-xs font-medium">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Conectado via Steam
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-3 mt-5">
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted mb-1">
+                    <Star className="h-3 w-3" /> Steam Level
+                  </div>
+                  <div className="text-lg font-bold">{user.steamLevel}</div>
+                </div>
+                {user.faceitPlayerId && (
+                  <div>
+                    <div className="text-xs text-muted mb-1">FACEIT Level</div>
+                    <div className="text-lg font-bold">{user.faceitLevel ?? "—"}</div>
+                  </div>
+                )}
+                {user.faceitElo != null && (
+                  <div>
+                    <div className="text-xs text-muted mb-1">FACEIT Elo</div>
+                    <div className="text-lg font-bold">{user.faceitElo.toLocaleString()}</div>
+                  </div>
+                )}
+                {user.profileUrl && (
+                  <div>
+                    <div className="text-xs text-muted mb-1">Perfil Público</div>
+                    <a
+                      href={user.profileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-semibold text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      Ver perfil <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-muted-foreground mt-4">
                 {cs2Hours !== null
                   ? `Has jugado ${cs2Hours.toLocaleString()} horas de CS2.`
                   : "Conecta tu perfil de Steam para ver estadisticas de CS2."}
                 {lastLogoffDate && ` Ultima conexion: ${lastLogoffDate}`}
               </p>
-            </div>
-            <div className="flex items-center gap-4">
-              {user.faceitPlayerId && (
-                <div className="text-right">
-                  <div className="text-xs text-muted mb-1">FACEIT</div>
-                  <Badge variant="accent" size="md">
-                    <Crown className="h-3 w-3 mr-1" />
-                    Nv. {user.faceitLevel ?? "—"}
-                  </Badge>
-                </div>
-              )}
-              <div className="text-right">
-                <div className="text-xs text-muted mb-1">Steam Level</div>
-                <Badge variant="accent" size="md">
-                  <Star className="h-3 w-3 mr-1" />
-                  {user.steamLevel}
-                </Badge>
-              </div>
             </div>
           </div>
         </GlassCard>
@@ -443,206 +467,155 @@ export default function DashboardOverview() {
         </motion.div>
       </div>
 
-      {/* Map Stats */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
-        <GlassCard padding="md">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <MapPin className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Estadisticas por Mapa</h3>
-                <p className="text-xs text-muted">{mapSegments.length > 0 ? "FACEIT" : "Sin datos de mapas"}</p>
-              </div>
-            </div>
-          </div>
-          {mapSegments.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
-              {mapSegments.map((seg, i) => (
-                <motion.div
-                  key={seg.map_name}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5 + i * 0.03 }}
-                  className="glass rounded-xl p-4 hover:bg-white/[0.04] transition-all"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold">{normalizeMapName(seg.map_name)}</span>
-                    <Badge variant={parseInt(seg["Win Rate %"]) >= 50 ? "success" : "accent"} size="sm">
-                      {parseInt(seg["Win Rate %"]) >= 50 ? <TrendingUp className="h-2.5 w-2.5 mr-0.5" /> : <TrendingDown className="h-2.5 w-2.5 mr-0.5" />}
-                      {seg["Win Rate %"]}%
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 mt-3">
-                    <div>
-                      <div className="text-[10px] text-muted">Partidas</div>
-                      <div className="text-sm font-mono font-medium">{seg.matches}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-muted">Victorias</div>
-                      <div className="text-sm font-mono font-medium">{seg.wins}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-muted">K/D</div>
-                      <div className="text-sm font-mono font-medium">{seg["Average K/D Ratio"] || "—"}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-muted">HS%</div>
-                      <div className="text-sm font-mono font-medium">{seg["Average Headshots %"] || "—"}%</div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {["Dust II", "Mirage", "Inferno", "Nuke", "Overpass", "Ancient", "Anubis", "Train"].map((name) => (
-                <div key={name} className="glass rounded-xl p-4 text-center opacity-50">
-                  <div className="text-sm font-semibold mb-2">{name}</div>
-                  <div className="text-lg font-mono text-muted">—</div>
-                  <div className="text-[10px] text-muted-foreground mt-1">No disponible</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </GlassCard>
-      </motion.div>
-
-      {/* Weapon Stats */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
-        <GlassCard padding="md">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
-              <Swords className="h-5 w-5 text-accent" />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold">Estadisticas por Arma</h3>
-              <p className="text-xs text-muted">{weaponData.length > 0 ? "Steam CS2" : "Sin datos de armas"}</p>
-            </div>
-          </div>
-          {weaponData.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {weaponData.map((w, i) => (
-                <motion.div
-                  key={w.name}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.6 + i * 0.03 }}
-                  className="glass rounded-xl p-4"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold">{w.name}</span>
-                    <span className="text-xs font-mono" style={{ color: w.color }}>{w.pct}%</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${w.pct}%` }}
-                      transition={{ delay: 0.7 + i * 0.05, duration: 0.8, ease: "easeOut" }}
-                      className="h-full rounded-full"
-                      style={{ backgroundColor: w.color }}
-                    />
-                  </div>
-                  <div className="text-[10px] text-muted mt-2">{w.kills.toLocaleString()} kills</div>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {["Rifles", "Snipers", "SMGs", "Pistols"].map((name) => (
-                <div key={name} className="glass rounded-xl p-4 text-center opacity-50">
-                  <div className="text-sm font-semibold mb-2">{name}</div>
-                  <div className="text-lg font-mono text-muted">—</div>
-                  <div className="text-[10px] text-muted-foreground mt-1">No disponible</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </GlassCard>
-      </motion.div>
-
-      {/* Recent Matches */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}>
-        <GlassCard padding="md">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
-                <Trophy className="h-5 w-5 text-success" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Partidas Recientes</h3>
-                <p className="text-xs text-muted">{matchHistory.length > 0 ? "FACEIT" : "Sin partidas recientes"}</p>
-              </div>
-            </div>
-          </div>
-          {matchHistory.length > 0 ? (
-            <div className="space-y-2">
-              {matchHistory.slice(0, 10).map((match, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.7 + i * 0.03 }}
-                  className="glass rounded-xl p-3 flex items-center gap-4 hover:bg-white/[0.03] transition-all"
-                >
-                  <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold ${
-                    match.result === "W" ? "bg-success/20 text-success" : "bg-danger/20 text-danger"
-                  }`}>
-                    {match.result}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">{match.map}</div>
-                    <div className="text-[10px] text-muted">
-                      {match.date ? match.date.toLocaleDateString("es-AR") : ""}
-                      {match.score ? ` • ${match.score}` : ""}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-mono font-medium">
-                      <span className="text-success">{match.kills}</span>
-                      <span className="text-muted">/</span>
-                      <span className="text-danger">{match.deaths}</span>
-                      <span className="text-muted">/</span>
-                      <span className="text-muted">{match.assists}</span>
-                    </div>
-                    <div className="text-[10px] text-muted font-mono">
-                      K/D {match.kd.toFixed(2)}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="glass rounded-xl p-8 text-center">
-              <div className="text-lg font-mono text-muted mb-2">—</div>
-              <p className="text-xs text-muted">No hay partidas FACEIT registradas</p>
-              <p className="text-[10px] text-muted-foreground mt-1">Conecta FACEIT y sincroniza tus partidas para verlas aqui</p>
-            </div>
-          )}
-        </GlassCard>
-      </motion.div>
-
-      {/* Activity + Friends */}
+      {/* Mapa mas jugados + Armas principales */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+          <GlassCard padding="md" className="h-full">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold">Mapa más jugados</h3>
+              <span className="text-xs text-primary font-medium cursor-pointer hover:underline">Ver todas</span>
+            </div>
+            {mapSegments.length > 0 ? (
+              <div className="space-y-1">
+                {mapSegments.slice(0, 5).map((seg, i) => (
+                  <motion.div
+                    key={seg.map_name}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + i * 0.03 }}
+                    className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-white/[0.04] transition-all"
+                  >
+                    <div className="h-10 w-10 rounded-lg bg-white/[0.05] flex items-center justify-center shrink-0">
+                      <MapPin className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">{normalizeMapName(seg.map_name)}</div>
+                      <div className="text-[11px] text-muted">{seg.matches} partidas</div>
+                    </div>
+                    <div className="text-sm font-semibold">
+                      {seg["Win Rate %"]}% <span className="text-[11px] font-normal text-muted">WR</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-lg font-mono text-muted mb-2">—</div>
+                <p className="text-xs text-muted">Sin datos de mapas</p>
+              </div>
+            )}
+          </GlassCard>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+          <GlassCard padding="md" className="h-full">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold">Armas principales</h3>
+              <span className="text-xs text-primary font-medium cursor-pointer hover:underline">Ver todas</span>
+            </div>
+            {weaponData.length > 0 ? (
+              <div className="space-y-1">
+                {weaponData.slice(0, 5).map((w, i) => (
+                  <motion.div
+                    key={w.name}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.55 + i * 0.03 }}
+                    className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-white/[0.04] transition-all"
+                  >
+                    <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${w.color}15` }}>
+                      <Swords className="h-4 w-4" style={{ color: w.color }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">{w.name}</div>
+                      <div className="text-[11px] text-muted">{w.kills.toLocaleString()} kills</div>
+                    </div>
+                    <div className="text-sm font-semibold" style={{ color: w.color }}>
+                      {w.pct}%
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-lg font-mono text-muted mb-2">—</div>
+                <p className="text-xs text-muted">Sin datos de armas</p>
+              </div>
+            )}
+          </GlassCard>
+        </motion.div>
+      </div>
+
+      {/* Recent Matches + Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}>
+          <GlassCard padding="md" className="h-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold">Últimas partidas</h3>
+              <span className="text-xs text-primary font-medium cursor-pointer hover:underline">Ver todas</span>
+            </div>
+            {matchHistory.length > 0 ? (
+              <div className="space-y-1">
+                {matchHistory.slice(0, 5).map((match, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.7 + i * 0.03 }}
+                    className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-white/[0.04] transition-all"
+                  >
+                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
+                      match.result === "W" ? "bg-success/15" : "bg-danger/15"
+                    }`}>
+                      <Trophy className={`h-4 w-4 ${match.result === "W" ? "text-success" : "text-danger"}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-sm font-semibold ${match.result === "W" ? "text-success" : "text-danger"}`}>
+                        {match.result === "W" ? "Victoria" : "Derrota"}
+                      </div>
+                      <div className="text-[11px] text-muted truncate">{match.map}</div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-mono font-semibold">{match.score || "—"}</div>
+                      <div className="text-[11px] text-muted font-mono">
+                        {match.kills}/{match.deaths} · {match.kd.toFixed(2)}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-lg font-mono text-muted mb-2">—</div>
+                <p className="text-xs text-muted">No hay partidas FACEIT registradas</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Conecta FACEIT y sincroniza tus partidas para verlas aqui</p>
+              </div>
+            )}
+          </GlassCard>
+        </motion.div>
+
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75 }}>
           <GlassCard padding="md" className="h-full">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-xl bg-yellow-500/10 flex items-center justify-center">
-                <Flame className="h-5 w-5 text-yellow-500" />
-              </div>
+            <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold">Actividad Reciente</h3>
+              <span className="text-xs text-primary font-medium cursor-pointer hover:underline">Ver todas</span>
             </div>
             {recentActivity.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {recentActivity.map((a, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <div className={`h-2 w-2 rounded-full mt-1.5 flex-shrink-0 ${
-                      a.type === "match" ? "bg-success" : "bg-primary"
-                    }`} />
-                    <div className="min-w-0">
+                  <div key={i} className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-white/[0.04] transition-all">
+                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
+                      a.type === "match" ? "bg-success/15" : "bg-primary/15"
+                    }`}>
+                      {a.type === "match" ? (
+                        <Trophy className="h-4 w-4 text-success" />
+                      ) : (
+                        <TrendingUp className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                    <div className="min-w-0 pt-1">
                       <div className="text-sm truncate">{a.text}</div>
-                      <div className="text-[10px] text-muted">{a.time}</div>
+                      <div className="text-[11px] text-muted">{a.time}</div>
                     </div>
                   </div>
                 ))}
@@ -657,7 +630,7 @@ export default function DashboardOverview() {
         </motion.div>
 
         {friends.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="lg:col-span-2">
             <GlassCard padding="md" className="h-full">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
