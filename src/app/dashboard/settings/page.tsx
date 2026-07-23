@@ -23,6 +23,7 @@ import {
 import { useUser } from "@/lib/user-context";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Link from "next/link";
 
 const settingsSections = [
   {
@@ -31,6 +32,7 @@ const settingsSections = [
     description: "Administra tu nombre de usuario, avatar y información pública",
     color: "text-primary",
     bg: "bg-primary/10",
+    href: "profile",
   },
   {
     icon: Link2,
@@ -38,6 +40,7 @@ const settingsSections = [
     description: "Vincula tu Steam, FACEIT y otras cuentas de gaming",
     color: "text-accent",
     bg: "bg-accent/10",
+    href: "accounts",
   },
   {
     icon: Monitor,
@@ -45,6 +48,7 @@ const settingsSections = [
     description: "Configura la posición, opacidad y estadísticas del overlay en el juego",
     color: "text-success",
     bg: "bg-success/10",
+    href: "overlay",
   },
   {
     icon: Bell,
@@ -52,6 +56,7 @@ const settingsSections = [
     description: "Controla las preferencias de notificaciones por email, push y en la app",
     color: "text-purple-400",
     bg: "bg-purple-400/10",
+    href: "notifications",
   },
   {
     icon: Palette,
@@ -59,6 +64,7 @@ const settingsSections = [
     description: "Personaliza el aspecto de tu panel de control",
     color: "text-cyan-400",
     bg: "bg-cyan-400/10",
+    href: "appearance",
   },
   {
     icon: Shield,
@@ -66,6 +72,7 @@ const settingsSections = [
     description: "Administra tu contraseña, autenticación de dos factores y configuración de privacidad",
     color: "text-pink-400",
     bg: "bg-pink-400/10",
+    href: "privacy",
   },
 ];
 
@@ -264,7 +271,7 @@ export default function SettingsPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
           >
-            <button className="w-full glass rounded-xl p-4 flex items-center gap-4 hover:bg-white/[0.05] transition-all group cursor-pointer text-left">
+            <Link href={`/dashboard/settings/${section.href}`} className="block w-full glass rounded-xl p-4 flex items-center gap-4 hover:bg-white/[0.05] transition-all group cursor-pointer text-left">
               <div
                 className={`h-10 w-10 rounded-xl ${section.bg} flex items-center justify-center shrink-0`}
               >
@@ -277,7 +284,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
-            </button>
+            </Link>
           </motion.div>
         ))}
       </div>

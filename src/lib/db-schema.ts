@@ -158,6 +158,31 @@ CREATE INDEX IF NOT EXISTS idx_player_profile_xp ON player_profile(xp DESC);
 CREATE INDEX IF NOT EXISTS idx_player_profile_level ON player_profile(level DESC);
 CREATE INDEX IF NOT EXISTS idx_player_profile_hours ON player_profile(total_hours DESC);
 CREATE INDEX IF NOT EXISTS idx_player_profile_coins ON player_profile(pilot_coins DESC);
+
+CREATE TABLE IF NOT EXISTS user_preferences (
+  steam_id TEXT PRIMARY KEY,
+  bio TEXT DEFAULT '',
+  language TEXT DEFAULT 'es',
+  overlay TEXT DEFAULT '{"enabled":false,"position":"top-right","opacity":0.8,"scale":1,"showKd":true,"showWinRate":true,"showRating":false,"showHs":true,"showUtility":false,"showAdr":false}',
+  notifications TEXT DEFAULT '{"emailAnalysis":true,"emailRank":true,"emailNews":false,"pushAnalysisComplete":true,"pushFriendsOnline":true,"pushUpdates":false,"inAppMessages":true,"inAppAchievements":true,"inAppRewards":true}',
+  appearance TEXT DEFAULT '{"theme":"dark","primaryColor":"#8b5cf6","uiScale":100,"animations":true,"blur":true,"density":"comfortable"}',
+  privacy TEXT DEFAULT '{"publicProfile":true,"showStats":true,"showHours":true,"showInRankings":true}',
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (steam_id) REFERENCES player_profile(steam_id)
+);
+
+CREATE TABLE IF NOT EXISTS connected_accounts (
+  steam_id TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  provider_id TEXT DEFAULT NULL,
+  username TEXT DEFAULT NULL,
+  connected_at TEXT DEFAULT (datetime('now')),
+  PRIMARY KEY (steam_id, provider),
+  FOREIGN KEY (steam_id) REFERENCES player_profile(steam_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_preferences ON user_preferences(steam_id);
+CREATE INDEX IF NOT EXISTS idx_connected_accounts ON connected_accounts(steam_id);
 `;
 
 export async function initializeDatabase() {
