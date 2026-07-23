@@ -184,6 +184,17 @@ export default function CoachPage() {
       });
 
       await fetchAnalysis({ demoData });
+
+      // Log demo analysis for gamification (XP + challenges)
+      try {
+        await fetch("/api/gamification/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "demo_analyzed" }),
+        });
+      } catch {
+        // Gamification sync failed — not critical
+      }
     } catch {
       setDemoError("Error al leer la demo. Verifica que el archivo no este corrupto.");
     } finally {

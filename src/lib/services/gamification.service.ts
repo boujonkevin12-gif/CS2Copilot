@@ -997,6 +997,32 @@ export async function logAction(steamId: string, action: string, value: number =
   for (const id of weeklyMap[action] || []) {
     await updateWeeklyProgress(steamId, id, value);
   }
+
+  // XP per action
+  const xpRewards: Record<string, number> = {
+    kill: 2,
+    headshot: 3,
+    match_played: 15,
+    match_won: 25,
+    mvp: 10,
+    demo_analyzed: 50,
+    ace: 30,
+    clutch: 20,
+  };
+  const coinRewards: Record<string, number> = {
+    kill: 1,
+    headshot: 1,
+    match_played: 5,
+    match_won: 10,
+    mvp: 3,
+    demo_analyzed: 10,
+    ace: 15,
+    clutch: 8,
+  };
+  const xp = xpRewards[action] || 0;
+  const coins = coinRewards[action] || 0;
+  if (xp > 0) await addXP(steamId, xp * value);
+  if (coins > 0) await addCoins(steamId, coins * value);
 }
 
 // ─── LEADERBOARD ────────────────────────────────────────────────
