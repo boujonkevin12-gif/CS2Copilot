@@ -4,6 +4,7 @@ import { useGamification } from "@/lib/gamification-context";
 import { Swords, CheckCircle, Timer, Star, Gift, Flame, Lock } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 const difficultyConfig: Record<string, { label: string; color: string; bg: string; ring: string }> = {
   easy: { label: "Fácil", color: "text-green-400", bg: "bg-green-500/10", ring: "ring-green-500/30" },
@@ -14,15 +15,21 @@ const difficultyConfig: Record<string, { label: string; color: string; bg: strin
 export default function ChallengesPage() {
   const { dailyChallenges, weeklyMissions, dailyChest, refreshChallenges } = useGamification();
   const [claiming, setClaiming] = useState<string | null>(null);
+  const [chestReward, setChestReward] = useState<{ amount: number } | null>(null);
 
   const handleClaim = async (id: string, type?: string) => {
     setClaiming(id);
     try {
-      await fetch("/api/gamification/challenges/claim", {
+      const res = await fetch("/api/gamification/challenges/claim", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ challengeId: id, type: type || "daily" }),
       });
+      const data = await res.json();
+      if (type === "chest" && data.success) {
+        setChestReward({ amount: data.amount });
+        setTimeout(() => setChestReward(null), 4000);
+      }
       await refreshChallenges();
     } finally {
       setClaiming(null);
@@ -158,7 +165,21 @@ export default function ChallengesPage() {
             </div>
           </div>
         )}
-      </div>
+        </div>
+
+      {/* Chest Reward Toast */}
+      {chestReward && (
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-primary to-accent rounded-2xl p-5 shadow-2xl shadow-primary/30 text-white text-center"
+        >
+          <div className="text-3xl mb-2">🎁</div>
+          <div className="text-lg font-bold">+{chestReward.amount} 🪙</div>
+          <div className="text-xs text-white/70 mt-1">Pilot Coins obtenidas</div>
+        </motion.div>
+      )}
 
       {/* Weekly Missions */}
       <div>
