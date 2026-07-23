@@ -128,7 +128,7 @@ class SteamService {
     const kills = stats.get("total_kills") || 0;
     const deaths = stats.get("total_deaths") || 0;
     const wins = stats.get("total_wins") || 0;
-    const headshots = stats.get("total_headshot_kills") || 0;
+    const headshots = stats.get("total_kills_headshot") || 0;
     const roundsPlayed = stats.get("total_rounds_played") || 0;
     const roundsWon = stats.get("total_rounds_won") || 0;
     const shotsFired = stats.get("total_shots_fired") || 0;
