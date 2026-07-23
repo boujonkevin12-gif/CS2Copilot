@@ -681,6 +681,7 @@ body {
 
 .frame-holographic {
   position: relative;
+  isolation: isolate;
 }
 .frame-holographic::after {
   content: "";
