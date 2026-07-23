@@ -23,6 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 interface LeaderboardEntry {
   steam_id: string;
@@ -366,15 +367,13 @@ export default function LeaderboardPage() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <a
-                      href={entry.profile_url || `https://steamcommunity.com/profiles/${entry.steam_id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href={`/player/${entry.steam_id}`}
                       className="text-sm font-bold truncate hover:text-primary transition-colors"
                     >
                       <span className={getEffectClass(entry.equipped_effect)}>{entry.steam_name || "Jugador"}</span>
                       {getEmoji(entry.equipped_emoji) && <span className="ml-1">{getEmoji(entry.equipped_emoji)}</span>}
-                    </a>
+                    </Link>
                     <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded-full shrink-0">
                       Nv. {entry.level}
                     </span>

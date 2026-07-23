@@ -130,6 +130,19 @@ CREATE TABLE IF NOT EXISTS chest_history (
   FOREIGN KEY (steam_id) REFERENCES player_profile(steam_id)
 );
 
+CREATE TABLE IF NOT EXISTS player_follows (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  follower_id TEXT NOT NULL,
+  following_id TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (follower_id) REFERENCES player_profile(steam_id),
+  FOREIGN KEY (following_id) REFERENCES player_profile(steam_id),
+  UNIQUE(follower_id, following_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_player_follows_follower ON player_follows(follower_id);
+CREATE INDEX IF NOT EXISTS idx_player_follows_following ON player_follows(following_id);
+
 CREATE INDEX IF NOT EXISTS idx_achievements_steam ON achievements(steam_id);
 CREATE INDEX IF NOT EXISTS idx_achievements_steam_id ON achievements(steam_id, achievement_id);
 CREATE INDEX IF NOT EXISTS idx_daily_challenges_steam_date ON daily_challenges(steam_id, challenge_date);
