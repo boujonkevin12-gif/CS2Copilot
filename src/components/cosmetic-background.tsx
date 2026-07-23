@@ -5,39 +5,37 @@ import { ReactNode } from "react";
 const BG_CONFIG: Record<string, {
   gradient: string;
   className: string;
-  overlay?: string;
-  pseudo?: string;
 }> = {
   bg_mirage: {
-    gradient: "linear-gradient(135deg, #92400e44, #f59e0b22, #b4530944, #78350f22)",
+    gradient: "linear-gradient(135deg, #1a0f00, #0d0800, #1a0f00)",
     className: "bg-mirage-anim",
   },
   bg_inferno: {
-    gradient: "linear-gradient(180deg, #991b1b44, #ef444433, #f9731622, #991b1b44)",
+    gradient: "linear-gradient(180deg, #0a0000, #1a0505, #0a0000)",
     className: "bg-inferno-anim",
   },
   bg_dust2: {
-    gradient: "linear-gradient(160deg, #78350f33, #d9770622, #92400e33)",
+    gradient: "linear-gradient(160deg, #1a1005, #0d0a03, #1a1005)",
     className: "bg-dust2-anim",
   },
   bg_anubis: {
-    gradient: "linear-gradient(135deg, #07598533, #0ea5e922, #06b6d433, #0369a122)",
+    gradient: "linear-gradient(180deg, #001015, #050a10, #001015)",
     className: "bg-anubis-anim",
   },
   bg_galaxy: {
-    gradient: "linear-gradient(135deg, #1e1b4b44, #4338ca33, #6366f122, #1e1b4b44)",
+    gradient: "linear-gradient(135deg, #05000d, #0a0020, #05000d)",
     className: "bg-galaxy-anim",
   },
   bg_cyberpunk: {
-    gradient: "linear-gradient(180deg, #0a0a0a00, #ec489922, #0a0a0a00)",
+    gradient: "linear-gradient(180deg, #05000a, #0a0015, #05000a)",
     className: "bg-cyberpunk-anim",
   },
   bg_matrix: {
-    gradient: "linear-gradient(180deg, #052e1633, #22c55e11, #052e1633)",
+    gradient: "linear-gradient(180deg, #000a00, #001200, #000a00)",
     className: "bg-matrix-anim",
   },
   bg_purple_smoke: {
-    gradient: "linear-gradient(135deg, #2e106533, #8b5cf622, #a855f722, #2e106533)",
+    gradient: "linear-gradient(135deg, #0a0015, #100020, #0a0015)",
     className: "bg-purple-smoke-anim",
   },
 };
@@ -54,12 +52,12 @@ export function CosmeticBackground({ bgId, children }: { bgId: string | null | u
   return (
     <div className={`relative overflow-hidden rounded-2xl ${config.className}`}>
       <div
-        className="absolute inset-0 opacity-100 rounded-2xl"
+        className="absolute inset-0 rounded-2xl"
         style={{ background: config.gradient }}
       />
-      {config.overlay && (
-        <div className={`absolute inset-0 rounded-2xl ${config.overlay}`} />
-      )}
+      <div className="bg-layer-1" />
+      <div className="bg-layer-2" />
+      <div className="bg-layer-3" />
       <div className="relative z-10">{children}</div>
     </div>
   );
