@@ -43,10 +43,20 @@ export function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mx-auto max-w-2xl text-lg sm:text-xl text-muted mb-10 leading-relaxed"
+          className="mx-auto max-w-2xl text-lg sm:text-xl text-muted mb-4 leading-relaxed"
         >
           Análisis avanzados, estadísticas en tiempo real y coaching inteligente
           impulsado por IA. Conecta tu Steam y empieza a mejorar.
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.35 }}
+          className="mx-auto max-w-2xl text-sm sm:text-base text-muted/70 mb-10 leading-relaxed"
+        >
+          Compite con tus amigos, sube en el ranking, desbloquea recompensas
+          y demuestra quién es el verdadero piloto.
         </motion.p>
 
         <motion.div
