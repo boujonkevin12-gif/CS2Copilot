@@ -334,11 +334,11 @@ export default function LoginPage() {
               >
                 <Link href="/" className="flex items-center gap-3 mb-2">
                   <motion.div
-                    className="flex h-14 w-14 items-center justify-center rounded-2xl overflow-hidden"
+                    className="flex h-14 w-14 items-center justify-center"
                     whileHover={{ scale: 1.05, rotate: 5 }}
                     transition={{ type: "spring", stiffness: 400 }}
                   >
-                    <img src="/logo-icon.png" alt="CS2Pilot" className="h-14 w-14 rounded-2xl" />
+                    <img src="/logo-icon.png" alt="CS2Pilot" className="h-14 w-14" />
                   </motion.div>
                 </Link>
                 <h1 className="text-2xl font-bold tracking-tight mt-2">

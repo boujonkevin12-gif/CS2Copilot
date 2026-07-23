@@ -98,8 +98,8 @@ export default function RegisterPage() {
                 transition={{ delay: 0.2 }}
               >
                 <Link href="/" className="flex items-center gap-3 mb-2">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl overflow-hidden">
-                    <img src="/logo-icon.png" alt="CS2Pilot" className="h-14 w-14 rounded-2xl" />
+                  <div className="flex h-14 w-14 items-center justify-center">
+                    <img src="/logo-icon.png" alt="CS2Pilot" className="h-14 w-14" />
                   </div>
                 </Link>
                 <h1 className="text-2xl font-bold tracking-tight mt-2">
