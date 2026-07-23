@@ -29,6 +29,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { useGamification } from "@/lib/gamification-context";
+import { getFrameClasses, getBackgroundStyle, getEffectClass, getEmoji } from "@/lib/cosmetics";
 import Link from "next/link";
 
 function AnimatedNumber({ value, suffix = "", prefix = "", decimals = 0 }: { value: number; suffix?: string; prefix?: string; decimals?: number }) {
@@ -279,6 +280,7 @@ function GamificationWidgets() {
 
 export default function DashboardOverview() {
   const { user, loading, friends, recentGames, cs2Stats, faceitStats, faceitMatches } = useUser();
+  const { profile } = useGamification();
 
   if (loading) {
     return (
@@ -396,14 +398,14 @@ export default function DashboardOverview() {
     <div className="space-y-6">
       {/* Welcome Banner */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <GlassCard padding="lg" glow className="overflow-visible">
+        <GlassCard padding="lg" glow className="overflow-visible" style={getBackgroundStyle(profile?.equipped_background) ? { background: getBackgroundStyle(profile?.equipped_background)! } : undefined}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <div className="relative">
               <div className="absolute -inset-3 rounded-full bg-primary/20 blur-2xl" />
               {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="relative h-20 w-20 rounded-full border border-white/[0.1] shadow-lg shadow-primary/20" />
+                <img src={user.avatar} alt={user.name} className={`relative h-20 w-20 rounded-full border border-white/[0.1] shadow-lg shadow-primary/20 ${getFrameClasses(profile?.equipped_frame)}`} />
               ) : (
-                <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-primary/20">
+                <div className={`relative h-20 w-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-primary/20 ${getFrameClasses(profile?.equipped_frame)}`}>
                   {initials}
                 </div>
               )}
@@ -413,7 +415,7 @@ export default function DashboardOverview() {
             </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold tracking-tight">
-                ¡Bienvenido de nuevo, <span className="gradient-text">{user.name}</span>!
+                ¡Bienvenido de nuevo, <span className={`gradient-text ${getEffectClass(profile?.equipped_effect)}`}>{user.name}</span>{getEmoji(profile?.equipped_emoji) && <span className="ml-1 text-xl">{getEmoji(profile?.equipped_emoji)}</span>}!
               </h1>
               <div className="flex items-center gap-1.5 mt-2 text-success text-xs font-medium">
                 <CheckCircle2 className="h-3.5 w-3.5" />

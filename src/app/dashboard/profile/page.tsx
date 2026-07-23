@@ -4,6 +4,8 @@ import { motion, useInView } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/lib/user-context";
+import { useGamification } from "@/lib/gamification-context";
+import { getFrameClasses, getBackgroundStyle, getEffectClass, getEmoji } from "@/lib/cosmetics";
 import { useRef } from "react";
 import {
   User,
@@ -41,6 +43,7 @@ function StatBox({ label, value, color = "text-foreground" }: { label: string; v
 
 export default function ProfilePage() {
   const { user, loading, recentGames, faceitStats, cs2Stats } = useUser();
+  const { profile } = useGamification();
 
   if (loading) {
     return (
@@ -104,13 +107,13 @@ export default function ProfilePage() {
     <div className="space-y-6">
       {/* Profile Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <GlassCard padding="lg">
+        <GlassCard padding="lg" style={getBackgroundStyle(profile?.equipped_background) ? { background: getBackgroundStyle(profile?.equipped_background)! } : undefined}>
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             <div className="relative">
               {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="h-28 w-28 rounded-2xl border-2 border-white/[0.1] shadow-lg shadow-primary/20" />
+                <img src={user.avatar} alt={user.name} className={`h-28 w-28 rounded-2xl border-2 border-white/[0.1] shadow-lg shadow-primary/20 ${getFrameClasses(profile?.equipped_frame)}`} />
               ) : (
-                <div className="h-28 w-28 rounded-2xl bg-gradient-to-br from-primary via-cyan-500 to-purple-500 flex items-center justify-center text-4xl font-bold text-white shadow-lg shadow-primary/20">
+                <div className={`h-28 w-28 rounded-2xl bg-gradient-to-br from-primary via-cyan-500 to-purple-500 flex items-center justify-center text-4xl font-bold text-white shadow-lg shadow-primary/20 ${getFrameClasses(profile?.equipped_frame)}`}>
                   {user.name?.slice(0, 2).toUpperCase() || "SP"}
                 </div>
               )}
@@ -127,7 +130,10 @@ export default function ProfilePage() {
 
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-3">
-                <h1 className="text-2xl font-bold tracking-tight">{user.name}</h1>
+                <h1 className="text-2xl font-bold tracking-tight">
+                  <span className={getEffectClass(profile?.equipped_effect)}>{user.name}</span>
+                  {getEmoji(profile?.equipped_emoji) && <span className="ml-1 text-xl">{getEmoji(profile?.equipped_emoji)}</span>}
+                </h1>
                 <div className="flex gap-2 flex-wrap justify-center">
                   <Badge variant={user.visibility === 3 ? "success" : "default"} size="sm">{user.visibility === 3 ? "Público" : "Privado"}</Badge>
                   {user.country && <Badge variant="accent" size="sm">{user.country}</Badge>}

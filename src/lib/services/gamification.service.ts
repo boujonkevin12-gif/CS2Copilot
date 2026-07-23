@@ -1023,7 +1023,7 @@ export async function getLeaderboard(type: LeaderboardType, limit: number = 50, 
   const countryFilter = country ? " WHERE country = ?" : "";
   const args = country ? [country, limit] : [limit];
   const result = await getDb().execute({
-    sql: `SELECT steam_id, steam_name, avatar_url, profile_url, country, steam_level, cs2_hours, xp, level, pilot_coins, current_title, streak_days, total_wins, total_kills, total_headshots, total_mvps, total_hours, best_kd, best_hs_pct, best_elo, best_faceit_level, best_premier, equipped_frame, equipped_color FROM player_profile${countryFilter} ORDER BY ${col} DESC LIMIT ?`,
+    sql: `SELECT steam_id, steam_name, avatar_url, profile_url, country, steam_level, cs2_hours, xp, level, pilot_coins, current_title, streak_days, total_wins, total_kills, total_headshots, total_mvps, total_hours, best_kd, best_hs_pct, best_elo, best_faceit_level, best_premier, equipped_frame, equipped_color, equipped_effect, equipped_emoji FROM player_profile${countryFilter} ORDER BY ${col} DESC LIMIT ?`,
     args,
   });
   return result.rows;

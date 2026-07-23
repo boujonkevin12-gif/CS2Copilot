@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { useGamification } from "@/lib/gamification-context";
 import { useUser } from "@/lib/user-context";
+import { getFrameClasses, getEffectClass, getEmoji } from "@/lib/cosmetics";
 import {
   Trophy,
   Zap,
@@ -46,6 +47,9 @@ interface LeaderboardEntry {
   best_elo: number;
   best_faceit_level: number;
   best_premier: number;
+  equipped_frame: string | null;
+  equipped_effect: string | null;
+  equipped_emoji: string | null;
 }
 
 interface UserPosition {
@@ -348,13 +352,13 @@ export default function LeaderboardPage() {
                   <img
                     src={entry.avatar_url}
                     alt={entry.steam_name}
-                    className="h-10 w-10 rounded-full shrink-0"
+                    className={`h-10 w-10 rounded-full shrink-0 ${getFrameClasses(entry.equipped_frame)}`}
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = "none";
                     }}
                   />
                 ) : (
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                  <div className={`h-10 w-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-xs font-bold text-primary shrink-0 ${getFrameClasses(entry.equipped_frame)}`}>
                     {entry.steam_name?.slice(0, 2).toUpperCase() || "??"}
                   </div>
                 )}
@@ -368,7 +372,8 @@ export default function LeaderboardPage() {
                       rel="noopener noreferrer"
                       className="text-sm font-bold truncate hover:text-primary transition-colors"
                     >
-                      {entry.steam_name || "Jugador"}
+                      <span className={getEffectClass(entry.equipped_effect)}>{entry.steam_name || "Jugador"}</span>
+                      {getEmoji(entry.equipped_emoji) && <span className="ml-1">{getEmoji(entry.equipped_emoji)}</span>}
                     </a>
                     <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded-full shrink-0">
                       Nv. {entry.level}

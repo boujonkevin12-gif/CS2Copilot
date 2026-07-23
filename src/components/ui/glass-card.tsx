@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { ReactNode } from "react";
+import { CSSProperties, ReactNode } from "react";
 
 interface GlassCardProps {
   children: ReactNode;
@@ -10,6 +10,7 @@ interface GlassCardProps {
   hover?: boolean;
   padding?: "sm" | "md" | "lg";
   glow?: boolean;
+  style?: CSSProperties;
 }
 
 export function GlassCard({
@@ -18,6 +19,7 @@ export function GlassCard({
   hover = true,
   padding = "md",
   glow = false,
+  style,
 }: GlassCardProps) {
   const paddings = {
     sm: "p-4",
@@ -37,6 +39,7 @@ export function GlassCard({
         glow && "glow",
         className
       )}
+      style={style}
     >
       {children}
     </motion.div>
