@@ -147,15 +147,19 @@ CREATE INDEX IF NOT EXISTS idx_player_profile_coins ON player_profile(pilot_coin
 `;
 
 export async function initializeDatabase() {
-  const statements = SCHEMA.split(";")
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
+  try {
+    const statements = SCHEMA.split(";")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
 
-  for (const sql of statements) {
-    try {
-      await getDb().execute(sql);
-    } catch {
-      // ALTER TABLE statements fail if column already exists — ignore
+    for (const sql of statements) {
+      try {
+        await getDb().execute(sql);
+      } catch {
+        // Ignore — table/index may already exist
+      }
     }
+  } catch {
+    // DB connection issue — will retry on next call
   }
 }

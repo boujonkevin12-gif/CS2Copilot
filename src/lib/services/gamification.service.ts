@@ -1048,7 +1048,7 @@ export async function getUserPosition(steamId: string, type: LeaderboardType): P
   };
   const col = columnMap[type] || "xp";
 
-  const countResult = await getDb().execute({ sql: "SELECT COUNT(*) as total FROM player_profile", args: [] });
+  const countResult = await getDb().execute("SELECT COUNT(*) as total FROM player_profile");
   const total = (countResult.rows[0]?.total as number) || 0;
 
   const profileResult = await getDb().execute({ sql: `SELECT ${col} as val FROM player_profile WHERE steam_id = ?`, args: [steamId] });
@@ -1065,7 +1065,7 @@ export async function getUserPosition(steamId: string, type: LeaderboardType): P
 
 export async function getTotalPlayerCount(): Promise<number> {
   await ensureDb();
-  const result = await getDb().execute({ sql: "SELECT COUNT(*) as total FROM player_profile", args: [] });
+  const result = await getDb().execute("SELECT COUNT(*) as total FROM player_profile");
   return (result.rows[0]?.total as number) || 0;
 }
 
