@@ -34,9 +34,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-12">
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-2.5 mb-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-                <Crosshair className="h-5 w-5 text-primary" />
-              </div>
+              <img src="/logo-icon.png" alt="CS2Pilot" className="h-9 w-9 rounded-xl" />
               <span className="text-lg font-bold tracking-tight">
                 CS2<span className="text-primary">Pilot</span>
               </span>

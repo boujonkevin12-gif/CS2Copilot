@@ -196,9 +196,7 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
         )}
       >
         <div className="flex h-16 items-center gap-2.5 px-4 border-b border-white/[0.06]">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-            <Crosshair className="h-5 w-5 text-primary" />
-          </div>
+          <img src="/logo-icon.png" alt="CS2Pilot" className="h-9 w-9 rounded-xl shrink-0" />
           {!collapsed && (
             <span className="text-lg font-bold tracking-tight">
               CS2<span className="text-primary">Pilot</span>

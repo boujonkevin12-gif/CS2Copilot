@@ -31,9 +31,7 @@ export function Navbar() {
         <div className="glass-strong mt-4 rounded-2xl px-6 py-3">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-                <Crosshair className="h-5 w-5 text-primary" />
-              </div>
+              <img src="/logo-icon.png" alt="CS2Pilot" className="h-9 w-9 rounded-xl" />
               <span className="text-lg font-bold tracking-tight">
                 CS2<span className="text-primary">Pilot</span>
               </span>
