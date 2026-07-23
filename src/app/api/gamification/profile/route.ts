@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
 
   // Read previous stats for delta tracking
   const profile = await getOrCreateProfile(steamId);
+  const isFirstSync = !profile.stats_baseline;
   const prevKills = profile.total_kills || 0;
   const prevHeadshots = profile.total_headshots || 0;
   const prevWins = profile.total_wins || 0;
@@ -65,10 +66,11 @@ export async function POST(request: NextRequest) {
       });
 
       // Log deltas for challenges/XP
-      const deltaKills = Math.max(0, kills - prevKills);
-      const deltaHeadshots = Math.max(0, headshots - prevHeadshots);
-      const deltaWins = Math.max(0, wins - prevWins);
-      const deltaMVPs = Math.max(0, mvps - prevMVPs);
+      // On first sync, don't award XP for existing career stats — only future progress
+      const deltaKills = Math.max(0, kills - (isFirstSync ? kills : prevKills));
+      const deltaHeadshots = Math.max(0, headshots - (isFirstSync ? headshots : prevHeadshots));
+      const deltaWins = Math.max(0, wins - (isFirstSync ? wins : prevWins));
+      const deltaMVPs = Math.max(0, mvps - (isFirstSync ? mvps : prevMVPs));
 
       if (deltaKills > 0) await logAction(steamId, "kill", deltaKills);
       if (deltaHeadshots > 0) await logAction(steamId, "headshot", deltaHeadshots);
