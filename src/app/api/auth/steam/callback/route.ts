@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSteamService } from "@/lib/services";
 import { getFaceitService } from "@/lib/services/faceit.service";
+import { getOrCreateProfile, syncSteamData, logLogin } from "@/lib/services/gamification.service";
 
 function extractSteamId(claimedId: string): string | null {
   const match = claimedId?.match(/\/id\/(\d+)$/);
@@ -61,6 +62,23 @@ export async function GET(request: NextRequest) {
 
     const cookieValue = JSON.stringify(minimalProfile);
     const isSecure = request.url.startsWith("https://");
+
+    // Sync Steam data to DB for rankings
+    try {
+      await getOrCreateProfile(steamId);
+      await syncSteamData(steamId, {
+        name: fullProfile.name,
+        avatar: fullProfile.avatar || undefined,
+        profileUrl: fullProfile.profileUrl || undefined,
+        country: fullProfile.country || undefined,
+        steamLevel: fullProfile.steamLevel || 0,
+        cs2Hours: fullProfile.cs2?.hoursPlayed ? Math.round(fullProfile.cs2.hoursPlayed) : 0,
+      });
+      await logLogin(steamId);
+    } catch (e) {
+      console.error("[SteamCallback] DB sync failed:", e);
+    }
+
     const response = NextResponse.redirect(new URL("/dashboard", request.url));
     response.cookies.set("cs2pilot_user", cookieValue, {
       httpOnly: true,

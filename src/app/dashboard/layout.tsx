@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { UserProvider, useUser } from "@/lib/user-context";
+import { GamificationProvider, useGamification } from "@/lib/gamification-context";
 import {
   LayoutDashboard,
   History,
@@ -25,6 +25,10 @@ import {
   Plus,
   ChevronDown,
   Bookmark,
+  Trophy,
+  ShoppingBag,
+  Swords,
+  Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -46,9 +50,18 @@ const sidebarGroups = [
     ],
   },
   {
+    title: "Gamificación",
+    links: [
+      { icon: Trophy, label: "Logros", href: "/dashboard/achievements" },
+      { icon: Swords, label: "Desafíos", href: "/dashboard/challenges" },
+      { icon: ShoppingBag, label: "Tienda", href: "/dashboard/shop" },
+      { icon: Zap, label: "Rankings", href: "/dashboard/leaderboard" },
+    ],
+  },
+  {
     title: "Utilidades",
     links: [
-      { icon: Sparkles, label: "Coach IA", href: "/dashboard/coach", badge: "Nuevo" },
+      { icon: Sparkles, label: "Coach IA", href: "/dashboard/coach", badge: "IA" },
       { icon: Flame, label: "Utilidades", href: "/dashboard/utility" },
     ],
   },
@@ -60,18 +73,113 @@ const sidebarGroups = [
   },
 ];
 
+function XPBar() {
+  const { profile } = useGamification();
+  if (!profile) return null;
+
+  const currentLevelXP = (profile.level - 1) * (profile.level - 1) * 100;
+  const nextLevelXP = profile.level * profile.level * 100;
+  const progressXP = profile.xp - currentLevelXP;
+  const neededXP = nextLevelXP - currentLevelXP;
+  const pct = Math.min(100, (progressXP / neededXP) * 100);
+
+  return (
+    <div className="glass rounded-xl p-3 mb-2">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-1.5">
+          <Zap className="h-3.5 w-3.5 text-primary" />
+          <span className="text-xs font-semibold">Nivel {profile.level}</span>
+        </div>
+        <span className="text-[10px] text-muted font-mono">{profile.xp.toLocaleString()} XP</span>
+      </div>
+      <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="flex items-center justify-between mt-1">
+        <span className="text-[10px] text-muted">{progressXP} / {neededXP} XP</span>
+        <span className="text-[10px] text-primary font-medium">Nv. {profile.level + 1}</span>
+      </div>
+    </div>
+  );
+}
+
+function NotificationBell() {
+  const { unreadCount, notifications, refreshNotifications } = useGamification();
+  const [open, setOpen] = useState(false);
+
+  const handleMarkRead = async () => {
+    await fetch("/api/gamification/notifications/read", { method: "POST" });
+    await refreshNotifications();
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="relative p-2 rounded-xl text-muted hover:text-foreground hover:bg-white/[0.04] transition-all"
+      >
+        <Bell className="h-5 w-5" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-[9px] font-bold text-white flex items-center justify-center">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-2 w-80 glass-strong rounded-xl border border-white/[0.08] shadow-2xl z-50 max-h-96 overflow-y-auto">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+              <span className="text-sm font-semibold">Notificaciones</span>
+              {unreadCount > 0 && (
+                <button onClick={handleMarkRead} className="text-[10px] text-primary hover:underline">
+                  Marcar todo leído
+                </button>
+              )}
+            </div>
+            {notifications.length === 0 ? (
+              <div className="p-6 text-center text-xs text-muted">Sin notificaciones</div>
+            ) : (
+              notifications.slice(0, 10).map((n) => (
+                <div key={n.id} className={`px-4 py-3 border-b border-white/[0.04] ${n.read === 0 ? "bg-primary/5" : ""}`}>
+                  <div className="text-sm font-medium">{n.title}</div>
+                  <div className="text-xs text-muted mt-0.5">{n.message}</div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CoinDisplay() {
+  const { profile } = useGamification();
+  if (!profile) return null;
+
+  return (
+    <Link href="/dashboard/shop" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent/10 hover:bg-accent/15 transition-all">
+      <span className="text-xs">🪙</span>
+      <span className="text-xs font-bold font-mono text-accent">{profile.pilot_coins.toLocaleString()}</span>
+    </Link>
+  );
+}
+
 function DashboardNav({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useUser();
+  const { profile } = useGamification();
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-    } catch {
-      // fallback
-    }
+    } catch {}
     router.push("/login");
   };
 
@@ -144,6 +252,7 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="p-3 border-t border-white/[0.06]">
+          {!collapsed && <XPBar />}
           {!collapsed && user?.cs2 && (
             <div className="glass rounded-xl p-3 mb-2">
               <div className="text-xs font-medium mb-1">Horas CS2</div>
@@ -193,7 +302,7 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Link
               href="/dashboard/analytics"
               className="gradient-btn hidden sm:flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20"
@@ -201,13 +310,8 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
               <Plus className="h-4 w-4" />
               Analizar demo
             </Link>
-            <button className="relative p-2 rounded-xl text-muted hover:text-foreground hover:bg-white/[0.04] transition-all">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-accent" />
-            </button>
-            <button className="relative p-2 rounded-xl text-muted hover:text-foreground hover:bg-white/[0.04] transition-all">
-              <Bookmark className="h-5 w-5" />
-            </button>
+            <CoinDisplay />
+            <NotificationBell />
             <div className="flex items-center gap-2 pl-3 border-l border-white/[0.06]">
               {user?.avatar ? (
                 <img
@@ -216,7 +320,7 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
                   className="h-8 w-8 rounded-full border border-white/[0.1]"
                 />
               ) : (
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center text-xs font-bold text-white">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-white">
                   {initials}
                 </div>
               )}
@@ -225,7 +329,7 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
                   {loading ? "Cargando..." : user?.name || "Jugador"}
                 </div>
                 <div className="text-xs text-muted">
-                  {user?.steamLevel ? `Steam Level ${user.steamLevel}` : "Conectado"}
+                  {profile ? `Nv. ${profile.level} · ${profile.current_title}` : user?.steamLevel ? `Steam Level ${user.steamLevel}` : "Conectado"}
                 </div>
               </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
@@ -246,7 +350,9 @@ export default function DashboardLayout({
 }) {
   return (
     <UserProvider>
-      <DashboardNav>{children}</DashboardNav>
+      <GamificationProvider>
+        <DashboardNav>{children}</DashboardNav>
+      </GamificationProvider>
     </UserProvider>
   );
 }

@@ -22,7 +22,14 @@ import {
   MapPin,
   CheckCircle2,
   ExternalLink,
+  Zap,
+  Lock,
+  Timer,
+  Coins,
+  ShoppingCart,
 } from "lucide-react";
+import { useGamification } from "@/lib/gamification-context";
+import Link from "next/link";
 
 function AnimatedNumber({ value, suffix = "", prefix = "", decimals = 0 }: { value: number; suffix?: string; prefix?: string; decimals?: number }) {
   const [display, setDisplay] = useState(0);
@@ -136,6 +143,137 @@ function MiniChart({ values, color }: { values: number[]; color: string }) {
     <svg width={w} height={h} className="mt-2">
       <polyline fill="none" stroke={color} strokeWidth="1.5" points={points.join(" ")} opacity="0.6" />
     </svg>
+  );
+}
+
+function GamificationWidgets() {
+  const { profile, achievements, dailyChallenges, weeklyMissions, unreadCount, loading } = useGamification();
+
+  if (loading || !profile) return null;
+
+  const unlockedAchievements = achievements.filter((a) => a.unlocked).slice(0, 3);
+  const activeChallenges = dailyChallenges.filter((c) => !c.completed && !c.claimed).slice(0, 3);
+
+  const currentLevelXP = (profile.level - 1) * (profile.level - 1) * 100;
+  const nextLevelXP = profile.level * profile.level * 100;
+  const progressXP = profile.xp - currentLevelXP;
+  const neededXP = nextLevelXP - currentLevelXP;
+  const pct = Math.min(100, (progressXP / neededXP) * 100);
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}>
+      <GlassCard padding="md">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Zap className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold">Tu Progreso</h3>
+            <p className="text-xs text-muted">Nivel {profile.level} · {profile.current_title}</p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center gap-1 text-[10px] text-accent bg-accent/10 px-2 py-1 rounded-lg">
+              <span>🪙</span>
+              <span className="font-bold">{profile.pilot_coins.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] text-primary bg-primary/10 px-2 py-1 rounded-lg">
+              <Flame className="h-3 w-3" />
+              <span className="font-bold">{profile.streak_days} días</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] text-muted">Nivel {profile.level}</span>
+            <span className="text-[10px] text-primary font-medium">{progressXP} / {neededXP} XP</span>
+          </div>
+          <div className="w-full h-2.5 rounded-full bg-white/[0.06] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {unlockedAchievements.length > 0 && (
+            <div className="glass rounded-xl p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Trophy className="h-3.5 w-3.5 text-primary" />
+                <span className="text-[10px] font-semibold text-muted">Últimos Logros</span>
+              </div>
+              {unlockedAchievements.map((a) => (
+                <div key={a.id} className="flex items-center gap-2 py-1">
+                  <CheckCircle2 className="h-3 w-3 text-green-500 shrink-0" />
+                  <span className="text-xs truncate">{a.name}</span>
+                </div>
+              ))}
+              <Link href="/dashboard/achievements" className="text-[10px] text-primary hover:underline mt-1 block">
+                Ver todos →
+              </Link>
+            </div>
+          )}
+
+          {activeChallenges.length > 0 && (
+            <div className="glass rounded-xl p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Timer className="h-3.5 w-3.5 text-accent" />
+                <span className="text-[10px] font-semibold text-muted">Desafíos Activos</span>
+              </div>
+              {activeChallenges.map((c) => {
+                const pctC = c.target > 0 ? (c.progress / c.target) * 100 : 0;
+                return (
+                  <div key={c.id} className="py-1">
+                    <div className="text-xs truncate mb-0.5">{c.name}</div>
+                    <div className="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent" style={{ width: `${pctC}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+              <Link href="/dashboard/challenges" className="text-[10px] text-primary hover:underline mt-1 block">
+                Ver todos →
+              </Link>
+            </div>
+          )}
+
+          {activeChallenges.length === 0 && unlockedAchievements.length === 0 && (
+            <div className="glass rounded-xl p-3 sm:col-span-2">
+              <div className="flex items-center gap-2 mb-2">
+                <ShoppingCart className="h-3.5 w-3.5 text-muted" />
+                <span className="text-[10px] font-semibold text-muted">Explora la Gamificación</span>
+              </div>
+              <p className="text-xs text-muted">Juega partidas para ganar XP, desbloquear logros y completar desafíos.</p>
+              <Link href="/dashboard/shop" className="text-[10px] text-primary hover:underline mt-1 block">
+                Ir a la Tienda →
+              </Link>
+            </div>
+          )}
+
+          <div className="glass rounded-xl p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="h-3.5 w-3.5 text-primary" />
+              <span className="text-[10px] font-semibold text-muted">Estadísticas</span>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted">Logros</span>
+                <span className="font-bold">{achievements.filter((a) => a.unlocked).length} / {achievements.length}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted">Días jugados</span>
+                <span className="font-bold">{profile.total_login_days}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted">Racha</span>
+                <span className="font-bold text-primary">{profile.streak_days} días</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+    </motion.div>
   );
 }
 
@@ -466,6 +604,9 @@ export default function DashboardOverview() {
           </GlassCard>
         </motion.div>
       </div>
+
+      {/* Gamification Widgets */}
+      <GamificationWidgets />
 
       {/* Mapa mas jugados + Armas principales */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
