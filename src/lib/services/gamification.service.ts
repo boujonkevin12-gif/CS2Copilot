@@ -907,8 +907,35 @@ export async function buyShopItem(steamId: string, itemId: string): Promise<{ su
   return { success: true };
 }
 
-export async function equipShopItem(steamId: string, itemId: string): Promise<{ success: boolean; error?: string }> {
+export async function equipShopItem(steamId: string, itemId: string | null): Promise<{ success: boolean; error?: string }> {
   await ensureDb();
+  const fieldMap: Record<string, string> = {
+    frame: "equipped_frame",
+    background: "equipped_background",
+    effect: "equipped_effect",
+    emoji: "equipped_emoji",
+    title: "current_title",
+  };
+
+  if (itemId === null) {
+    return { success: false, error: "itemId requerido" };
+  }
+
+  if (itemId === "") {
+    return { success: false, error: "itemId requerido" };
+  }
+
+  if (itemId.startsWith("unequip_")) {
+    const category = itemId.replace("unequip_", "");
+    const field = fieldMap[category];
+    if (!field) return { success: false, error: "Categoría no válida" };
+    await getDb().execute({
+      sql: `UPDATE player_profile SET ${field} = NULL, updated_at = datetime('now') WHERE steam_id = ?`,
+      args: [steamId],
+    });
+    return { success: true };
+  }
+
   const item = SHOP_ITEMS.find((i) => i.id === itemId);
   if (!item) return { success: false, error: "Ítem no encontrado" };
 
@@ -918,13 +945,6 @@ export async function equipShopItem(steamId: string, itemId: string): Promise<{ 
   });
   if (existing.rows.length === 0) return { success: false, error: "No tienes este ítem" };
 
-  const fieldMap: Record<string, string> = {
-    frame: "equipped_frame",
-    background: "equipped_background",
-    effect: "equipped_effect",
-    emoji: "equipped_emoji",
-    title: "current_title",
-  };
   const field = fieldMap[item.category];
   if (!field) return { success: false, error: "Categoría no equipable" };
 

@@ -80,7 +80,10 @@ function BackgroundPreview({ itemId }: { itemId: string }) {
   return (
     <div className={`w-full h-full relative overflow-hidden ${config.className}`}>
       <div className="absolute inset-0" style={{ background: config.gradient }} />
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="bg-layer-1" />
+      <div className="bg-layer-2" />
+      <div className="bg-layer-3" />
+      <div className="absolute inset-0 flex items-center justify-center z-10">
         <Sparkles className="h-8 w-8 text-white/20" />
       </div>
     </div>
@@ -311,9 +314,17 @@ export default function ShopPage() {
                   {isOwned ? (
                     <div className="flex items-center gap-2">
                       {isEquipped ? (
-                        <span className="text-[10px] text-primary font-medium flex items-center gap-1">
-                          <CheckCircle className="h-3 w-3" /> Equipado
-                        </span>
+                        <>
+                          <span className="text-[10px] text-primary font-medium flex items-center gap-1">
+                            <CheckCircle className="h-3 w-3" /> Equipado
+                          </span>
+                          <button
+                            onClick={() => handleEquip(`unequip_${item.category}`)}
+                            className="text-[10px] text-muted hover:text-foreground bg-white/[0.04] hover:bg-white/[0.08] px-2.5 py-1.5 rounded-lg transition-all ml-auto"
+                          >
+                            Desequipar
+                          </button>
+                        </>
                       ) : (
                         <button
                           onClick={() => handleEquip(item.id)}
