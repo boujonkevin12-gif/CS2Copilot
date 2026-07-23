@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS player_profile (
   total_aces INTEGER DEFAULT 0,
   total_awp_kills INTEGER DEFAULT 0,
   maps_played TEXT DEFAULT '[]',
+  stats_baseline TEXT DEFAULT NULL,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );

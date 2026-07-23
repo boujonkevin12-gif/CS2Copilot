@@ -156,6 +156,7 @@ export interface PlayerProfile {
   total_aces: number;
   total_awp_kills: number;
   maps_played: string;
+  stats_baseline: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -1164,20 +1165,59 @@ export async function syncProfileStats(steamId: string, stats: {
   }
 
   const profile = await getOrCreateProfile(steamId);
+
+  // Check if baseline exists
+  let baseline: Record<string, number> | null = null;
+  if (profile.stats_baseline) {
+    try { baseline = JSON.parse(profile.stats_baseline); } catch { baseline = null; }
+  }
+
+  if (!baseline) {
+    // No baseline yet — check if user has existing achievements (old user before this feature)
+    const existingAchs = await getDb().execute({
+      sql: "SELECT COUNT(*) as c FROM achievements WHERE steam_id = ?",
+      args: [steamId],
+    });
+    const hasExistingAchievements = (existingAchs.rows[0]?.c as number) > 0;
+
+    if (!hasExistingAchievements) {
+      // Brand new user — capture baseline from current stats, skip achievement check
+      const bl = {
+        wins: profile.total_wins || 0,
+        kills: profile.total_kills || 0,
+        headshots: profile.total_headshots || 0,
+        mvps: profile.total_mvps || 0,
+        hours: profile.total_hours || 0,
+        clutches: profile.total_clutches || 0,
+        aces: profile.total_aces || 0,
+        awp_kills: profile.total_awp_kills || 0,
+        maps: JSON.parse(profile.maps_played || "[]").length || 0,
+      };
+      await getDb().execute({
+        sql: "UPDATE player_profile SET stats_baseline = ? WHERE steam_id = ?",
+        args: [JSON.stringify(bl), steamId],
+      });
+      return [];
+    }
+    // Old user with existing achievements — continue with total stats (backward compatible)
+  }
+
   const mappedStats: PlayerStats = {
-    wins: profile.total_wins,
-    kills: profile.total_kills,
-    headshots: profile.total_headshots,
+    wins: baseline ? Math.max(0, (profile.total_wins || 0) - (baseline.wins || 0)) : profile.total_wins,
+    kills: baseline ? Math.max(0, (profile.total_kills || 0) - (baseline.kills || 0)) : profile.total_kills,
+    headshots: baseline ? Math.max(0, (profile.total_headshots || 0) - (baseline.headshots || 0)) : profile.total_headshots,
     kd_x100: Math.round(profile.best_kd * 100),
     hs_pct: profile.best_hs_pct,
-    hours: profile.total_hours,
-    mvps: profile.total_mvps,
-    clutches: profile.total_clutches,
+    hours: baseline ? Math.max(0, (profile.total_hours || 0) - (baseline.hours || 0)) : profile.total_hours,
+    mvps: baseline ? Math.max(0, (profile.total_mvps || 0) - (baseline.mvps || 0)) : profile.total_mvps,
+    clutches: baseline ? Math.max(0, (profile.total_clutches || 0) - (baseline.clutches || 0)) : profile.total_clutches,
     streak: profile.streak_days,
-    aces: profile.total_aces,
+    aces: baseline ? Math.max(0, (profile.total_aces || 0) - (baseline.aces || 0)) : profile.total_aces,
     level: profile.level,
-    maps: JSON.parse(profile.maps_played || "[]").length,
-    awp_kills: profile.total_awp_kills,
+    maps: baseline
+      ? Math.max(0, JSON.parse(profile.maps_played || "[]").length - (baseline.maps || 0))
+      : JSON.parse(profile.maps_played || "[]").length,
+    awp_kills: baseline ? Math.max(0, (profile.total_awp_kills || 0) - (baseline.awp_kills || 0)) : profile.total_awp_kills,
     faceit_level: profile.best_faceit_level,
     elo: profile.best_elo,
     premier: profile.best_premier,
