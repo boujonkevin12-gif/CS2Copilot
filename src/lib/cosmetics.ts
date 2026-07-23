@@ -30,19 +30,7 @@ const FRAME_STYLES: Record<string, { border: string; glow: string; className: st
     border: "2px solid transparent",
     glow: "0 0 16px rgba(168,85,247,0.4), 0 0 32px rgba(59,130,246,0.3)",
     className: "ring-2 ring-transparent shadow-[0_0_16px_rgba(168,85,247,0.4)] animate-pulse",
-    // We'll use a gradient border via style instead
   },
-};
-
-const BG_GRADIENTS: Record<string, string> = {
-  bg_mirage: "linear-gradient(135deg, #f59e0b22, #92400e33, #78350f22)",
-  bg_inferno: "linear-gradient(135deg, #ef444422, #dc262633, #991b1b22)",
-  bg_dust2: "linear-gradient(135deg, #d9770622, #b4530933, #92400e22)",
-  bg_anubis: "linear-gradient(135deg, #0ea5e922, #0369a133, #07598522)",
-  bg_galaxy: "linear-gradient(135deg, #6366f122, #4f46e533, #3730a322)",
-  bg_cyberpunk: "linear-gradient(135deg, #ec489922, #d946ef33, #a855f722)",
-  bg_matrix: "linear-gradient(135deg, #22c55e22, #16a34a33, #15803d22)",
-  bg_purple_smoke: "linear-gradient(135deg, #8b5cf622, #7c3aed33, #6d28d922)",
 };
 
 const EFFECT_CLASSES: Record<string, string> = {
@@ -60,16 +48,6 @@ const EMOJI_MAP: Record<string, string> = {
   emoji_diamond: "💎",
   emoji_star: "⭐",
 };
-
-export function getFrameStyle(frameId: string | null | undefined) {
-  if (!frameId) return null;
-  return FRAME_STYLES[frameId] || null;
-}
-
-export function getBackgroundStyle(bgId: string | null | undefined): string | undefined {
-  if (!bgId) return undefined;
-  return BG_GRADIENTS[bgId] || undefined;
-}
 
 export function getEffectClass(effectId: string | null | undefined): string {
   if (!effectId) return "";

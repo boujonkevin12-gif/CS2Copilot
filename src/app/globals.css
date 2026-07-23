@@ -216,3 +216,289 @@ body {
 .text-balance {
   text-wrap: balance;
 }
+
+/* ─── COSMETIC BACKGROUNDS ──────────────────────────────────── */
+
+/* Mirage — warm heat shimmer */
+.bg-mirage-anim {
+  position: relative;
+  overflow: hidden;
+}
+.bg-mirage-anim::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(245,158,11,0.08), rgba(217,119,6,0.06), transparent, rgba(245,158,11,0.08), transparent);
+  background-size: 300% 100%;
+  animation: shimmer-slide 6s ease-in-out infinite;
+}
+.bg-mirage-anim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(245,158,11,0.06), transparent 60%),
+              radial-gradient(ellipse at 70% 50%, rgba(180,83,9,0.06), transparent 60%);
+  animation: mirage-pulse 4s ease-in-out infinite alternate;
+}
+
+/* Inferno — fire flicker */
+.bg-inferno-anim {
+  position: relative;
+  overflow: hidden;
+}
+.bg-inferno-anim::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(239,68,68,0.12), transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(249,115,22,0.10), transparent 50%),
+    radial-gradient(ellipse at 50% 60%, rgba(220,38,38,0.08), transparent 60%);
+  animation: inferno-flicker 2.5s ease-in-out infinite alternate;
+}
+.bg-inferno-anim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(239,68,68,0.06) 0%, transparent 40%);
+  animation: inferno-rise 3s ease-in-out infinite;
+}
+
+/* Dust2 — floating dust particles */
+.bg-dust2-anim {
+  position: relative;
+  overflow: hidden;
+}
+.bg-dust2-anim::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(217,119,6,0.4), transparent),
+    radial-gradient(1px 1px at 30% 60%, rgba(245,158,11,0.3), transparent),
+    radial-gradient(1.5px 1.5px at 50% 30%, rgba(217,119,6,0.5), transparent),
+    radial-gradient(1px 1px at 70% 70%, rgba(180,83,9,0.3), transparent),
+    radial-gradient(1px 1px at 90% 40%, rgba(245,158,11,0.4), transparent),
+    radial-gradient(1px 1px at 15% 80%, rgba(217,119,6,0.3), transparent),
+    radial-gradient(1.5px 1.5px at 85% 15%, rgba(245,158,11,0.4), transparent),
+    radial-gradient(1px 1px at 45% 90%, rgba(180,83,9,0.3), transparent);
+  background-size: 200px 200px;
+  animation: dust-float 20s linear infinite;
+}
+
+/* Anubis — water shimmer */
+.bg-anubis-anim {
+  position: relative;
+  overflow: hidden;
+}
+.bg-anubis-anim::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(14,165,233,0.06), transparent, rgba(6,182,212,0.06), transparent);
+  background-size: 400% 400%;
+  animation: water-flow 8s ease-in-out infinite;
+}
+.bg-anubis-anim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 25% 40%, rgba(6,182,212,0.06), transparent 50%),
+    radial-gradient(ellipse at 75% 60%, rgba(3,105,161,0.06), transparent 50%);
+  animation: anubis-breathe 5s ease-in-out infinite alternate;
+}
+
+/* Galaxy — floating stars */
+.bg-galaxy-anim {
+  position: relative;
+  overflow: hidden;
+}
+.bg-galaxy-anim::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 25% 45%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1.5px 1.5px at 40% 10%, rgba(167,139,250,0.6), transparent),
+    radial-gradient(1px 1px at 55% 65%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 70% 35%, rgba(99,102,241,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 85% 80%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 15% 85%, rgba(167,139,250,0.4), transparent),
+    radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1.5px 1.5px at 90% 55%, rgba(99,102,241,0.5), transparent),
+    radial-gradient(1px 1px at 35% 75%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 5% 50%, rgba(167,139,250,0.3), transparent),
+    radial-gradient(1px 1px at 75% 10%, rgba(255,255,255,0.5), transparent);
+  background-size: 300px 300px;
+  animation: stars-drift 30s linear infinite;
+}
+.bg-galaxy-anim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(99,102,241,0.06), transparent 70%);
+  animation: galaxy-pulse 6s ease-in-out infinite alternate;
+}
+
+/* Cyberpunk — neon grid */
+.bg-cyberpunk-anim {
+  position: relative;
+  overflow: hidden;
+}
+.bg-cyberpunk-anim::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(236,72,153,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(236,72,153,0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: grid-scan 4s linear infinite;
+}
+.bg-cyberpunk-anim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(0deg, rgba(236,72,153,0.04) 0%, transparent 30%),
+    linear-gradient(180deg, rgba(168,85,247,0.04) 0%, transparent 30%);
+  animation: cyberpunk-pulse 3s ease-in-out infinite alternate;
+}
+
+/* Matrix — code rain */
+.bg-matrix-anim {
+  position: relative;
+  overflow: hidden;
+}
+.bg-matrix-anim::before {
+  content: "";
+  position: absolute;
+  inset: -100% 0 0 0;
+  background-image:
+    linear-gradient(0deg, rgba(34,197,94,0.15) 0%, transparent 20%),
+    linear-gradient(0deg, rgba(22,163,74,0.10) 0%, transparent 15%),
+    linear-gradient(0deg, rgba(34,197,94,0.08) 0%, transparent 25%);
+  background-size: 3px 80px, 2px 60px, 4px 100px;
+  background-position: 10% 0%, 30% 0%, 55% 0%;
+  animation: matrix-rain 3s linear infinite;
+}
+.bg-matrix-anim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(0deg, rgba(34,197,94,0.04) 0%, transparent 20%),
+    linear-gradient(180deg, rgba(5,46,22,0.08) 0%, transparent 30%);
+  animation: matrix-glow 4s ease-in-out infinite alternate;
+}
+
+/* Purple Smoke — flowing smoke */
+.bg-purple-smoke-anim {
+  position: relative;
+  overflow: hidden;
+}
+.bg-purple-smoke-anim::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(139,92,246,0.10), transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(168,85,247,0.08), transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(109,40,217,0.06), transparent 60%);
+  animation: smoke-drift 8s ease-in-out infinite alternate;
+}
+.bg-purple-smoke-anim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 60% 20%, rgba(168,85,247,0.08), transparent 40%),
+    radial-gradient(ellipse at 30% 80%, rgba(139,92,246,0.06), transparent 40%);
+  animation: smoke-swirl 6s ease-in-out infinite alternate-reverse;
+}
+
+/* ─── KEYFRAMES ─────────────────────────────────────────────── */
+
+@keyframes shimmer-slide {
+  0%, 100% { background-position: -100% 0; }
+  50% { background-position: 200% 0; }
+}
+
+@keyframes mirage-pulse {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.02); }
+}
+
+@keyframes inferno-flicker {
+  0% { opacity: 0.7; transform: scaleY(1); }
+  33% { opacity: 1; transform: scaleY(1.01); }
+  66% { opacity: 0.8; transform: scaleY(0.99); }
+  100% { opacity: 0.9; transform: scaleY(1.005); }
+}
+
+@keyframes inferno-rise {
+  0%, 100% { transform: translateY(0); opacity: 0.5; }
+  50% { transform: translateY(-4px); opacity: 0.8; }
+}
+
+@keyframes dust-float {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(10px, -15px); }
+  50% { transform: translate(-5px, -25px); }
+  75% { transform: translate(15px, -10px); }
+  100% { transform: translate(0, -50px); }
+}
+
+@keyframes water-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes anubis-breathe {
+  0% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.03); }
+}
+
+@keyframes stars-drift {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(-30px, -30px) rotate(2deg); }
+}
+
+@keyframes galaxy-pulse {
+  0% { opacity: 0.4; }
+  100% { opacity: 0.8; }
+}
+
+@keyframes grid-scan {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 40px; }
+}
+
+@keyframes cyberpunk-pulse {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+@keyframes matrix-rain {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(80px); }
+}
+
+@keyframes matrix-glow {
+  0% { opacity: 0.4; }
+  100% { opacity: 0.9; }
+}
+
+@keyframes smoke-drift {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+  50% { transform: translate(10px, -5px) scale(1.02); opacity: 0.9; }
+  100% { transform: translate(-5px, 5px) scale(0.98); opacity: 0.7; }
+}
+
+@keyframes smoke-swirl {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0.5; }
+  50% { transform: translate(-8px, 3px) rotate(1deg); opacity: 0.8; }
+  100% { transform: translate(5px, -2px) rotate(-1deg); opacity: 0.6; }
+}

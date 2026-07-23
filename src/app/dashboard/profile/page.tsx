@@ -5,7 +5,8 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/lib/user-context";
 import { useGamification } from "@/lib/gamification-context";
-import { getFrameClasses, getBackgroundStyle, getEffectClass, getEmoji } from "@/lib/cosmetics";
+import { getFrameClasses, getEffectClass, getEmoji } from "@/lib/cosmetics";
+import { CosmeticBackground } from "@/components/cosmetic-background";
 import { useRef } from "react";
 import {
   User,
@@ -107,7 +108,8 @@ export default function ProfilePage() {
     <div className="space-y-6">
       {/* Profile Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <GlassCard padding="lg" style={getBackgroundStyle(profile?.equipped_background) ? { background: getBackgroundStyle(profile?.equipped_background)! } : undefined}>
+        <CosmeticBackground bgId={profile?.equipped_background}>
+        <GlassCard padding="lg" style={{ background: "transparent", border: "none" }}>
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             <div className="relative">
               {user.avatar ? (
@@ -161,9 +163,8 @@ export default function ProfilePage() {
             </div>
           </div>
         </GlassCard>
+        </CosmeticBackground>
       </motion.div>
-
-      {/* FACEIT Stats */}
       {user.faceitPlayerId && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
           <GlassCard padding="md">

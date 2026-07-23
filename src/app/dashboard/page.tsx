@@ -29,7 +29,8 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { useGamification } from "@/lib/gamification-context";
-import { getFrameClasses, getBackgroundStyle, getEffectClass, getEmoji } from "@/lib/cosmetics";
+import { getFrameClasses, getEffectClass, getEmoji } from "@/lib/cosmetics";
+import { CosmeticBackground } from "@/components/cosmetic-background";
 import Link from "next/link";
 
 function AnimatedNumber({ value, suffix = "", prefix = "", decimals = 0 }: { value: number; suffix?: string; prefix?: string; decimals?: number }) {
@@ -398,7 +399,8 @@ export default function DashboardOverview() {
     <div className="space-y-6">
       {/* Welcome Banner */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <GlassCard padding="lg" glow className="overflow-visible" style={getBackgroundStyle(profile?.equipped_background) ? { background: getBackgroundStyle(profile?.equipped_background)! } : undefined}>
+        <CosmeticBackground bgId={profile?.equipped_background}>
+          <GlassCard padding="lg" glow className="overflow-visible" style={{ background: "transparent", border: "none" }}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             <div className="relative">
               <div className="absolute -inset-3 rounded-full bg-primary/20 blur-2xl" />
@@ -465,9 +467,8 @@ export default function DashboardOverview() {
             </div>
           </div>
         </GlassCard>
+        </CosmeticBackground>
       </motion.div>
-
-      {/* Main Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <StatCard
           icon={Clock}
