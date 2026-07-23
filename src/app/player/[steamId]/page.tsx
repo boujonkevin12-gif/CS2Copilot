@@ -474,18 +474,32 @@ export default function PlayerProfilePage({ params }: { params: Promise<{ steamI
 }
 
 function CompareModal({ target, onClose }: { target: PlayerData["profile"]; onClose: () => void }) {
-  const { user } = useUser();
+  const { user, cs2Stats } = useUser();
+  const [myProfile, setMyProfile] = useState<PlayerData["profile"] | null>(null);
+
+  useEffect(() => {
+    if (!user?.steamId) return;
+    fetch(`/api/player/${user.steamId}`).then((r) => r.ok ? r.json() : null).then((d) => {
+      if (d?.profile) setMyProfile(d.profile);
+    }).catch(() => {});
+  }, [user?.steamId]);
+
   if (!user) return null;
 
+  const m = myProfile;
   const items = [
-    { label: "K/D", me: 0, them: target.best_kd },
-    { label: "HS%", me: 0, them: target.best_hs_pct },
-    { label: "Kills", me: 0, them: target.total_kills || 0 },
-    { label: "Wins", me: 0, them: target.total_wins || 0 },
-    { label: "MVPs", me: 0, them: target.total_mvps || 0 },
-    { label: "FACEIT ELO", me: user.faceitElo || 0, them: target.best_elo || 0 },
-    { label: "Horas CS2", me: user.cs2?.hoursPlayed || 0, them: target.cs2_hours || 0 },
-    { label: "Nivel", me: user.steamLevel || 0, them: target.steam_level || 0 },
+    { label: "K/D", me: m ? m.best_kd : (cs2Stats?.totalKD || 0), them: target.best_kd },
+    { label: "HS%", me: m ? m.best_hs_pct : (cs2Stats?.totalHSPct || 0), them: target.best_hs_pct },
+    { label: "Kills", me: m ? m.total_kills : (cs2Stats?.totalKills || 0), them: target.total_kills || 0 },
+    { label: "Wins", me: m ? m.total_wins : (cs2Stats?.totalWins || 0), them: target.total_wins || 0 },
+    { label: "MVPs", me: m ? m.total_mvps : (cs2Stats?.totalMVPs || 0), them: target.total_mvps || 0 },
+    { label: "FACEIT ELO", me: m ? m.best_elo : (user.faceitElo || 0), them: target.best_elo || 0 },
+    { label: "Premier", me: m ? m.best_premier : 0, them: target.best_premier || 0 },
+    { label: "Horas CS2", me: m ? m.cs2_hours : (user.cs2?.hoursPlayed || 0), them: target.cs2_hours || 0 },
+    { label: "Nivel", me: m ? m.steam_level : (user.steamLevel || 0), them: target.steam_level || 0 },
+    { label: "Aces", me: m?.total_aces || 0, them: target.total_aces || 0 },
+    { label: "Clutches", me: m?.total_clutches || 0, them: target.total_clutches || 0 },
+    { label: "AWP Kills", me: m?.total_awp_kills || 0, them: target.total_awp_kills || 0 },
   ];
 
   return (
