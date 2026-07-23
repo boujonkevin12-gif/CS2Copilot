@@ -6,6 +6,7 @@ const BG_CONFIG: Record<string, {
   gradient: string;
   className: string;
 }> = {
+  // Original 8
   bg_mirage: {
     gradient: "linear-gradient(135deg, #1a0f00, #0d0800, #1a0f00)",
     className: "bg-mirage-anim",
@@ -37,6 +38,55 @@ const BG_CONFIG: Record<string, {
   bg_purple_smoke: {
     gradient: "linear-gradient(135deg, #0a0015, #100020, #0a0015)",
     className: "bg-purple-smoke-anim",
+  },
+  // Premium 12
+  bg_purple_particles: {
+    gradient: "linear-gradient(135deg, #08000d, #0d0018, #08000d)",
+    className: "bg-purple-particles",
+  },
+  bg_futuristic_grid: {
+    gradient: "linear-gradient(180deg, #050510, #0a0a20, #050510)",
+    className: "bg-futuristic-grid",
+  },
+  bg_cs2_radar: {
+    gradient: "linear-gradient(180deg, #000a08, #00100c, #000a08)",
+    className: "bg-cs2-radar",
+  },
+  bg_cs_smoke: {
+    gradient: "linear-gradient(135deg, #080808, #0d0d0d, #080808)",
+    className: "bg-cs-smoke",
+  },
+  bg_topographic: {
+    gradient: "linear-gradient(160deg, #050510, #0a0720, #050510)",
+    className: "bg-topographic",
+  },
+  bg_wireframe: {
+    gradient: "linear-gradient(180deg, #030308, #08081a, #030308)",
+    className: "bg-wireframe",
+  },
+  bg_data_stream: {
+    gradient: "linear-gradient(180deg, #05080a, #080d12, #05080a)",
+    className: "bg-data-stream",
+  },
+  bg_constellation: {
+    gradient: "linear-gradient(135deg, #03050a, #080818, #03050a)",
+    className: "bg-constellation",
+  },
+  bg_hexagons: {
+    gradient: "linear-gradient(135deg, #050510, #0a0820, #050510)",
+    className: "bg-hexagons",
+  },
+  bg_aurora: {
+    gradient: "linear-gradient(180deg, #050510, #080820, #050510)",
+    className: "bg-aurora",
+  },
+  bg_crystals: {
+    gradient: "linear-gradient(135deg, #03030a, #08081a, #03030a)",
+    className: "bg-crystals",
+  },
+  bg_living_gradient: {
+    gradient: "linear-gradient(135deg, #080008, #0a0015, #050015, #080008)",
+    className: "bg-living-gradient",
   },
 };
 
