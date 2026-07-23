@@ -31,6 +31,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ leaderboard, userPosition, totalPlayers });
   } catch (e) {
     console.error("[Leaderboard] Error:", e);
-    return NextResponse.json({ error: "Error interno", leaderboard: [], userPosition: null, totalPlayers: 0 }, { status: 200 });
+    return NextResponse.json({ error: String(e), leaderboard: [], userPosition: null, totalPlayers: 0 }, { status: 200 });
   }
 }
