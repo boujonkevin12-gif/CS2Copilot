@@ -129,7 +129,7 @@ function getRankLabel(type: string): string {
 
 export default function LeaderboardPage() {
   const { profile } = useGamification();
-  const { user } = useUser();
+  const { user, friends } = useUser();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("xp");
@@ -167,8 +167,8 @@ export default function LeaderboardPage() {
 
   const displayEntries = activeView === "friends"
     ? entries.filter((e) => {
-        if (!user?.friends) return false;
-        return user.friends.some((f: { steamId: string }) => f.steamId === e.steam_id);
+        if (!friends || friends.length === 0) return false;
+        return friends.some((f) => f.steamId === e.steam_id);
       })
     : entries;
 
