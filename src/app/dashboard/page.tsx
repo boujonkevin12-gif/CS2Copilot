@@ -27,6 +27,8 @@ import {
   Timer,
   Coins,
   ShoppingCart,
+  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import { useGamification } from "@/lib/gamification-context";
 import { getFrameClasses, getEffectClass, getEmoji } from "@/lib/cosmetics";
@@ -469,6 +471,64 @@ export default function DashboardOverview() {
         </GlassCard>
         </CosmeticBackground>
       </motion.div>
+
+      {/* AI Insights Card */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }}>
+        <Link href="/dashboard/coach" className="block group">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/[0.05] to-transparent border border-primary/20 hover:border-primary/40 transition-all duration-300 cursor-pointer">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative p-5">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Resumen de la IA</h3>
+                    <p className="text-[10px] text-muted">Análisis inteligente de tu rendimiento</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] text-primary bg-primary/15 px-2.5 py-1 rounded-full">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  Nuevo
+                </div>
+              </div>
+
+              <div className="space-y-2.5 mb-4">
+                <div className="flex items-start gap-2.5">
+                  <span className="text-sm shrink-0 mt-0.5">🟢</span>
+                  <div>
+                    <span className="text-sm font-medium">Tu aim mejoró un 6% esta semana.</span>
+                    <p className="text-[11px] text-muted">Precisión general subió de 42.1% a 44.6%</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <span className="text-sm shrink-0 mt-0.5">🟠</span>
+                  <div>
+                    <span className="text-sm font-medium">Estás perdiendo más duelos contra AWP.</span>
+                    <p className="text-[11px] text-muted">Tu win rate vs snipers bajó 12% en Mirage</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <span className="text-sm shrink-0 mt-0.5">🔵</span>
+                  <div>
+                    <span className="text-sm font-medium">Mirage sigue siendo tu mejor mapa.</span>
+                    <p className="text-[11px] text-muted">62% win rate en 38 partidas</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:gap-2.5 transition-all duration-300">
+                Ver análisis completo
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+              </div>
+            </div>
+          </div>
+        </Link>
+      </motion.div>
+
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <StatCard
           icon={Clock}
