@@ -91,7 +91,14 @@ export default function ProfilePage() {
     { label: "Win Rate", value: `${cs2Stats.totalWinPct}%`, icon: TrendingUp, color: "text-success" },
     { label: "Kills Totales", value: cs2Stats.totalKills.toLocaleString(), icon: Flame, color: "text-orange-400" },
     { label: "MVPs", value: cs2Stats.totalMVPs.toLocaleString(), icon: Star, color: "text-yellow-400" },
-  ] : null;
+  ] : [
+    { label: "K/D", value: "—", icon: Swords, color: "text-danger" },
+    { label: "HS%", value: "—", icon: Crosshair, color: "text-accent" },
+    { label: "Accuracy", value: "—", icon: Target, color: "text-primary" },
+    { label: "Win Rate", value: "—", icon: TrendingUp, color: "text-success" },
+    { label: "Kills Totales", value: "—", icon: Flame, color: "text-orange-400" },
+    { label: "MVPs", value: "—", icon: Star, color: "text-yellow-400" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -182,26 +189,27 @@ export default function ProfilePage() {
       )}
 
       {/* CS2 Detailed Stats */}
-      {cs2DetailedStats && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
-          <GlassCard padding="md">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                <Gamepad2 className="h-5 w-5 text-accent" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Counter-Strike 2 — Stats de Steam</h3>
-                <p className="text-xs text-muted">{user.cs2?.hoursPlayed?.toLocaleString() || 0} horas jugadas</p>
-              </div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+        <GlassCard padding="md">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
+              <Gamepad2 className="h-5 w-5 text-accent" />
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {cs2DetailedStats.map((stat) => (
-                <StatBox key={stat.label} label={stat.label} value={stat.value} color={stat.color} />
-              ))}
+            <div>
+              <h3 className="text-sm font-semibold">Counter-Strike 2 — Stats de Steam</h3>
+              <p className="text-xs text-muted">{user.cs2?.hoursPlayed?.toLocaleString() || 0} horas jugadas</p>
             </div>
-          </GlassCard>
-        </motion.div>
-      )}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {cs2DetailedStats.map((stat) => (
+              <StatBox key={stat.label} label={stat.label} value={stat.value} color={stat.color} />
+            ))}
+          </div>
+          {!cs2Stats && (
+            <p className="text-[11px] text-muted mt-3 text-center">Stats detalladas no disponibles — verifica que tu perfil de juego en Steam sea público</p>
+          )}
+        </GlassCard>
+      </motion.div>
 
       {/* Steam Info */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
