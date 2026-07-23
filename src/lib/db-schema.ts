@@ -130,13 +130,6 @@ CREATE TABLE IF NOT EXISTS chest_history (
   FOREIGN KEY (steam_id) REFERENCES player_profile(steam_id)
 );
 
-ALTER TABLE player_profile ADD COLUMN steam_name TEXT DEFAULT '';
-ALTER TABLE player_profile ADD COLUMN avatar_url TEXT DEFAULT NULL;
-ALTER TABLE player_profile ADD COLUMN profile_url TEXT DEFAULT NULL;
-ALTER TABLE player_profile ADD COLUMN country TEXT DEFAULT NULL;
-ALTER TABLE player_profile ADD COLUMN steam_level INTEGER DEFAULT 0;
-ALTER TABLE player_profile ADD COLUMN cs2_hours INTEGER DEFAULT 0;
-
 CREATE INDEX IF NOT EXISTS idx_achievements_steam ON achievements(steam_id);
 CREATE INDEX IF NOT EXISTS idx_achievements_steam_id ON achievements(steam_id, achievement_id);
 CREATE INDEX IF NOT EXISTS idx_daily_challenges_steam_date ON daily_challenges(steam_id, challenge_date);
