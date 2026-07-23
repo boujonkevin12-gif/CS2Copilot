@@ -284,6 +284,19 @@ function GamificationWidgets() {
 export default function DashboardOverview() {
   const { user, loading, friends, recentGames, cs2Stats, faceitStats, faceitMatches } = useUser();
   const { profile } = useGamification();
+  const [insights, setInsights] = useState<{ emoji: string; title: string; desc: string; type: string }[] | null>(null);
+  const [loadingInsights, setLoadingInsights] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetch("/api/user/insights")
+        .then((r) => r.json())
+        .then((d) => { setInsights(d.insights ?? []); setLoadingInsights(false); })
+        .catch(() => { setInsights([]); setLoadingInsights(false); });
+    } else {
+      setLoadingInsights(false);
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -473,6 +486,7 @@ export default function DashboardOverview() {
       </motion.div>
 
       {/* AI Insights Card */}
+      {!loadingInsights && insights && insights.length > 0 && (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }}>
         <Link href="/dashboard/coach" className="block group">
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/[0.05] to-transparent border border-primary/20 hover:border-primary/40 transition-all duration-300 cursor-pointer">
@@ -497,27 +511,15 @@ export default function DashboardOverview() {
               </div>
 
               <div className="space-y-2.5 mb-4">
-                <div className="flex items-start gap-2.5">
-                  <span className="text-sm shrink-0 mt-0.5">🟢</span>
-                  <div>
-                    <span className="text-sm font-medium">Tu aim mejoró un 6% esta semana.</span>
-                    <p className="text-[11px] text-muted">Precisión general subió de 42.1% a 44.6%</p>
+                {insights.map((insight, idx) => (
+                  <div key={idx} className="flex items-start gap-2.5">
+                    <span className="text-sm shrink-0 mt-0.5">{insight.emoji}</span>
+                    <div>
+                      <span className="text-sm font-medium">{insight.title}</span>
+                      {insight.desc && <p className="text-[11px] text-muted">{insight.desc}</p>}
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <span className="text-sm shrink-0 mt-0.5">🟠</span>
-                  <div>
-                    <span className="text-sm font-medium">Estás perdiendo más duelos contra AWP.</span>
-                    <p className="text-[11px] text-muted">Tu win rate vs snipers bajó 12% en Mirage</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <span className="text-sm shrink-0 mt-0.5">🔵</span>
-                  <div>
-                    <span className="text-sm font-medium">Mirage sigue siendo tu mejor mapa.</span>
-                    <p className="text-[11px] text-muted">62% win rate en 38 partidas</p>
-                  </div>
-                </div>
+                ))}
               </div>
 
               <div className="flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:gap-2.5 transition-all duration-300">
@@ -528,6 +530,7 @@ export default function DashboardOverview() {
           </div>
         </Link>
       </motion.div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <StatCard
