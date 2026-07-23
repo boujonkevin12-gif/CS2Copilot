@@ -298,46 +298,6 @@ export default function DashboardOverview() {
     }
   }, [user]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="h-12 w-12 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4" />
-          <p className="text-sm text-muted">Cargando datos...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <GlassCard padding="lg" className="text-center max-w-md">
-          <AlertTriangle className="h-12 w-12 text-accent mx-auto mb-4" />
-          <h2 className="text-lg font-semibold mb-2">Conecta tu Steam</h2>
-          <p className="text-sm text-muted mb-4">Inicia sesion con Steam para ver tus estadisticas reales.</p>
-          <a href="/login" className="inline-flex items-center gap-2 glass rounded-xl px-6 py-3 text-sm font-semibold hover:bg-white/[0.06] transition-all">
-            Conectar con Steam
-          </a>
-        </GlassCard>
-      </div>
-    );
-  }
-
-  const initials = user.name?.slice(0, 2).toUpperCase() || "??";
-  const cs2Hours = user.cs2?.hoursPlayed ?? null;
-  const lastLogoffDate = user.lastLogoff ? new Date(user.lastLogoff * 1000).toLocaleString("es-AR") : null;
-
-  const winRate = faceitStats?.lifetime?.["Win Rate %"]
-    ? `${faceitStats.lifetime["Win Rate %"]}`
-    : cs2Stats
-      ? `${cs2Stats.totalWinPct}`
-      : null;
-
-  const kd = cs2Stats?.totalKD ?? null;
-  const hsPct = cs2Stats?.totalHSPct ?? null;
-  const accuracy = cs2Stats?.accuracy ?? null;
-
   const mapSegments = useMemo(() => {
     if (!faceitStats?.segments) return [];
     return faceitStats.segments
@@ -409,6 +369,46 @@ export default function DashboardOverview() {
     });
     return activity.slice(0, 8);
   }, [matchHistory, friends]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="h-12 w-12 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4" />
+          <p className="text-sm text-muted">Cargando datos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <GlassCard padding="lg" className="text-center max-w-md">
+          <AlertTriangle className="h-12 w-12 text-accent mx-auto mb-4" />
+          <h2 className="text-lg font-semibold mb-2">Conecta tu Steam</h2>
+          <p className="text-sm text-muted mb-4">Inicia sesion con Steam para ver tus estadisticas reales.</p>
+          <a href="/login" className="inline-flex items-center gap-2 glass rounded-xl px-6 py-3 text-sm font-semibold hover:bg-white/[0.06] transition-all">
+            Conectar con Steam
+          </a>
+        </GlassCard>
+      </div>
+    );
+  }
+
+  const initials = user.name?.slice(0, 2).toUpperCase() || "??";
+  const cs2Hours = user.cs2?.hoursPlayed ?? null;
+  const lastLogoffDate = user.lastLogoff ? new Date(user.lastLogoff * 1000).toLocaleString("es-AR") : null;
+
+  const winRate = faceitStats?.lifetime?.["Win Rate %"]
+    ? `${faceitStats.lifetime["Win Rate %"]}`
+    : cs2Stats
+      ? `${cs2Stats.totalWinPct}`
+      : null;
+
+  const kd = cs2Stats?.totalKD ?? null;
+  const hsPct = cs2Stats?.totalHSPct ?? null;
+  const accuracy = cs2Stats?.accuracy ?? null;
 
   return (
     <div className="space-y-6">
