@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getInventory } from "@/lib/services/inventory.service";
 
+const STEAMID64_REGEX = /^\d{17}$/;
+
 export async function GET(request: NextRequest) {
   try {
     const cookie = request.cookies.get("cs2pilot_user");
@@ -14,8 +16,19 @@ export async function GET(request: NextRequest) {
     }
 
     const steamId = user.steamId;
+
+    console.log("[STEAM_INVENTORY_DEBUG] steamId recibido:", steamId);
+
     if (!steamId) {
       return NextResponse.json({ success: false, error: "No hay Steam ID vinculado" }, { status: 400 });
+    }
+
+    if (!STEAMID64_REGEX.test(steamId)) {
+      return NextResponse.json({
+        success: false,
+        error: "invalid_steam_id",
+        message: "El SteamID vinculado no es válido",
+      }, { status: 400 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -34,13 +47,24 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Error desconocido";
-    if (msg === "rate_limited") {
+
+    console.log("[STEAM_INVENTORY_DEBUG] Error capturado en route:", { msg });
+
+    if (msg === "steam_rate_limit") {
       return NextResponse.json({
         success: false,
-        error: "rate_limited",
-        message: "Steam está limitando las solicitudes. Esperá unos minutos y probá de nuevo.",
+        error: "steam_rate_limit",
+        message: "Steam está limitando solicitudes",
         isPublic: true,
       }, { status: 429 });
+    }
+    if (msg === "inventory_unavailable") {
+      return NextResponse.json({
+        success: false,
+        error: "inventory_unavailable",
+        message: "El inventario de CS2 no está disponible. Puede estar privado o el SteamID ser incorrecto.",
+        isPublic: true,
+      }, { status: 404 });
     }
     if (msg === "private") {
       return NextResponse.json({

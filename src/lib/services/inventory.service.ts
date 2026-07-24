@@ -407,24 +407,26 @@ async function fetchSteamPage(
   const res = await attempt(2);
 
   console.log("[STEAM_INVENTORY_DEBUG] Respuesta de Steam", {
+    steamId,
     url,
     status: res.status,
     statusText: res.statusText,
-    headers: Object.fromEntries(res.headers.entries()),
   });
 
   if (res.status === 429) {
     const retryAfter = res.headers.get("Retry-After");
     console.log("[STEAM_INVENTORY_DEBUG] 429 definitivo (sin reintentos)", {
+      steamId,
       url,
       retryAfter,
     });
-    throw new Error("rate_limited");
+    throw new Error("steam_rate_limit");
   }
   if (res.status === 403) throw new Error("private");
   if (!res.ok) {
     const body = await res.text();
     console.log("[STEAM_INVENTORY_DEBUG] Error HTTP no esperado", {
+      steamId,
       url,
       status: res.status,
       statusText: res.statusText,
@@ -434,10 +436,24 @@ async function fetchSteamPage(
   }
 
   const text = await res.text();
-  if (!text || text === "null") return { success: 0 };
+
+  if (text === "null") {
+    console.log("[STEAM_INVENTORY_DEBUG] Steam devolvió null — inventario no disponible", {
+      steamId,
+      url,
+    });
+    throw new Error("inventory_unavailable");
+  }
 
   const data = JSON.parse(text) as SteamResponse;
-  if (data.success !== 1) return { success: 0 };
+  if (data.success !== 1) {
+    console.log("[STEAM_INVENTORY_DEBUG] Steam respondió con success != 1", {
+      steamId,
+      url,
+      response: text.slice(0, 500),
+    });
+    throw new Error("inventory_unavailable");
+  }
 
   return data;
 }
@@ -461,6 +477,12 @@ async function fetchFullInventory(steamId: string): Promise<InventoryItem[]> {
       break;
     }
   }
+
+  console.log("[STEAM_INVENTORY_DEBUG] Inventario obtenido", {
+    steamId,
+    totalItems: allItems.length,
+    pages: page + 1,
+  });
 
   return allItems;
 }
@@ -602,7 +624,10 @@ export async function getInventory(steamId: string, forceRefresh: boolean = fals
   }
 
   const summary = computeSummary(items);
-  await setCachedInventory(steamId, items, summary);
+
+  if (items.length > 0) {
+    await setCachedInventory(steamId, items, summary);
+  }
 
   return { items, summary, cached: false, cachedAt: new Date().toISOString() };
 }
