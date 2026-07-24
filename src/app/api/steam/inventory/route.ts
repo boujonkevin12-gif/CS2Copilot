@@ -48,36 +48,55 @@ function parseInventory(data: any): SteamItem[] {
   return items;
 }
 
-async function fetchInventoryPage(steamId: string, startAssetId?: string): Promise<{
-  items: SteamItem[]; total: number; more: boolean; lastAssetId: string | null;
-}> {
-  const params = new URLSearchParams({ count: "5000", l: "english" });
-  if (startAssetId) params.set("start_assetid", startAssetId);
-  const url = `https://steamcommunity.com/inventory/${steamId}/${CS2_APPID}/${CS2_CONTEXT_ID}?${params.toString()}`;
+async function fetchWithRetry(url: string, retries = 2): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    try {
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+      });
+      if (res.status === 429 && attempt < retries) {
+        await new Promise((r) => setTimeout(r, (attempt + 1) * 2000));
+        continue;
+      }
+      return res;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await fetch(url, {
+    return await fetch(url, {
       signal: controller.signal,
-      headers: { "User-Agent": "Mozilla/5.0" },
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
     });
-    if (!res.ok) {
-      if (res.status === 403) throw new Error("inventario_privado");
-      throw new Error(`Steam responded with ${res.status}`);
-    }
-    const text = await res.text();
-    if (!text || text === "null") return { items: [], total: 0, more: false, lastAssetId: null };
-    const data = JSON.parse(text);
-    if (data.success !== 1) throw new Error("inventario_no_accesible");
-    return {
-      items: parseInventory(data),
-      total: data.total_inventory_count || 0,
-      more: data.more_items === 1,
-      lastAssetId: data.last_assetid || null,
-    };
   } finally {
     clearTimeout(timer);
   }
+}
+
+async function fetchInventoryPage(steamId: string): Promise<{
+  items: SteamItem[]; total: number;
+}> {
+  const params = new URLSearchParams({ count: "200", l: "english" });
+  const url = `https://steamcommunity.com/inventory/${steamId}/${CS2_APPID}/${CS2_CONTEXT_ID}?${params.toString()}`;
+  const res = await fetchWithRetry(url);
+  if (!res.ok) {
+    if (res.status === 403) throw new Error("inventario_privado");
+    if (res.status === 429) throw new Error("demasiadas_solicitudes");
+    throw new Error(`Steam respondió con ${res.status}`);
+  }
+  const text = await res.text();
+  if (!text || text === "null") return { items: [], total: 0 };
+  const data = JSON.parse(text);
+  if (data.success !== 1) throw new Error("inventario_no_accesible");
+  return {
+    items: parseInventory(data),
+    total: data.total_inventory_count || 0,
+  };
 }
 
 export async function GET(request: NextRequest) {
@@ -109,23 +128,15 @@ export async function GET(request: NextRequest) {
     } catch { /* continue */ }
   }
   try {
-    const allItems: SteamItem[] = [];
-    let lastAssetId: string | undefined;
-    let totalItems = 0;
-    let page = 0;
-    while (page < 20) {
-      const result = await fetchInventoryPage(steamId, lastAssetId);
-      if (page === 0) totalItems = result.total;
-      allItems.push(...result.items);
-      if (result.more && result.lastAssetId) { lastAssetId = result.lastAssetId; page++; } else break;
-    }
+    const result = await fetchInventoryPage(steamId);
     const rarityBreakdown: Record<string, number> = {};
-    for (const item of allItems) { const r = item.quality || "Normal"; rarityBreakdown[r] = (rarityBreakdown[r] || 0) + 1; }
-    return NextResponse.json({ success: true, steamId, isPublic: true, items: allItems, totalItems: totalItems || allItems.length, rarityBreakdown });
+    for (const item of result.items) { const r = item.quality || "Normal"; rarityBreakdown[r] = (rarityBreakdown[r] || 0) + 1; }
+    return NextResponse.json({ success: true, steamId, isPublic: true, items: result.items, totalItems: result.total, rarityBreakdown });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Error desconocido";
     if (msg === "inventario_privado") return NextResponse.json({ error: "inventario_privado", message: "Tu inventario debe ser público.", steamId, isPublic: false }, { status: 403 });
     if (msg === "inventario_no_accesible") return NextResponse.json({ error: "inventario_no_accesible", message: "No se pudo acceder al inventario.", steamId, isPublic: false }, { status: 403 });
+    if (msg === "demasiadas_solicitudes") return NextResponse.json({ error: "demasiadas_solicitudes", message: "Steam está limitando las solicitudes. Esperá unos minutos y probá de nuevo.", steamId, isPublic: true }, { status: 429 });
     return NextResponse.json({ error: "fetch_error", message: msg, steamId, isPublic: true }, { status: 500 });
   }
 }
