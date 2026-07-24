@@ -22,8 +22,8 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 
-function logSteamResponse(label: string, status: number, headers: Record<string, string>, bodySnippet: string) {
-  console.error(`[Inventory/${label}] status=${status}`, JSON.stringify({ headers, bodySnippet: bodySnippet.slice(0, 500) }));
+function log(label: string, detail: Record<string, unknown>) {
+  console.error(`[Inventory/${label}]`, JSON.stringify(detail));
 }
 
 function getCached(steamId: string): CacheEntry["data"] | null {
@@ -74,79 +74,113 @@ async function fetchSteamInventory(steamId: string): Promise<{ items: SteamItem[
   const params = new URLSearchParams({ count: "200", l: "english" });
   const url = `https://steamcommunity.com/inventory/${steamId}/${CS2_APPID}/${CS2_CONTEXT_ID}?${params.toString()}`;
 
-  let res: Response | null = null;
-  let attempt = 0;
-  const maxAttempts = 2;
-
-  while (attempt < maxAttempts) {
+  async function doFetch(): Promise<Response> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
     try {
-      res = await fetch(url, {
+      return await fetch(url, {
         signal: controller.signal,
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
       });
-
-      const headersObj: Record<string, string> = {};
-      res.headers.forEach((v, k) => { headersObj[k] = v; });
-
-      if (res.status === 429) {
-        logSteamResponse("rate_limited", res.status, headersObj, "");
-        throw new Error("demasiadas_solicitudes");
-      }
-
-      if (res.status === 403) {
-        const body = await res.text().catch(() => "");
-        logSteamResponse("forbidden", res.status, headersObj, body);
-        throw new Error("inventario_privado");
-      }
-
-      if (!res.ok) {
-        const body = await res.text().catch(() => "");
-        logSteamResponse("error", res.status, headersObj, body);
-        attempt++;
-        if (attempt < maxAttempts) {
-          const delay = Math.pow(2, attempt) * 1000;
-          await new Promise((r) => setTimeout(r, delay));
-          continue;
-        }
-        throw new Error(`Steam respondió con ${res.status}`);
-      }
-
-      const text = await res.text();
-      if (!text || text === "null") return { items: [], total: 0 };
-
-      let data: any;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        logSteamResponse("parse_error", 200, headersObj, text.slice(0, 500));
-        throw new Error("inventario_no_accesible");
-      }
-
-      if (data.success !== 1) {
-        logSteamResponse("bad_success", 200, headersObj, text.slice(0, 500));
-        throw new Error("inventario_no_accesible");
-      }
-
-      return {
-        items: parseInventory(data),
-        total: data.total_inventory_count || 0,
-      };
-    } catch (err) {
-      if (err instanceof Error && (err.message === "demasiadas_solicitudes" || err.message === "inventario_privado")) {
-        throw err;
-      }
-      attempt++;
-      if (attempt >= maxAttempts) throw err;
-      const delay = Math.pow(2, attempt) * 1000;
-      await new Promise((r) => setTimeout(r, delay));
     } finally {
       clearTimeout(timer);
     }
   }
 
-  throw new Error("No se pudo obtener el inventario");
+  // ── Primer intento ──
+  let res = await doFetch();
+
+  const collectHeaders = (r: Response): Record<string, string> => {
+    const h: Record<string, string> = {};
+    r.headers.forEach((v, k) => { h[k] = v; });
+    return h;
+  };
+
+  const retryAfter = res.headers.get("retry-after") || "none";
+
+  // 429 de Steam → loguear todo y fallar sin reintentar
+  if (res.status === 429) {
+    const body = await res.text().catch(() => "");
+    log("rate_limited", {
+      steamId,
+      url,
+      status: res.status,
+      retryAfter,
+      headers: collectHeaders(res),
+      bodySnippet: body.slice(0, 500),
+    });
+    throw new Error("demasiadas_solicitudes");
+  }
+
+  // 403 → perfil privado
+  if (res.status === 403) {
+    const body = await res.text().catch(() => "");
+    log("forbidden", { steamId, status: res.status, headers: collectHeaders(res), bodySnippet: body.slice(0, 500) });
+    throw new Error("inventario_privado");
+  }
+
+  // Error transitorio (timeout, 5xx) → un único reintento con backoff 2s
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    log("transient_error", {
+      steamId, status: res.status, retryAfter, headers: collectHeaders(res), bodySnippet: body.slice(0, 500),
+      action: "retrying in 2s",
+    });
+    await new Promise((r) => setTimeout(r, 2000));
+
+    // ── Reintento ──
+    res = await doFetch();
+
+    if (res.status === 429) {
+      const retryBody = await res.text().catch(() => "");
+      log("rate_limited_after_retry", {
+        steamId, status: res.status, retryAfter: res.headers.get("retry-after") || "none",
+        headers: collectHeaders(res), bodySnippet: retryBody.slice(0, 500),
+      });
+      throw new Error("demasiadas_solicitudes");
+    }
+
+    if (res.status === 403) {
+      const retryBody = await res.text().catch(() => "");
+      log("forbidden_after_retry", { steamId, status: res.status, headers: collectHeaders(res), bodySnippet: retryBody.slice(0, 500) });
+      throw new Error("inventario_privado");
+    }
+
+    if (!res.ok) {
+      const retryBody = await res.text().catch(() => "");
+      log("error_after_retry", {
+        steamId, status: res.status, retryAfter: res.headers.get("retry-after") || "none",
+        headers: collectHeaders(res), bodySnippet: retryBody.slice(0, 500),
+      });
+      throw new Error(`Steam respondió con ${res.status}`);
+    }
+  }
+
+  const headersOk = collectHeaders(res);
+  const text = await res.text();
+
+  if (!text || text === "null") {
+    log("empty_body", { steamId, headers: headersOk });
+    return { items: [], total: 0 };
+  }
+
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    log("parse_error", { steamId, headers: headersOk, bodySnippet: text.slice(0, 500) });
+    throw new Error("inventario_no_accesible");
+  }
+
+  if (data.success !== 1) {
+    log("bad_success", { steamId, success: data.success, headers: headersOk, bodySnippet: text.slice(0, 500) });
+    throw new Error("inventario_no_accesible");
+  }
+
+  return {
+    items: parseInventory(data),
+    total: data.total_inventory_count || 0,
+  };
 }
 
 export async function GET(request: NextRequest) {
@@ -159,11 +193,13 @@ export async function GET(request: NextRequest) {
   const steamId = user.steamId;
   if (!steamId) return NextResponse.json({ error: "No Steam ID" }, { status: 400 });
 
+  // ── Caché: evitar consultar Steam si ya tenemos datos frescos ──
   const cached = getCached(steamId);
   if (cached) {
     return NextResponse.json({ success: true, steamId, isPublic: true, ...cached, totalItems: cached.total, cached: true });
   }
 
+  // ── Verificación de visibilidad (solo si tenemos API key) ──
   if (STEAM_API_KEY) {
     try {
       const visCtrl = new AbortController();
@@ -184,6 +220,7 @@ export async function GET(request: NextRequest) {
     } catch { /* continue */ }
   }
 
+  // ── Fetch del inventario ──
   try {
     const result = await fetchSteamInventory(steamId);
     const rarityBreakdown: Record<string, number> = {};
