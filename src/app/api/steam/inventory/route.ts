@@ -17,8 +17,6 @@ export async function GET(request: NextRequest) {
 
     const steamId = user.steamId;
 
-    console.log("[STEAM_INVENTORY_DEBUG] steamId recibido:", steamId);
-
     if (!steamId) {
       return NextResponse.json({ success: false, error: "No hay Steam ID vinculado" }, { status: 400 });
     }
@@ -47,8 +45,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Error desconocido";
-
-    console.log("[STEAM_INVENTORY_DEBUG] Error capturado en route:", { msg });
 
     if (msg === "steam_rate_limit") {
       return NextResponse.json({

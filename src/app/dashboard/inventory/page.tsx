@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { Package, ExternalLink, LogIn } from "lucide-react";
 import { useUser } from "@/lib/user-context";
@@ -23,9 +23,12 @@ export default function InventoryPage() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [cachedAt, setCachedAt] = useState<string | null>(null);
+  const fetchingRef = useRef(false);
 
   const fetchInventory = useCallback(async (refresh = false) => {
     if (!user?.steamId) return;
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
     if (refresh) setRefreshing(true);
     else setPageLoading(true);
     setError(null);
@@ -49,6 +52,7 @@ export default function InventoryPage() {
     } finally {
       setPageLoading(false);
       setRefreshing(false);
+      fetchingRef.current = false;
     }
   }, [user]);
 
