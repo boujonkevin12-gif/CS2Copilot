@@ -14,6 +14,7 @@ interface SteamItem {
   tradable: boolean;
 }
 
+
 function parseInventory(data: any): SteamItem[] {
   if (!data?.assets || !data?.descriptions) return [];
   const items: SteamItem[] = [];
@@ -53,24 +54,30 @@ async function fetchInventoryPage(steamId: string, startAssetId?: string): Promi
   const params = new URLSearchParams({ count: "5000", l: "english" });
   if (startAssetId) params.set("start_assetid", startAssetId);
   const url = `https://steamcommunity.com/inventory/${steamId}/${CS2_APPID}/${CS2_CONTEXT_ID}?${params.toString()}`;
-  const res = await fetch(url, {
-    signal: AbortSignal.timeout(15000),
-    headers: { "User-Agent": "Mozilla/5.0" },
-  });
-  if (!res.ok) {
-    if (res.status === 403) throw new Error("inventario_privado");
-    throw new Error(`Steam responded with ${res.status}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+    if (!res.ok) {
+      if (res.status === 403) throw new Error("inventario_privado");
+      throw new Error(`Steam responded with ${res.status}`);
+    }
+    const text = await res.text();
+    if (!text || text === "null") return { items: [], total: 0, more: false, lastAssetId: null };
+    const data = JSON.parse(text);
+    if (data.success !== 1) throw new Error("inventario_no_accesible");
+    return {
+      items: parseInventory(data),
+      total: data.total_inventory_count || 0,
+      more: data.more_items === 1,
+      lastAssetId: data.last_assetid || null,
+    };
+  } finally {
+    clearTimeout(timer);
   }
-  const text = await res.text();
-  if (!text || text === "null") return { items: [], total: 0, more: false, lastAssetId: null };
-  const data = JSON.parse(text);
-  if (data.success !== 1) throw new Error("inventario_no_accesible");
-  return {
-    items: parseInventory(data),
-    total: data.total_inventory_count || 0,
-    more: data.more_items === 1,
-    lastAssetId: data.last_assetid || null,
-  };
 }
 
 export async function GET(request: NextRequest) {
@@ -82,16 +89,22 @@ export async function GET(request: NextRequest) {
   if (!steamId) return NextResponse.json({ error: "No Steam ID" }, { status: 400 });
   if (STEAM_API_KEY) {
     try {
-      const summaryRes = await fetch(
-        `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${STEAM_API_KEY}&steamids=${steamId}`,
-        { signal: AbortSignal.timeout(10000) }
-      );
-      if (summaryRes.ok) {
-        const summaryData = await summaryRes.json();
-        const player = summaryData?.response?.players?.[0];
-        if (player && Number(player.communityvisibilitystate) !== 3) {
-          return NextResponse.json({ error: "inventario_privado", message: "Tu perfil de Steam debe ser público.", steamId, isPublic: false }, { status: 403 });
+      const visCtrl = new AbortController();
+      const visTimer = setTimeout(() => visCtrl.abort(), 10000);
+      try {
+        const summaryRes = await fetch(
+          `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${STEAM_API_KEY}&steamids=${steamId}`,
+          { signal: visCtrl.signal }
+        );
+        if (summaryRes.ok) {
+          const summaryData = await summaryRes.json();
+          const player = summaryData?.response?.players?.[0];
+          if (player && Number(player.communityvisibilitystate) !== 3) {
+            return NextResponse.json({ error: "inventario_privado", message: "Tu perfil de Steam debe ser público.", steamId, isPublic: false }, { status: 403 });
+          }
         }
+      } finally {
+        clearTimeout(visTimer);
       }
     } catch { /* continue */ }
   }
