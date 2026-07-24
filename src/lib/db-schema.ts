@@ -199,6 +199,11 @@ CREATE TABLE IF NOT EXISTS inventory_cache (
   FOREIGN KEY (steam_id) REFERENCES player_profile(steam_id)
 );
 
+CREATE TABLE IF NOT EXISTS inventory_fetch_state (
+  steam_id TEXT PRIMARY KEY,
+  rate_limit_until TEXT,
+  fetching_since TEXT
+);
 
 `;
 

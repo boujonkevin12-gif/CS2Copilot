@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db";
 const CS2_APPID = 730;
 const CS2_CONTEXT_ID = 2;
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000;
+const RATE_LIMIT_COOLDOWN_MS = 10 * 60 * 1000;
 const MAX_PAGES = 20;
 const PAGE_SIZE = 5000;
 
@@ -365,6 +366,35 @@ function parseInventoryResponse(
   return items;
 }
 
+async function checkRateLimitCooldown(steamId: string): Promise<boolean> {
+  try {
+    const db = getDb();
+    const result = await db.execute({
+      sql: "SELECT rate_limit_until FROM inventory_fetch_state WHERE steam_id = ? AND rate_limit_until IS NOT NULL",
+      args: [steamId],
+    });
+    if (result.rows.length === 0) return false;
+    const until = result.rows[0].rate_limit_until as string;
+    if (!until) return false;
+    return new Date(until).getTime() > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+async function setRateLimitCooldown(steamId: string): Promise<void> {
+  try {
+    const db = getDb();
+    const until = new Date(Date.now() + RATE_LIMIT_COOLDOWN_MS).toISOString();
+    await db.execute({
+      sql: `INSERT OR REPLACE INTO inventory_fetch_state (steam_id, rate_limit_until, fetching_since) VALUES (?, ?, NULL)`,
+      args: [steamId, until],
+    });
+  } catch {
+    // silent
+  }
+}
+
 async function fetchSteamPage(
   steamId: string,
   startAssetId?: string
@@ -377,83 +407,31 @@ async function fetchSteamPage(
 
   const url = `https://steamcommunity.com/inventory/${steamId}/${CS2_APPID}/${CS2_CONTEXT_ID}?${params.toString()}`;
 
-  console.log("[STEAM_INVENTORY_DEBUG] Consultando inventario Steam", { steamId, url });
-
-  async function attempt(retries: number): Promise<Response> {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 30000);
-    try {
-      const res = await fetch(url, {
-        signal: controller.signal,
-        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
-      });
-      if (res.status === 429 && retries > 0) {
-        const retryAfter = res.headers.get("Retry-After");
-        console.log("[STEAM_INVENTORY_DEBUG] 429 recibido, reintentando", {
-          url,
-          retryAfter,
-          retriesLeft: retries - 1,
-          statusText: res.statusText,
-        });
-        await new Promise((r) => setTimeout(r, 3000));
-        return attempt(retries - 1);
-      }
-      return res;
-    } finally {
-      clearTimeout(timer);
-    }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      signal: controller.signal,
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+    });
+  } finally {
+    clearTimeout(timer);
   }
 
-  const res = await attempt(2);
-
-  console.log("[STEAM_INVENTORY_DEBUG] Respuesta de Steam", {
-    steamId,
-    url,
-    status: res.status,
-    statusText: res.statusText,
-  });
-
   if (res.status === 429) {
-    const retryAfter = res.headers.get("Retry-After");
-    console.log("[STEAM_INVENTORY_DEBUG] 429 definitivo (sin reintentos)", {
-      steamId,
-      url,
-      retryAfter,
-    });
+    await setRateLimitCooldown(steamId);
     throw new Error("steam_rate_limit");
   }
   if (res.status === 403) throw new Error("private");
-  if (!res.ok) {
-    const body = await res.text();
-    console.log("[STEAM_INVENTORY_DEBUG] Error HTTP no esperado", {
-      steamId,
-      url,
-      status: res.status,
-      statusText: res.statusText,
-      body,
-    });
-    throw new Error(`steam_error:${res.status}`);
-  }
+  if (!res.ok) throw new Error(`steam_error:${res.status}`);
 
   const text = await res.text();
 
-  if (text === "null") {
-    console.log("[STEAM_INVENTORY_DEBUG] Steam devolvió null — inventario no disponible", {
-      steamId,
-      url,
-    });
-    throw new Error("inventory_unavailable");
-  }
+  if (text === "null") throw new Error("inventory_unavailable");
 
   const data = JSON.parse(text) as SteamResponse;
-  if (data.success !== 1) {
-    console.log("[STEAM_INVENTORY_DEBUG] Steam respondió con success != 1", {
-      steamId,
-      url,
-      response: text.slice(0, 500),
-    });
-    throw new Error("inventory_unavailable");
-  }
+  if (data.success !== 1) throw new Error("inventory_unavailable");
 
   return data;
 }
@@ -477,12 +455,6 @@ async function fetchFullInventory(steamId: string): Promise<InventoryItem[]> {
       break;
     }
   }
-
-  console.log("[STEAM_INVENTORY_DEBUG] Inventario obtenido", {
-    steamId,
-    totalItems: allItems.length,
-    pages: page + 1,
-  });
 
   return allItems;
 }
@@ -612,10 +584,23 @@ export async function getInventory(steamId: string, forceRefresh: boolean = fals
     }
   }
 
+  const inCooldown = await checkRateLimitCooldown(steamId);
+  if (inCooldown) {
+    const stale = await getStaleInventory(steamId);
+    if (stale) {
+      return { ...stale, cached: true, cachedAt: stale.cachedAt };
+    }
+    throw new Error("steam_rate_limit");
+  }
+
   let items: InventoryItem[];
   try {
     items = await fetchFullInventory(steamId);
   } catch (err) {
+    const msg = err instanceof Error ? err.message : "";
+    if (msg === "steam_rate_limit") {
+      throw err;
+    }
     const stale = await getStaleInventory(steamId);
     if (stale) {
       return { ...stale, cached: true, cachedAt: stale.cachedAt };
