@@ -186,6 +186,7 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
   const initials = user?.name
     ? user.name.slice(0, 2).toUpperCase()
     : "SP";
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -310,27 +311,55 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
             </Link>
             <CoinDisplay />
             <NotificationBell />
-            <div className="flex items-center gap-2 pl-3 border-l border-white/[0.06]">
-              {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="h-8 w-8 rounded-full border border-white/[0.1]"
-                />
-              ) : (
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-white">
-                  {initials}
+            <div className="relative">
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2 pl-3 border-l border-white/[0.06] cursor-pointer"
+              >
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="h-8 w-8 rounded-full border border-white/[0.1]"
+                  />
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-white">
+                    {initials}
+                  </div>
+                )}
+                <div className="hidden sm:block">
+                  <div className="text-sm font-medium">
+                    {loading ? "Cargando..." : user?.name || "Jugador"}
+                  </div>
+                  <div className="text-xs text-muted">
+                    {profile ? `Nv. ${profile.level} · ${profile.current_title}` : user?.steamLevel ? `Steam Level ${user.steamLevel}` : "Conectado"}
+                  </div>
                 </div>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground hidden sm:block transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+              </button>
+              {userMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-52 glass-strong rounded-xl border border-white/[0.08] shadow-2xl z-50 overflow-hidden">
+                    <Link
+                      href="/dashboard/profile"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-foreground hover:bg-white/[0.04] transition-colors"
+                    >
+                      <User className="h-4 w-4" />
+                      Ver Perfil
+                    </Link>
+                    <div className="border-t border-white/[0.06]" />
+                    <button
+                      onClick={() => { setUserMenuOpen(false); handleLogout(); }}
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-danger hover:bg-white/[0.04] transition-colors cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Cerrar Sesión
+                    </button>
+                  </div>
+                </>
               )}
-              <div className="hidden sm:block">
-                <div className="text-sm font-medium">
-                  {loading ? "Cargando..." : user?.name || "Jugador"}
-                </div>
-                <div className="text-xs text-muted">
-                  {profile ? `Nv. ${profile.level} · ${profile.current_title}` : user?.steamLevel ? `Steam Level ${user.steamLevel}` : "Conectado"}
-                </div>
-              </div>
-              <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
             </div>
           </div>
         </header>
