@@ -377,6 +377,8 @@ async function fetchSteamPage(
 
   const url = `https://steamcommunity.com/inventory/${steamId}/${CS2_APPID}/${CS2_CONTEXT_ID}?${params.toString()}`;
 
+  console.log("[STEAM_INVENTORY_DEBUG] Consultando inventario Steam", { steamId, url });
+
   async function attempt(retries: number): Promise<Response> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 30000);
@@ -386,6 +388,13 @@ async function fetchSteamPage(
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
       });
       if (res.status === 429 && retries > 0) {
+        const retryAfter = res.headers.get("Retry-After");
+        console.log("[STEAM_INVENTORY_DEBUG] 429 recibido, reintentando", {
+          url,
+          retryAfter,
+          retriesLeft: retries - 1,
+          statusText: res.statusText,
+        });
         await new Promise((r) => setTimeout(r, 3000));
         return attempt(retries - 1);
       }
@@ -397,9 +406,32 @@ async function fetchSteamPage(
 
   const res = await attempt(2);
 
-  if (res.status === 429) throw new Error("rate_limited");
+  console.log("[STEAM_INVENTORY_DEBUG] Respuesta de Steam", {
+    url,
+    status: res.status,
+    statusText: res.statusText,
+    headers: Object.fromEntries(res.headers.entries()),
+  });
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    console.log("[STEAM_INVENTORY_DEBUG] 429 definitivo (sin reintentos)", {
+      url,
+      retryAfter,
+    });
+    throw new Error("rate_limited");
+  }
   if (res.status === 403) throw new Error("private");
-  if (!res.ok) throw new Error(`steam_error:${res.status}`);
+  if (!res.ok) {
+    const body = await res.text();
+    console.log("[STEAM_INVENTORY_DEBUG] Error HTTP no esperado", {
+      url,
+      status: res.status,
+      statusText: res.statusText,
+      body,
+    });
+    throw new Error(`steam_error:${res.status}`);
+  }
 
   const text = await res.text();
   if (!text || text === "null") return { success: 0 };
