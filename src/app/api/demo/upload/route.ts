@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
           rounds: parsed.rounds.length,
           playerStats: parsed.playerStats,
           allPlayers: parsed.allPlayers,
+          teams: parsed.teams,
         },
       });
     }
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
         rounds: parsed.rounds.length,
         playerStats: parsed.playerStats,
         allPlayers: parsed.allPlayers,
+        teams: parsed.teams,
       },
     });
   } catch (err) {

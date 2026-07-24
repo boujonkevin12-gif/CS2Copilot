@@ -27,6 +27,11 @@ import {
   AlertCircle,
   CheckCircle2,
   TrendingUp,
+  Swords,
+  Skull,
+  HeartHandshake,
+  Star,
+  Eye,
 } from "lucide-react";
 import { useUser } from "@/lib/user-context";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -56,23 +61,40 @@ interface AiAnalysis {
   trainingPlan: { focus: string; exercises: string[] }[];
 }
 
+interface PlayerStat {
+  name: string;
+  steamId: string;
+  kills: number;
+  deaths: number;
+  assists: number;
+  headshotKills: number;
+  totalDamage: number;
+  kd: number;
+  hsPercent: number;
+  adr: number;
+  mvps: number;
+  score: number;
+  utilityDamage: number;
+  enemiesFlashed: number;
+  enemy3Ks: number;
+  enemy4Ks: number;
+  enemy5Ks: number;
+}
+
+interface TeamInfo {
+  teamNumber: number;
+  teamName: string;
+  score: number;
+  players: PlayerStat[];
+}
+
 interface DemoResult {
   map: string;
   serverName: string;
   duration: number;
   rounds: number;
-  playerStats: {
-    name: string;
-    kills: number;
-    deaths: number;
-    assists: number;
-    kd: number;
-    hsPercent: number;
-    adr: number;
-    weaponKills: Record<string, number>;
-    clutchWins: Record<string, number>;
-    aceRounds: number[];
-  };
+  teams: TeamInfo[];
+  allPlayers: PlayerStat[];
 }
 
 const priorityColors: Record<string, string> = {
@@ -108,7 +130,7 @@ export default function CoachPage() {
   const [demoUploading, setDemoUploading] = useState(false);
   const [demoResult, setDemoResult] = useState<DemoResult | null>(null);
   const [demoError, setDemoError] = useState("");
-  const [activeTab, setActiveTab] = useState<"chat" | "analysis">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "demos" | "analysis">("chat");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -152,38 +174,44 @@ export default function CoachPage() {
     setDemoResult(null);
 
     try {
-      const { parseDemoHeader } = await import("@/lib/demo-header-parser");
-      const arrayBuffer = await file.arrayBuffer();
-      const header = await parseDemoHeader(arrayBuffer);
+      const formData = new FormData();
+      formData.append("demo", file);
 
-      if (!header) {
-        setDemoError("No se pudo leer el encabezado de la demo. Asegurate de que sea un archivo .dem de CS2 valido.");
+      const res = await fetch("/api/demo/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        setDemoError(json.error || "Error al procesar la demo");
         setDemoUploading(false);
         return;
       }
 
-      const demoData = {
-        map: header.map,
-        serverName: header.serverName,
-        fileName: file.name,
-        fileSize: file.size,
-        duration: header.duration,
-        roundCount: header.roundCount,
-      };
+      const data = json.data;
+      if (!data || !data.teams || data.teams.length < 2) {
+        setDemoError("No se pudieron extraer los datos de la partida. La demo podria estar incompleta.");
+        setDemoUploading(false);
+        return;
+      }
 
       setDemoResult({
-        map: header.map,
-        serverName: header.serverName,
-        duration: header.duration,
-        rounds: header.roundCount,
-        playerStats: {
-          name: "", kills: 0, deaths: 0, assists: 0,
-          kd: 0, hsPercent: 0, adr: 0,
-          weaponKills: {}, clutchWins: {}, aceRounds: [],
-        },
+        map: data.map,
+        serverName: data.serverName,
+        duration: data.duration,
+        rounds: data.rounds || 0,
+        teams: data.teams,
+        allPlayers: data.allPlayers || [],
       });
 
-      await fetchAnalysis({ demoData });
+      if (json.warning) {
+        setDemoError(json.warning);
+      }
+
+      // Trigger AI analysis with real demo data
+      await fetchAnalysis({ demoData: data });
 
       // Log demo analysis for gamification (XP + challenges)
       try {
@@ -196,7 +224,7 @@ export default function CoachPage() {
         // Gamification sync failed — not critical
       }
     } catch {
-      setDemoError("Error al leer la demo. Verifica que el archivo no este corrupto.");
+      setDemoError("Error al subir la demo. Verifica que el archivo no este corrupto.");
     } finally {
       setDemoUploading(false);
     }
@@ -331,36 +359,27 @@ export default function CoachPage() {
             Chat
           </button>
           <button
+            onClick={() => setActiveTab("demos")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+              activeTab === "demos" ? "bg-primary/20 text-primary" : "text-muted hover:text-foreground hover:bg-white/[0.04]"
+            }`}
+          >
+            Demos
+          </button>
+          <button
             onClick={() => setActiveTab("analysis")}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
               activeTab === "analysis" ? "bg-primary/20 text-primary" : "text-muted hover:text-foreground hover:bg-white/[0.04]"
             }`}
           >
-            Análisis
+            Análisis IA
           </button>
         </div>
       </motion.div>
 
-      {activeTab === "analysis" ? (
+      {activeTab === "demos" ? (
         <div className="flex-1 overflow-y-auto scrollbar-thin pr-2 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">Análisis de Rendimiento</h2>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => fetchAnalysis()}
-              disabled={analysisLoading}
-              icon={analysisLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            >
-              {analysisLoading ? "Analizando..." : "Actualizar"}
-            </Button>
-          </div>
-
-          <GlassCard padding="md" hover={false}>
-            <div className="flex items-center gap-3 mb-4">
-              <Upload className="h-5 w-5 text-accent" />
-              <h3 className="text-sm font-semibold">Subir Demo (.dem)</h3>
-            </div>
+          <GlassCard padding="lg" hover={false} glow>
             <div
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
@@ -369,41 +388,46 @@ export default function CoachPage() {
                 const file = e.dataTransfer.files[0];
                 if (file?.name.endsWith(".dem")) handleDemoUpload(file);
               }}
-              className="border-2 border-dashed border-white/[0.1] rounded-xl p-6 text-center hover:border-primary/30 transition-all cursor-pointer"
+              className="border-2 border-dashed border-primary/30 rounded-xl p-8 text-center hover:border-primary/60 transition-all cursor-pointer bg-primary/5"
             >
               {demoUploading ? (
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                  <p className="text-sm text-muted">Procesando demo...</p>
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                  <p className="text-sm font-medium text-foreground">Procesando demo...</p>
+                  <p className="text-xs text-muted-foreground">Analizando estadísticas de la partida</p>
                 </div>
               ) : demoResult ? (
-                <div className="space-y-2">
-                  <CheckCircle2 className="h-8 w-8 text-success mx-auto" />
-                  <p className="text-sm font-medium">{demoResult.map}</p>
-                  <p className="text-xs text-muted">
-                    {demoResult.serverName && demoResult.serverName !== "desconocido" ? `${demoResult.serverName} · ` : ""}
-                    {demoResult.rounds > 0 ? `${demoResult.rounds} rondas` : ""}
-                    {demoResult.duration > 0 ? ` · ${Math.round(demoResult.duration)}s` : ""}
-                  </p>
-                  {faceitStats?.lifetime && (
-                    <div className="text-[10px] text-muted-foreground pt-1 border-t border-white/5">
-                      <span>K/D: {String(faceitStats.lifetime["Average K/D Ratio"] || "—")}</span>
-                      <span className="mx-1">·</span>
-                      <span>HS: {String(faceitStats.lifetime["Average Headshots %"] || "—")}%</span>
-                      <span className="mx-1">·</span>
-                      <span>ADR: {String(faceitStats.lifetime["ADR"] || "—")}</span>
-                    </div>
-                  )}
+                <div className="flex items-center gap-3 justify-center">
+                  <CheckCircle2 className="h-6 w-6 text-success" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Demo cargada — {demoResult.map}</p>
+                    <p className="text-xs text-muted">
+                      {demoResult.rounds} rondas · {demoResult.serverName !== "desconocido" ? `${demoResult.serverName} · ` : ""}
+                      {demoResult.duration > 0 ? `${Math.round(demoResult.duration / 60)} min` : ""}
+                      {demoResult.allPlayers.length > 0 ? ` · ${demoResult.allPlayers.length} jugadores` : ""}
+                    </p>
+                  </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <FileVideo className="h-8 w-8 text-muted" />
-                  <p className="text-sm text-muted">Arrastra un archivo .dem o haz clic para seleccionar</p>
-                  <p className="text-[10px] text-muted-foreground">Maximo 100MB</p>
+                <div className="flex flex-col items-center gap-3">
+                  <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <Upload className="h-7 w-7 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-foreground">Subí un demo de CS2</p>
+                    <p className="text-sm text-muted mt-1">Arrastrá un archivo .dem o hacé clic para seleccionar</p>
+                  </div>
+                  <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+                    <span>Máximo 100MB</span>
+                    <span>·</span>
+                    <span>CS2 .dem files</span>
+                    <span>·</span>
+                    <span>Análisis completo</span>
+                  </div>
                 </div>
               )}
               {demoError && (
-                <div className="flex items-center gap-2 mt-3 text-xs text-danger justify-center">
+                <div className="flex items-center gap-2 mt-4 text-xs text-danger justify-center">
                   <AlertCircle className="h-3.5 w-3.5" />
                   {demoError}
                 </div>
@@ -420,6 +444,119 @@ export default function CoachPage() {
               />
             </div>
           </GlassCard>
+
+          {demoResult && demoResult.teams.length >= 2 && (
+            <>
+              {/* Match header */}
+              <GlassCard padding="md" hover={false}>
+                <div className="flex items-center justify-between">
+                  <div className="text-center flex-1">
+                    <p className="text-lg font-bold text-rose-400">{demoResult.teams[0].teamName}</p>
+                    <p className="text-4xl font-bold font-mono text-rose-400 mt-1">{demoResult.teams[0].score}</p>
+                  </div>
+                  <div className="text-center px-6">
+                    <Swords className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">VS</p>
+                    <p className="text-[10px] text-muted-foreground mt-2">{demoResult.map}</p>
+                  </div>
+                  <div className="text-center flex-1">
+                    <p className="text-lg font-bold text-cyan-400">{demoResult.teams[1].teamName}</p>
+                    <p className="text-4xl font-bold font-mono text-cyan-400 mt-1">{demoResult.teams[1].score}</p>
+                  </div>
+                </div>
+              </GlassCard>
+
+              {/* Player scoreboards */}
+              {demoResult.teams.map((team, ti) => (
+                <GlassCard key={ti} padding="md" hover={false}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Swords className={`h-4 w-4 ${ti === 0 ? "text-rose-400" : "text-cyan-400"}`} />
+                    <h3 className="text-sm font-semibold">{team.teamName}</h3>
+                    <Badge variant={ti === 0 ? "danger" : "default"} size="sm">{team.score} pts</Badge>
+                    <span className="text-[10px] text-muted-foreground ml-auto">{team.players.length} jugadores</span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="text-muted-foreground border-b border-white/[0.06]">
+                          <th className="text-left py-2 pr-2 font-medium">Jugador</th>
+                          <th className="text-center py-2 px-2 font-medium"><Skull className="h-3 w-3 inline" /> K</th>
+                          <th className="text-center py-2 px-2 font-medium text-muted-foreground/60">D</th>
+                          <th className="text-center py-2 px-2 font-medium"><HeartHandshake className="h-3 w-3 inline" /> A</th>
+                          <th className="text-center py-2 px-2 font-medium">K/D</th>
+                          <th className="text-center py-2 px-2 font-medium"><Crosshair className="h-3 w-3 inline" /> HS%</th>
+                          <th className="text-center py-2 px-2 font-medium"><Eye className="h-3 w-3 inline" /> ADR</th>
+                          <th className="text-center py-2 px-2 font-medium"><Star className="h-3 w-3 inline" /> MVP</th>
+                          <th className="text-center py-2 pl-2 font-medium">Daño</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...team.players]
+                          .sort((a, b) => b.kills - a.kills)
+                          .map((p, i) => (
+                            <tr key={p.steamId || i} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                              <td className="py-2 pr-2 font-medium text-foreground">{p.name}</td>
+                              <td className="text-center py-2 px-2 text-success font-medium">{p.kills}</td>
+                              <td className="text-center py-2 px-2 text-muted-foreground">{p.deaths}</td>
+                              <td className="text-center py-2 px-2 text-accent">{p.assists}</td>
+                              <td className={`text-center py-2 px-2 font-medium ${p.kd >= 1 ? "text-success" : p.kd >= 0.8 ? "text-accent" : "text-danger"}`}>{p.kd.toFixed(2)}</td>
+                              <td className="text-center py-2 px-2 text-muted-foreground">{p.hsPercent.toFixed(1)}%</td>
+                              <td className={`text-center py-2 px-2 font-medium ${p.adr >= 80 ? "text-success" : p.adr >= 60 ? "text-accent" : "text-muted-foreground"}`}>{p.adr.toFixed(0)}</td>
+                              <td className="text-center py-2 px-2 text-muted-foreground">{p.mvps}</td>
+                              <td className="text-center py-2 pl-2 text-muted-foreground">{p.totalDamage.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </GlassCard>
+              ))}
+            </>
+          )}
+
+          {analysis && (
+            <GlassCard padding="md" hover={false}>
+              <div className="flex items-center gap-2 mb-3">
+                <Brain className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-semibold">Análisis IA de esta demo</h3>
+              </div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs text-muted">Score general</span>
+                <span className="text-2xl font-bold font-mono text-primary">{analysis.overallScore}/100</span>
+              </div>
+              {analysis.strengths.length > 0 && (
+                <div className="mb-3">
+                  <p className="text-[10px] font-semibold text-success uppercase tracking-wider mb-1">Fortalezas</p>
+                  {analysis.strengths.map((s, i) => (
+                    <p key={i} className="text-xs text-muted pl-4 before:content-['✓'] before:absolute before:-ml-4 before:text-success">{s}</p>
+                  ))}
+                </div>
+              )}
+              {analysis.weaknesses.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-semibold text-danger uppercase tracking-wider mb-1">Debilidades</p>
+                  {analysis.weaknesses.map((w, i) => (
+                    <p key={i} className="text-xs text-muted pl-4 before:content-['!'] before:absolute before:-ml-4 before:text-danger">{w}</p>
+                  ))}
+                </div>
+              )}
+            </GlassCard>
+          )}
+        </div>
+      ) : activeTab === "analysis" ? (
+        <div className="flex-1 overflow-y-auto scrollbar-thin pr-2 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold">Análisis de Rendimiento</h2>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => fetchAnalysis()}
+              disabled={analysisLoading}
+              icon={analysisLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            >
+              {analysisLoading ? "Analizando..." : "Actualizar"}
+            </Button>
+          </div>
 
           {analysisLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -439,9 +576,7 @@ export default function CoachPage() {
                       <TrendingUp className="h-3.5 w-3.5" /> Fortalezas
                     </h4>
                     {analysis.strengths.map((s, i) => (
-                      <p key={i} className="text-sm text-muted pl-5 before:content-['✓'] before:absolute before:-ml-4 before:text-success">
-                        {s}
-                      </p>
+                      <p key={i} className="text-sm text-muted pl-5 before:content-['✓'] before:absolute before:-ml-4 before:text-success">{s}</p>
                     ))}
                   </div>
                 )}
@@ -452,9 +587,7 @@ export default function CoachPage() {
                       <TrendingDown className="h-3.5 w-3.5" /> Debilidades
                     </h4>
                     {analysis.weaknesses.map((w, i) => (
-                      <p key={i} className="text-sm text-muted pl-5 before:content-['!'] before:absolute before:-ml-4 before:text-danger">
-                        {w}
-                      </p>
+                      <p key={i} className="text-sm text-muted pl-5 before:content-['!'] before:absolute before:-ml-4 before:text-danger">{w}</p>
                     ))}
                   </div>
                 )}
@@ -468,12 +601,7 @@ export default function CoachPage() {
                 {analysis.recommendations.map((rec, i) => {
                   const Icon = categoryIcons[rec.category] || Target;
                   return (
-                    <motion.div
-                      key={rec.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                    >
+                    <motion.div key={rec.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                       <GlassCard padding="md" hover={false}>
                         <div className="flex items-start gap-4">
                           <div className={`h-10 w-10 rounded-xl ${priorityBg[rec.priority]} flex items-center justify-center shrink-0`}>
@@ -482,9 +610,7 @@ export default function CoachPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="text-sm font-semibold">{rec.title}</h4>
-                              <Badge variant={rec.priority === "alta" ? "danger" : rec.priority === "media" ? "accent" : "default"} size="sm">
-                                {rec.priority}
-                              </Badge>
+                              <Badge variant={rec.priority === "alta" ? "danger" : rec.priority === "media" ? "accent" : "default"} size="sm">{rec.priority}</Badge>
                             </div>
                             <p className="text-xs text-muted mb-2">{rec.description}</p>
                             <div className="glass rounded-lg p-3">

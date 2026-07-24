@@ -1,5 +1,12 @@
 import { Readable } from "stream";
 
+export interface TeamInfo {
+  teamNumber: number;
+  teamName: string;
+  score: number;
+  players: ParsedPlayerStats[];
+}
+
 export interface ParsedDemo {
   map: string;
   serverName: string;
@@ -7,6 +14,7 @@ export interface ParsedDemo {
   rounds: ParsedRound[];
   playerStats: ParsedPlayerStats;
   allPlayers?: ParsedPlayerStats[];
+  teams?: TeamInfo[];
   error?: string;
 }
 
@@ -111,6 +119,49 @@ export async function parseDemoFile(buffer: Buffer): Promise<ParsedDemo | null> 
     const allPlayers: ParsedPlayerStats[] = [];
     let firstPlayer: ParsedPlayerStats | null = null;
 
+    const teams: TeamInfo[] = [];
+    for (const team of parser.teams) {
+      if (!team || team.teamNumber < 2) continue;
+      const teamPlayers: ParsedPlayerStats[] = [];
+      const teamPlayersMap = new Map<string, ParsedPlayerStats>();
+      for (const member of team.members) {
+        if (!member || !member.steamId || member.steamId === "0") continue;
+        const stats: ParsedPlayerStats = {
+          name: member.name,
+          steamId: member.steamId,
+          kills: member.kills,
+          deaths: member.deaths,
+          assists: member.assists,
+          headshotKills: member.headshotKills,
+          totalDamage: member.damage,
+          weaponKills: weaponKillsMap[member.steamId] || {},
+          clutchWins: {},
+          aceRounds: [],
+          firstDeathRounds: [],
+          kd: member.deaths > 0 ? Math.round((member.kills / member.deaths) * 100) / 100 : member.kills,
+          hsPercent: member.kills > 0 ? Math.round((member.headshotKills / member.kills) * 1000) / 10 : 0,
+          adr: Math.max(roundCount, 1) > 0 ? Math.round((member.damage / Math.max(roundCount, 1)) * 10) / 10 : 0,
+          mvps: member.mvps,
+          score: member.score,
+          utilityDamage: member.utilityDamage,
+          enemiesFlashed: member.enemiesFlashed,
+          enemy3Ks: member.enemy3Ks,
+          enemy4Ks: member.enemy4Ks,
+          enemy5Ks: member.enemy5Ks,
+        };
+        teamPlayers.push(stats);
+        teamPlayersMap.set(member.steamId, stats);
+      }
+      if (teamPlayers.length > 0) {
+        teams.push({
+          teamNumber: team.teamNumber,
+          teamName: team.teamName || (team.teamNumber === 2 ? "Terroristas" : "Contra-Terroristas"),
+          score: team.score,
+          players: teamPlayers,
+        });
+      }
+    }
+
     for (const player of parser.playerControllers) {
       if (!player || !player.name || player.steamId === "0") continue;
 
@@ -180,6 +231,7 @@ export async function parseDemoFile(buffer: Buffer): Promise<ParsedDemo | null> 
       })),
       playerStats: firstPlayer!,
       allPlayers,
+      teams,
     };
   } catch (err) {
     console.error("[DemoParser] Fatal error:", err);
