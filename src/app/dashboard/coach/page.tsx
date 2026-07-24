@@ -174,23 +174,71 @@ export default function CoachPage() {
     setDemoResult(null);
 
     try {
+      // Try direct upload first (works locally, may 413 on Vercel for large files)
       const formData = new FormData();
       formData.append("demo", file);
 
-      const res = await fetch("/api/demo/upload", {
+      const directRes = await fetch("/api/demo/upload", {
         method: "POST",
         body: formData,
       });
 
-      const json = await res.json();
+      if (directRes.ok) {
+        const json = await directRes.json();
+        const data = json.data;
+        if (data && data.teams && data.teams.length >= 2) {
+          setDemoResult({
+            map: data.map,
+            serverName: data.serverName,
+            duration: data.duration,
+            rounds: data.rounds || 0,
+            teams: data.teams,
+            allPlayers: data.allPlayers || [],
+          });
+          if (json.warning) setDemoError(json.warning);
+          await fetchAnalysis({ demoData: data });
+          await logGamification();
+          return;
+        }
+      }
 
-      if (!res.ok) {
-        setDemoError(json.error || "Error al procesar la demo");
+      // Fallback: upload via Vercel Blob (bypasses 4.5MB serverless limit)
+      const tokenRes = await fetch("/api/demo/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileName: file.name }),
+      });
+
+      if (!tokenRes.ok) {
+        setDemoError("No se pudo iniciar la subida. Intentá de nuevo.");
         setDemoUploading(false);
         return;
       }
 
-      const data = json.data;
+      const { token, pathname } = await tokenRes.json();
+
+      const { put } = await import("@vercel/blob/client");
+      const blob = await put(pathname, file, {
+        access: "public",
+        token,
+      });
+
+      // Parse the demo from blob URL
+      const parseRes = await fetch("/api/demo/parse-from-blob", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blobUrl: blob.url }),
+      });
+
+      const parseJson = await parseRes.json();
+
+      if (!parseRes.ok) {
+        setDemoError(parseJson.error || "Error al analizar la demo");
+        setDemoUploading(false);
+        return;
+      }
+
+      const data = parseJson.data;
       if (!data || !data.teams || data.teams.length < 2) {
         setDemoError("No se pudieron extraer los datos de la partida. La demo podria estar incompleta.");
         setDemoUploading(false);
@@ -206,27 +254,26 @@ export default function CoachPage() {
         allPlayers: data.allPlayers || [],
       });
 
-      if (json.warning) {
-        setDemoError(json.warning);
-      }
+      if (parseJson.warning) setDemoError(parseJson.warning);
 
-      // Trigger AI analysis with real demo data
       await fetchAnalysis({ demoData: data });
-
-      // Log demo analysis for gamification (XP + challenges)
-      try {
-        await fetch("/api/gamification/sync", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "demo_analyzed" }),
-        });
-      } catch {
-        // Gamification sync failed — not critical
-      }
+      await logGamification();
     } catch {
       setDemoError("Error al subir la demo. Verifica que el archivo no este corrupto.");
     } finally {
       setDemoUploading(false);
+    }
+  };
+
+  const logGamification = async () => {
+    try {
+      await fetch("/api/gamification/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "demo_analyzed" }),
+      });
+    } catch {
+      // not critical
     }
   };
 
