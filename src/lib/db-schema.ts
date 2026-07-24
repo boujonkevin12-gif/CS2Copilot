@@ -201,11 +201,14 @@ CREATE TABLE IF NOT EXISTS inventory_cache (
 
 CREATE TABLE IF NOT EXISTS price_cache (
   market_hash_name TEXT PRIMARY KEY,
-  price REAL NOT NULL,
+  price REAL NOT NULL DEFAULT 0,
   currency TEXT DEFAULT 'USD',
   source TEXT DEFAULT '',
-  updated_at TEXT NOT NULL
+  updated_at TEXT DEFAULT NULL,
+  last_requested TEXT DEFAULT NULL,
+  pending INTEGER DEFAULT 0
 );
+CREATE INDEX IF NOT EXISTS idx_price_cache_pending ON price_cache(pending, last_requested);
 `;
 
 export async function initializeDatabase() {

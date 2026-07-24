@@ -1,6 +1,6 @@
 import { InventoryItem, ItemCategory, ItemRarity, RARITY_COLORS, CATEGORY_LABELS, InventorySummary, AppliedSticker } from "@/types/inventory";
 import { getDb } from "@/lib/db";
-import { getPricesBulk } from "./price.service";
+import { getCachedPricesBatch, enqueuePriceLookups } from "./price.service";
 
 const CS2_APPID = 730;
 const CS2_CONTEXT_ID = 2;
@@ -382,31 +382,37 @@ async function fetchSteamPage(
 
   const url = `https://steamcommunity.com/inventory/${steamId}/${CS2_APPID}/${CS2_CONTEXT_ID}?${params.toString()}`;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 30000);
-
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
-    });
-
-    if (res.status === 429) throw new Error("rate_limited");
-    if (res.status === 403) throw new Error("private");
-    if (!res.ok) throw new Error(`steam_error:${res.status}`);
-
-    const text = await res.text();
-    if (!text || text === "null") return { success: 0 };
-
-    const data = JSON.parse(text) as SteamResponse;
-    if (data.success !== 1) return { success: 0 };
-
-    return data;
-  } finally {
-    clearTimeout(timer);
+  async function attempt(retries: number): Promise<Response> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+    try {
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+      });
+      if (res.status === 429 && retries > 0) {
+        await new Promise((r) => setTimeout(r, 3000));
+        return attempt(retries - 1);
+      }
+      return res;
+    } finally {
+      clearTimeout(timer);
+    }
   }
+
+  const res = await attempt(2);
+
+  if (res.status === 429) throw new Error("rate_limited");
+  if (res.status === 403) throw new Error("private");
+  if (!res.ok) throw new Error(`steam_error:${res.status}`);
+
+  const text = await res.text();
+  if (!text || text === "null") return { success: 0 };
+
+  const data = JSON.parse(text) as SteamResponse;
+  if (data.success !== 1) return { success: 0 };
+
+  return data;
 }
 
 async function fetchFullInventory(steamId: string): Promise<InventoryItem[]> {
@@ -507,6 +513,33 @@ async function getCachedInventory(steamId: string): Promise<{ items: InventoryIt
   }
 }
 
+async function getStaleInventory(steamId: string): Promise<{ items: InventoryItem[]; summary: InventorySummary; cachedAt: string } | null> {
+  try {
+    const db = getDb();
+    const result = await db.execute({
+      sql: "SELECT * FROM inventory_cache WHERE steam_id = ?",
+      args: [steamId],
+    });
+    if (result.rows.length === 0) return null;
+    const row = result.rows[0] as unknown as CacheRow;
+    return {
+      items: JSON.parse(row.items) as InventoryItem[],
+      summary: {
+        totalItems: row.total_items,
+        totalValue: row.total_value,
+        mostExpensive: row.most_expensive_item ? JSON.parse(row.most_expensive_item) : null,
+        knifeCount: row.knife_count,
+        gloveCount: row.glove_count,
+        rarityDistribution: JSON.parse(row.rarity_distribution),
+        categoryDistribution: JSON.parse(row.category_distribution),
+      },
+      cachedAt: row.cached_at,
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function setCachedInventory(steamId: string, items: InventoryItem[], summary: InventorySummary): Promise<void> {
   try {
     const db = getDb();
@@ -549,11 +582,21 @@ export async function getInventory(steamId: string, forceRefresh: boolean = fals
     }
   }
 
-  const items = await fetchFullInventory(steamId);
+  let items: InventoryItem[];
+  try {
+    items = await fetchFullInventory(steamId);
+  } catch (err) {
+    const stale = await getStaleInventory(steamId);
+    if (stale) {
+      return { ...stale, cached: true, cachedAt: stale.cachedAt };
+    }
+    throw err;
+  }
 
   const marketHashNames = [...new Set(items.map((i) => i.marketHashName))];
-  const prices = await getPricesBulk(marketHashNames);
+  const prices = await getCachedPricesBatch(marketHashNames);
 
+  const missing: string[] = [];
   for (const item of items) {
     const priceData = prices.get(item.marketHashName);
     if (priceData) {
@@ -561,8 +604,12 @@ export async function getInventory(steamId: string, forceRefresh: boolean = fals
       item.totalPrice = priceData.price * item.quantity;
       item.priceUpdatedAt = priceData.updatedAt;
       item.priceSource = priceData.source;
+    } else {
+      missing.push(item.marketHashName);
     }
   }
+
+  void enqueuePriceLookups(missing);
 
   const summary = computeSummary(items);
   await setCachedInventory(steamId, items, summary);
