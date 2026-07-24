@@ -100,8 +100,8 @@ export default function NotificationsSettings() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Notificaciones</h1>
-          <p className="text-sm text-muted">Controla tus preferencias de notificaciones</p>
+          <h1 className="text-xl font-bold tracking-tight text-zinc-200">Notificaciones</h1>
+          <p className="text-sm text-zinc-400">Controla tus preferencias de notificaciones</p>
         </div>
       </div>
 
@@ -127,7 +127,7 @@ export default function NotificationsSettings() {
                   <div key={key} className="flex items-center justify-between">
                     <div>
                       <div className="text-sm">{label}</div>
-                      <div className="text-xs text-muted">Recibir notificaciones por {group.title.toLowerCase()}</div>
+                      <div className="text-xs text-zinc-400">Recibir notificaciones por {group.title.toLowerCase()}</div>
                     </div>
                     <button onClick={() => toggle(key)} className={`relative h-6 w-10 rounded-full transition-all shrink-0 ${config[key] ? "bg-primary" : "bg-white/[0.1]"}`}>
                       <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${config[key] ? "left-[18px]" : "left-0.5"}`} />

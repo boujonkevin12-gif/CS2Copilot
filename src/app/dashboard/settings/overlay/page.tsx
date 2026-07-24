@@ -72,8 +72,8 @@ export default function OverlaySettings() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Overlay</h1>
-          <p className="text-sm text-muted">Configura el overlay dentro del juego</p>
+          <h1 className="text-xl font-bold tracking-tight text-zinc-200">Overlay</h1>
+          <p className="text-sm text-zinc-400">Configura el overlay dentro del juego</p>
         </div>
       </div>
 
@@ -87,9 +87,9 @@ export default function OverlaySettings() {
       {/* Live Preview */}
       <GlassCard padding="md" hover={false}>
         <div className="flex items-center gap-2 mb-4">
-          {config.enabled ? <Eye className="h-4 w-4 text-success" /> : <EyeOff className="h-4 w-4 text-muted" />}
+          {config.enabled ? <Eye className="h-4 w-4 text-success" /> : <EyeOff className="h-4 w-4 text-zinc-400" />}
           <h3 className="text-sm font-semibold">Vista previa</h3>
-          <span className={`text-[10px] px-2 py-0.5 rounded-full ${config.enabled ? "bg-success/10 text-success" : "bg-white/[0.06] text-muted"}`}>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full ${config.enabled ? "bg-success/10 text-success" : "bg-white/[0.06] text-zinc-400"}`}>
             {config.enabled ? "Visible" : "Oculto"}
           </span>
         </div>
@@ -118,7 +118,7 @@ export default function OverlaySettings() {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-medium">Activar Overlay</div>
-              <div className="text-xs text-muted">Muestra estadísticas en tiempo real dentro del juego</div>
+              <div className="text-xs text-zinc-400">Muestra estadísticas en tiempo real dentro del juego</div>
             </div>
             <button onClick={() => toggle("enabled")} className={`relative h-6 w-10 rounded-full transition-all ${config.enabled ? "bg-primary" : "bg-white/[0.1]"}`}>
               <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${config.enabled ? "left-[18px]" : "left-0.5"}`} />
@@ -129,7 +129,7 @@ export default function OverlaySettings() {
             <label className="block text-sm font-medium mb-1.5">Posición</label>
             <div className="grid grid-cols-2 gap-2">
               {POSITIONS.map(p => (
-                <button key={p.value} onClick={() => setConfig(prev => ({ ...prev, position: p.value }))} className={`px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${config.position === p.value ? "bg-primary/20 text-primary border border-primary/30" : "bg-white/[0.04] text-muted border border-white/[0.06] hover:bg-white/[0.08]"}`}>
+                <button key={p.value} onClick={() => setConfig(prev => ({ ...prev, position: p.value }))} className={`px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${config.position === p.value ? "bg-primary/20 text-primary border border-primary/30" : "bg-white/[0.04] text-zinc-400 border border-white/[0.06] hover:bg-white/[0.08]"}`}>
                   {p.label}
                 </button>
               ))}
@@ -157,7 +157,7 @@ export default function OverlaySettings() {
                 { key: "showUtility" as keyof OverlayConfig, label: "Utilidad" },
                 { key: "showAdr" as keyof OverlayConfig, label: "ADR" },
               ].map(item => (
-                <button key={item.key} onClick={() => toggle(item.key)} className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer ${config[item.key] ? "bg-primary/15 text-primary border border-primary/20" : "bg-white/[0.04] text-muted border border-white/[0.06] hover:bg-white/[0.08]"}`}>
+                <button key={item.key} onClick={() => toggle(item.key)} className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer ${config[item.key] ? "bg-primary/15 text-primary border border-primary/20" : "bg-white/[0.04] text-zinc-400 border border-white/[0.06] hover:bg-white/[0.08]"}`}>
                   {item.label}
                   <div className={`h-4 w-4 rounded border flex items-center justify-center transition-all ${config[item.key] ? "border-primary bg-primary" : "border-white/[0.2]"}`}>
                     {config[item.key] && <CheckCircle2 className="h-3 w-3 text-white" />}

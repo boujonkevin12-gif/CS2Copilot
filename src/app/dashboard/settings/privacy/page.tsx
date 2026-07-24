@@ -73,8 +73,8 @@ export default function PrivacySettings() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Privacidad y Seguridad</h1>
-          <p className="text-sm text-muted">Administra tu seguridad y configuración de privacidad</p>
+          <h1 className="text-xl font-bold tracking-tight text-zinc-200">Privacidad y Seguridad</h1>
+          <p className="text-sm text-zinc-400">Administra tu seguridad y configuración de privacidad</p>
         </div>
       </div>
 
@@ -96,11 +96,11 @@ export default function PrivacySettings() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1.5">Contraseña actual</label>
-            <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/30" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Nueva contraseña</label>
-            <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full h-10 px-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary/30" />
           </div>
           <div className="flex justify-end">
             <Button variant="primary" size="sm" onClick={() => showToastMsg("success", "Contraseña actualizada")} disabled={!currentPassword || !newPassword} icon={<Save className="h-4 w-4" />}>
@@ -119,7 +119,7 @@ export default function PrivacySettings() {
             </div>
             <div>
               <div className="text-sm font-medium">Autenticación en dos pasos (2FA)</div>
-              <div className="text-xs text-muted">Añade una capa extra de seguridad a tu cuenta</div>
+              <div className="text-xs text-zinc-400">Añade una capa extra de seguridad a tu cuenta</div>
             </div>
           </div>
           <button onClick={() => { setTwoFactor(!twoFactor); showToastMsg("success", `2FA ${twoFactor ? "desactivado" : "activado"}`); }} className={`relative h-6 w-10 rounded-full transition-all shrink-0 ${twoFactor ? "bg-primary" : "bg-white/[0.1]"}`}>
@@ -139,9 +139,9 @@ export default function PrivacySettings() {
         <div className="space-y-2 mb-4">
           {devices.map((d, i) => (
             <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/[0.03]">
-              <div className={`h-2 w-2 rounded-full ${d.active ? "bg-success" : "bg-muted"}`} />
+              <div className={`h-2 w-2 rounded-full ${d.active ? "bg-success" : "bg-zinc-600"}`} />
               <span className="text-xs">{d.name}</span>
-              <span className={`text-[10px] ml-auto ${d.active ? "text-success" : "text-muted"}`}>
+              <span className={`text-[10px] ml-auto ${d.active ? "text-success" : "text-zinc-400"}`}>
                 {d.active ? "Activo ahora" : "Hace 2 días"}
               </span>
             </div>
@@ -170,7 +170,7 @@ export default function PrivacySettings() {
             <div key={item.key} className="flex items-center justify-between">
               <div>
                 <div className="text-sm">{item.label}</div>
-                <div className="text-xs text-muted">{item.desc}</div>
+                <div className="text-xs text-zinc-400">{item.desc}</div>
               </div>
               <button onClick={() => togglePrivacy(item.key)} className={`relative h-6 w-10 rounded-full transition-all shrink-0 ${config[item.key] ? "bg-primary" : "bg-white/[0.1]"}`}>
                 <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${config[item.key] ? "left-[18px]" : "left-0.5"}`} />
@@ -193,12 +193,12 @@ export default function PrivacySettings() {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-danger">Zona de Peligro</h3>
-            <p className="text-xs text-muted">Acciones irreversibles</p>
+            <p className="text-xs text-zinc-400">Acciones irreversibles</p>
           </div>
         </div>
         {showDeleteConfirm ? (
           <div className="space-y-3">
-            <p className="text-xs text-muted">¿Estás seguro? Esta acción eliminará permanentemente tu cuenta y todos tus datos.</p>
+            <p className="text-xs text-zinc-400">¿Estás seguro? Esta acción eliminará permanentemente tu cuenta y todos tus datos.</p>
             <div className="flex gap-2">
               <Button variant="primary" size="sm" onClick={handleDeleteAccount} className="bg-danger hover:bg-danger/80 text-white" icon={<Trash2 className="h-4 w-4" />}>
                 Confirmar Eliminación
