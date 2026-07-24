@@ -195,7 +195,7 @@ export default function SettingsPage() {
 
         {user?.faceitNickname ? (
           <div className="space-y-3">
-            <div className="glass rounded-xl p-4 flex items-center gap-4">
+            <div className="panel rounded-xl p-4 flex items-center gap-4">
               <CheckCircle2 className="h-8 w-8 text-success shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium">{user.faceitNickname}</div>
@@ -271,7 +271,7 @@ export default function SettingsPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
           >
-            <Link href={`/dashboard/settings/${section.href}`} className="block w-full glass rounded-xl p-4 flex items-center gap-4 hover:bg-white/[0.05] transition-all group cursor-pointer text-left">
+            <Link href={`/dashboard/settings/${section.href}`} className="block w-full panel rounded-xl p-4 flex items-center gap-4 hover:bg-white/[0.05] transition-all group cursor-pointer text-left">
               <div
                 className={`h-10 w-10 rounded-xl ${section.bg} flex items-center justify-center shrink-0`}
               >

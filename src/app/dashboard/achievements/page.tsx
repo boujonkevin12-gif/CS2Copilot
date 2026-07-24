@@ -3,6 +3,7 @@
 import { useGamification } from "@/lib/gamification-context";
 import { Trophy, Lock, CheckCircle, Zap, Flame, Star } from "lucide-react";
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
 
 const rarityColors: Record<string, string> = {
   common: "from-gray-400 to-gray-500",
@@ -57,26 +58,24 @@ export default function AchievementsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <Trophy className="h-5 w-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold">Vitrina de Logros</h1>
-          <p className="text-sm text-muted">Completá objetivos para desbloquear recompensas</p>
-        </div>
-        <div className="ml-auto glass rounded-xl px-4 py-2 flex items-center gap-4">
-          <div className="text-center">
-            <div className="text-lg font-bold text-primary">{unlocked.length}</div>
-            <div className="text-[10px] text-muted">Desbloqueados</div>
+      <PageHeader
+        icon={<Trophy className="h-5 w-5 text-violet-400" />}
+        title="Vitrina de Logros"
+        description="Completá objetivos para desbloquear recompensas"
+        actions={
+          <div className="rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] px-4 py-2 flex items-center gap-4">
+            <div className="text-center">
+              <div className="text-lg font-bold text-violet-400">{unlocked.length}</div>
+              <div className="text-[10px] text-zinc-400">Desbloqueados</div>
+            </div>
+            <div className="w-px h-8 bg-white/[0.06]" />
+            <div className="text-center">
+              <div className="text-lg font-bold text-zinc-200">{achievements.length}</div>
+              <div className="text-[10px] text-zinc-400">Total</div>
+            </div>
           </div>
-          <div className="w-px h-8 bg-white/[0.06]" />
-          <div className="text-center">
-            <div className="text-lg font-bold">{achievements.length}</div>
-            <div className="text-[10px] text-muted">Total</div>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Stats Summary */}
       {profile && (
@@ -87,10 +86,10 @@ export default function AchievementsPage() {
             { label: "Headshots", value: profile.total_headshots.toLocaleString(), icon: "🎯" },
             { label: "MVPs", value: profile.total_mvps.toLocaleString(), icon: "⭐" },
           ].map((s) => (
-            <div key={s.label} className="glass rounded-xl p-3 text-center">
+            <div key={s.label} className="rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] p-3 text-center">
               <div className="text-lg mb-1">{s.icon}</div>
-              <div className="text-lg font-bold font-mono">{s.value}</div>
-              <div className="text-[10px] text-muted">{s.label}</div>
+              <div className="text-lg font-bold font-mono text-zinc-200">{s.value}</div>
+              <div className="text-[10px] text-zinc-400">{s.label}</div>
             </div>
           ))}
         </div>
@@ -103,8 +102,8 @@ export default function AchievementsPage() {
         return (
           <div key={cat}>
             <div className="flex items-center gap-2 mb-3">
-              <h2 className="text-sm font-semibold">{categoryLabels[cat] || cat}</h2>
-              <span className="text-[10px] text-muted bg-white/[0.04] px-2 py-0.5 rounded-full">
+              <h2 className="text-sm font-semibold text-zinc-200">{categoryLabels[cat] || cat}</h2>
+              <span className="text-[10px] text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded-full">
                 {catUnlocked}/{catAchievements.length}
               </span>
             </div>
@@ -114,7 +113,7 @@ export default function AchievementsPage() {
                 return (
                   <div
                     key={a.id}
-                    className={`glass-strong rounded-xl p-4 transition-all ${
+                    className={`rounded-xl border p-4 bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] transition-all ${
                       a.unlocked ? rarityBorders[a.rarity] + " border" : "opacity-60"
                     }`}
                   >
@@ -124,16 +123,16 @@ export default function AchievementsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-bold truncate">{a.name}</h3>
+                          <h3 className="text-sm font-bold text-zinc-200 truncate">{a.name}</h3>
                           {a.unlocked && <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />}
                         </div>
-                        <p className="text-xs text-muted mt-0.5">{a.desc}</p>
+                        <p className="text-xs text-zinc-400 mt-0.5">{a.desc}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={`text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full ${
                             a.rarity === "legendary" ? "bg-yellow-500/10 text-yellow-500" :
                             a.rarity === "epic" ? "bg-purple-500/10 text-purple-500" :
                             a.rarity === "rare" ? "bg-blue-500/10 text-blue-500" :
-                            "bg-white/[0.04] text-muted"
+                            "bg-white/[0.04] text-zinc-400"
                           }`}>
                             {rarityLabels[a.rarity]}
                           </span>
@@ -144,10 +143,10 @@ export default function AchievementsPage() {
                     {/* Progress bar */}
                     <div className="mb-2">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] text-muted">
+                        <span className="text-[10px] text-zinc-400">
                           {a.progress.toLocaleString()} / {a.target.toLocaleString()}
                         </span>
-                        <span className="text-[10px] font-bold text-primary">{Math.round(pct)}%</span>
+                        <span className="text-[10px] font-bold text-violet-400">{Math.round(pct)}%</span>
                       </div>
                       <div className="w-full h-2.5 rounded-full bg-white/[0.06] overflow-hidden">
                         <div
@@ -159,8 +158,8 @@ export default function AchievementsPage() {
 
                     {/* Rewards */}
                     <div className="flex items-center gap-3 pt-2 border-t border-white/[0.04]">
-                      <span className="text-[10px] text-primary font-medium">+{a.xp} XP</span>
-                      <span className="text-[10px] text-accent font-medium">🪙 +{a.coins}</span>
+                      <span className="text-[10px] text-violet-400 font-medium">+{a.xp} XP</span>
+                      <span className="text-[10px] text-violet-400 font-medium">🪙 +{a.coins}</span>
                     </div>
                   </div>
                 );
@@ -172,10 +171,10 @@ export default function AchievementsPage() {
 
       {/* Navigation */}
       <div className="flex justify-center gap-3 pt-4">
-        <Link href="/dashboard/challenges" className="glass rounded-xl px-4 py-2 text-sm font-medium hover:bg-white/[0.06] transition-all">
+        <Link href="/dashboard/challenges" className="rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] px-4 py-2 text-sm font-medium text-zinc-300 transition-all">
           Desafíos →
         </Link>
-        <Link href="/dashboard/shop" className="glass rounded-xl px-4 py-2 text-sm font-medium hover:bg-white/[0.06] transition-all">
+        <Link href="/dashboard/shop" className="rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] px-4 py-2 text-sm font-medium text-zinc-300 transition-all">
           Tienda →
         </Link>
       </div>

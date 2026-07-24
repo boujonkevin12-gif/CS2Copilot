@@ -627,7 +627,7 @@ export default function CoachPage() {
                               <Badge variant={rec.priority === "alta" ? "danger" : rec.priority === "media" ? "accent" : "default"} size="sm">{rec.priority}</Badge>
                             </div>
                             <p className="text-xs text-muted mb-2">{rec.description}</p>
-                            <div className="glass rounded-lg p-3">
+                            <div className="panel rounded-lg p-3">
                               <p className="text-xs font-medium text-foreground mb-1">Acción concreta:</p>
                               <p className="text-xs text-muted">{rec.actionable}</p>
                             </div>
@@ -709,7 +709,7 @@ export default function CoachPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 + index * 0.1 }}
                       onClick={() => handleSend(suggestion.label)}
-                      className="glass rounded-xl p-4 text-left hover:bg-white/[0.05] transition-all group cursor-pointer"
+                      className="panel rounded-xl p-4 text-left hover:bg-white/[0.05] transition-all group cursor-pointer"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -738,7 +738,7 @@ export default function CoachPage() {
                         </div>
                       )}
                       <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                        message.role === "user" ? "bg-primary text-white rounded-br-md" : "glass rounded-bl-md"
+                        message.role === "user" ? "bg-primary text-white rounded-br-md" : "panel rounded-bl-md"
                       }`}>
                         <div className={`text-sm leading-relaxed ${message.role === "user" ? "text-white" : ""}`}>
                           {message.role === "assistant" ? formatContent(message.content) : message.content}
@@ -770,7 +770,7 @@ export default function CoachPage() {
                     <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center shrink-0">
                       <Bot className="h-4 w-4 text-white" />
                     </div>
-                    <div className="glass rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1.5">
+                    <div className="panel rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1.5">
                       <motion.div className="w-2 h-2 rounded-full bg-primary" animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity }} />
                       <motion.div className="w-2 h-2 rounded-full bg-primary" animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: 0.2 }} />
                       <motion.div className="w-2 h-2 rounded-full bg-primary" animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: 0.4 }} />
@@ -783,7 +783,7 @@ export default function CoachPage() {
           </div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative">
-            <div className="glass-strong rounded-2xl p-2 gradient-border">
+            <div className="panel rounded-2xl p-2 gradient-border">
               <div className="flex items-end gap-2">
                 <textarea
                   ref={inputRef}

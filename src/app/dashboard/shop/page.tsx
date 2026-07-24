@@ -5,6 +5,7 @@ import { ShoppingBag, CheckCircle, Crown, Sparkles, Palette, Award, Smile, Eye }
 import { useState, useEffect } from "react";
 import { getEmoji } from "@/lib/cosmetics";
 import { getBackgroundConfig } from "@/components/cosmetic-background";
+import { PageHeader } from "@/components/ui/page-header";
 
 const categoryIcons: Record<string, any> = {
   frame: Crown,
@@ -125,7 +126,7 @@ function TitlePreview({ itemId }: { itemId: string }) {
         <AvatarPlaceholder className="w-7 h-7 text-white/30" />
       </div>
       <div className="text-center px-3">
-        <span className="text-xs font-bold text-primary/80 border border-primary/20 rounded-full px-3 py-1 bg-primary/5">
+        <span className="text-xs font-bold text-violet-400/80 border border-violet-400/20 rounded-full px-3 py-1 bg-violet-500/5">
           {titleName}
         </span>
       </div>
@@ -213,26 +214,24 @@ export default function ShopPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <ShoppingBag className="h-5 w-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold">Tienda del Piloto</h1>
-          <p className="text-sm text-muted">Personalizá tu perfil con cosméticos</p>
-        </div>
-        <div className="ml-auto glass rounded-xl px-4 py-2 flex items-center gap-2">
-          <span className="text-xs">🪙</span>
-          <span className="text-sm font-bold text-accent">{profile?.pilot_coins.toLocaleString() || "0"}</span>
-        </div>
-      </div>
+      <PageHeader
+        icon={<ShoppingBag className="h-5 w-5 text-violet-400" />}
+        title="Tienda del Piloto"
+        description="Personalizá tu perfil con cosméticos"
+        actions={
+          <div className="rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] px-4 py-2 flex items-center gap-2">
+            <span className="text-xs">🪙</span>
+            <span className="text-sm font-bold text-violet-400">{profile?.pilot_coins.toLocaleString() || "0"}</span>
+          </div>
+        }
+      />
 
       {/* Filters */}
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setSelectedCategory("all")}
           className={`text-xs px-3 py-1.5 rounded-lg transition-all ${
-            selectedCategory === "all" ? "bg-primary text-white" : "bg-white/[0.04] text-muted hover:bg-white/[0.08]"
+            selectedCategory === "all" ? "bg-violet-600 text-white" : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08]"
           }`}
         >
           Todos ({items.length})
@@ -245,7 +244,7 @@ export default function ShopPage() {
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-                selectedCategory === cat ? "bg-primary text-white" : "bg-white/[0.04] text-muted hover:bg-white/[0.08]"
+                selectedCategory === cat ? "bg-violet-600 text-white" : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08]"
               }`}
             >
               <Icon className="h-3 w-3" />
@@ -268,8 +267,8 @@ export default function ShopPage() {
           return (
             <div
               key={item.id}
-              className={`glass-strong rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] group/card ${glowClass} ${
-                isOwned ? "border border-primary/30" : !canAfford || !levelOk ? "opacity-50" : ""
+              className={`rounded-xl overflow-hidden bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] border border-white/[0.06] transition-all duration-300 hover:scale-[1.02] group/card ${glowClass} ${
+                isOwned ? "border border-violet-500/30" : !canAfford || !levelOk ? "opacity-50" : ""
               }`}
             >
               {/* Preview Area */}
@@ -286,7 +285,7 @@ export default function ShopPage() {
                 </div>
                 {isOwned && (
                   <div className="absolute top-2 left-2 z-10">
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary backdrop-blur-sm flex items-center gap-1">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-500/20 text-violet-400 backdrop-blur-sm flex items-center gap-1">
                       <CheckCircle className="h-2.5 w-2.5" />
                       {isEquipped ? "Equipado" : "Comprado"}
                     </span>
@@ -297,17 +296,17 @@ export default function ShopPage() {
               {/* Card Content */}
               <div className="p-3">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon className="h-4 w-4 text-primary" />
+                  <div className="h-8 w-8 rounded-lg bg-violet-500/20 flex items-center justify-center shrink-0">
+                    <Icon className="h-4 w-4 text-violet-400" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-sm font-bold truncate">{item.name}</h3>
-                    <p className="text-[10px] text-muted truncate">{item.desc}</p>
+                    <h3 className="text-sm font-bold text-zinc-200 truncate">{item.name}</h3>
+                    <p className="text-[10px] text-zinc-400 truncate">{item.desc}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 mb-2.5">
-                  <span className="text-[10px] text-muted">Nv. {item.levelReq} req.</span>
+                  <span className="text-[10px] text-zinc-400">Nv. {item.levelReq} req.</span>
                 </div>
 
                 <div className="pt-2.5 border-t border-white/[0.06]">
@@ -315,12 +314,12 @@ export default function ShopPage() {
                     <div className="flex items-center gap-2">
                       {isEquipped ? (
                         <>
-                          <span className="text-[10px] text-primary font-medium flex items-center gap-1">
+                          <span className="text-[10px] text-violet-400 font-medium flex items-center gap-1">
                             <CheckCircle className="h-3 w-3" /> Equipado
                           </span>
                           <button
                             onClick={() => handleEquip(`unequip_${item.category}`)}
-                            className="text-[10px] text-muted hover:text-foreground bg-white/[0.04] hover:bg-white/[0.08] px-2.5 py-1.5 rounded-lg transition-all ml-auto"
+                            className="text-[10px] text-zinc-400 hover:text-zinc-200 bg-white/[0.04] hover:bg-white/[0.08] px-2.5 py-1.5 rounded-lg transition-all ml-auto"
                           >
                             Desequipar
                           </button>
@@ -328,7 +327,7 @@ export default function ShopPage() {
                       ) : (
                         <button
                           onClick={() => handleEquip(item.id)}
-                          className="text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-all"
+                          className="text-[10px] font-bold text-violet-400 bg-violet-500/20 hover:bg-violet-500/30 px-3 py-1.5 rounded-lg transition-all"
                         >
                           Equipar
                         </button>
@@ -338,7 +337,7 @@ export default function ShopPage() {
                     <button
                       onClick={() => handleBuy(item.id)}
                       disabled={buying === item.id || !canAfford || !levelOk}
-                      className="w-full text-[10px] font-bold text-white bg-gradient-to-r from-primary to-accent hover:opacity-90 disabled:opacity-30 px-3 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5"
+                      className="w-full text-[10px] font-bold text-white bg-gradient-to-r from-violet-500 to-indigo-500 hover:opacity-90 disabled:opacity-30 px-3 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5"
                     >
                       {buying === item.id ? (
                         <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />

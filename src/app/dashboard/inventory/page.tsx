@@ -181,7 +181,7 @@ export default function InventoryPage() {
                   className="w-full h-9 pl-10 pr-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                 />
               </div>
-              <div className="flex items-center gap-1 glass rounded-lg p-0.5">
+              <div className="flex items-center gap-1 panel rounded-lg p-0.5">
                 <button onClick={() => setView("grid")} className={`p-1.5 rounded-md transition-all cursor-pointer ${view === "grid" ? "bg-primary/20 text-primary" : "text-muted hover:text-foreground"}`}>
                   <Grid3X3 className="h-4 w-4" />
                 </button>
@@ -232,7 +232,7 @@ export default function InventoryPage() {
           <h3 className="text-lg font-bold mb-2">No se pudo cargar el inventario</h3>
           <p className="text-sm text-muted mb-4">{inventoryError}</p>
 
-          <div className="glass rounded-xl p-5 max-w-lg mx-auto mb-5 text-left">
+          <div className="panel rounded-xl p-5 max-w-lg mx-auto mb-5 text-left">
             <div className="flex items-center gap-2 text-sm text-accent mb-3">
               <Shield className="h-4 w-4 shrink-0" />
               <span className="font-medium">¿Cómo solucionarlo?</span>
@@ -288,7 +288,7 @@ export default function InventoryPage() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: Math.min(i * 0.02, 0.5) }}
-              className="glass rounded-xl p-3 hover:bg-white/[0.04] transition-all group cursor-pointer"
+              className="panel rounded-xl p-3 hover:bg-white/[0.04] transition-all group cursor-pointer"
             >
               <div className="aspect-square rounded-lg bg-white/[0.04] mb-2 flex items-center justify-center overflow-hidden">
                 {item.icon_url ? (

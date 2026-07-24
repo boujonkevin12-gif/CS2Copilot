@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
 import { useUser } from "@/lib/user-context";
 import {
   TrendingUp,
@@ -23,8 +24,8 @@ export default function AnalyticsPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="h-12 w-12 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4" />
-          <p className="text-sm text-muted">Cargando análisis...</p>
+          <div className="h-12 w-12 rounded-full border-2 border-violet-400 border-t-transparent animate-spin mx-auto mb-4" />
+          <p className="text-sm text-zinc-400">Cargando análisis...</p>
         </div>
       </div>
     );
@@ -34,10 +35,10 @@ export default function AnalyticsPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <GlassCard padding="lg" className="text-center max-w-md">
-          <AlertTriangle className="h-12 w-12 text-accent mx-auto mb-4" />
+          <AlertTriangle className="h-12 w-12 text-indigo-400 mx-auto mb-4" />
           <h2 className="text-lg font-semibold mb-2">Conecta tu Steam</h2>
-          <p className="text-sm text-muted mb-4">Inicia sesión con Steam para ver tu análisis detallado.</p>
-          <a href="/login" className="inline-flex items-center gap-2 glass rounded-xl px-6 py-3 text-sm font-semibold hover:bg-white/[0.06] transition-all">
+          <p className="text-sm text-zinc-400 mb-4">Inicia sesión con Steam para ver tu análisis detallado.</p>
+          <a href="/login" className="inline-flex items-center gap-2 border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] text-zinc-300 rounded-xl px-6 py-3 text-sm font-semibold hover:bg-white/[0.06] transition-all">
             Conectar Steam
           </a>
         </GlassCard>
@@ -57,10 +58,10 @@ export default function AnalyticsPage() {
   const lTotalDamage = ls ? parseInt(String(ls["Total Damage"] || "0"), 10) : 0;
 
   const summaryStats = [
-    { label: "Total de Partidas", value: lMatches || null, icon: Flame, color: "text-accent", bg: "bg-accent/10" },
-    { label: "ADR Promedio", value: lADR || null, icon: Zap, color: "text-primary", bg: "bg-primary/10" },
-    { label: "Daño Total", value: lTotalDamage || null, icon: TrendingUp, color: "text-success", bg: "bg-success/10" },
-    { label: "Horas Jugadas", value: user.cs2?.hoursPlayed ? Math.round(user.cs2.hoursPlayed) : null, suffix: "h", icon: Clock, color: "text-purple-400", bg: "bg-purple-400/10" },
+    { label: "Total de Partidas", value: lMatches || null, icon: Flame, color: "text-indigo-400", bg: "bg-indigo-500/20" },
+    { label: "ADR Promedio", value: lADR || null, icon: Zap, color: "text-violet-400", bg: "bg-violet-500/20" },
+    { label: "Daño Total", value: lTotalDamage || null, icon: TrendingUp, color: "text-emerald-400", bg: "bg-emerald-500/20" },
+    { label: "Horas Jugadas", value: user.cs2?.hoursPlayed ? Math.round(user.cs2.hoursPlayed) : null, suffix: "h", icon: Clock, color: "text-purple-400", bg: "bg-purple-500/20" },
   ];
 
   const aimStats = [
@@ -72,18 +73,16 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Análisis</h1>
-        <p className="text-sm text-muted mt-1">
-          Profundiza en tus métricas de rendimiento e identifica áreas de mejora.
-        </p>
-      </div>
+      <PageHeader
+        title="Análisis"
+        description="Profundiza en tus métricas de rendimiento e identifica áreas de mejora."
+      />
 
       {!user.faceitPlayerId ? (
         <GlassCard padding="lg" className="text-center max-w-md mx-auto">
-          <Target className="h-12 w-12 text-accent mx-auto mb-4" />
+          <Target className="h-12 w-12 text-indigo-400 mx-auto mb-4" />
           <h2 className="text-lg font-semibold mb-2">Conecta FACEIT</h2>
-          <p className="text-sm text-muted mb-4">
+          <p className="text-sm text-zinc-400 mb-4">
             Vincula tu cuenta de FACEIT para ver análisis detallados de rendimiento.
           </p>
           <Link href="/dashboard/settings">
@@ -94,8 +93,8 @@ export default function AnalyticsPage() {
         </GlassCard>
       ) : !faceitStats ? (
         <GlassCard padding="lg" className="text-center max-w-md mx-auto">
-          <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4" />
-          <p className="text-sm text-muted">Cargando análisis de FACEIT...</p>
+          <div className="h-8 w-8 rounded-full border-2 border-violet-400 border-t-transparent animate-spin mx-auto mb-4" />
+          <p className="text-sm text-zinc-400">Cargando análisis de FACEIT...</p>
         </GlassCard>
       ) : (
         <>
@@ -114,7 +113,7 @@ export default function AnalyticsPage() {
                   <div className="text-2xl font-bold font-mono">
                     {stat.value !== null ? `${stat.value}${stat.suffix || ""}` : "—"}
                   </div>
-                  <div className="text-xs text-muted mt-1">{stat.label}</div>
+                  <div className="text-xs text-zinc-400 mt-1">{stat.label}</div>
                 </GlassCard>
               </motion.div>
             ))}
@@ -158,51 +157,51 @@ export default function AnalyticsPage() {
               <GlassCard padding="md" className="h-full">
                 <h3 className="text-sm font-semibold mb-6">Resumen de Rendimiento</h3>
                 <div className="space-y-4">
-                  <div className="glass rounded-xl p-4">
+                  <div className="rounded-xl border border-white/[0.06] bg-white/[.025] p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-muted">Win Rate</span>
-                      <span className="text-sm font-mono font-bold text-success">{lWinRate.toFixed(1)}%</span>
+                      <span className="text-xs text-zinc-400">Win Rate</span>
+                      <span className="text-sm font-mono font-bold text-emerald-400">{lWinRate.toFixed(1)}%</span>
                     </div>
                     <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${lWinRate}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full rounded-full bg-success"
+                        className="h-full rounded-full bg-emerald-500"
                       />
                     </div>
                   </div>
-                  <div className="glass rounded-xl p-4">
+                  <div className="rounded-xl border border-white/[0.06] bg-white/[.025] p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-muted">K/D Ratio</span>
-                      <span className="text-sm font-mono font-bold text-primary">{lKD.toFixed(2)}</span>
+                      <span className="text-xs text-zinc-400">K/D Ratio</span>
+                      <span className="text-sm font-mono font-bold text-violet-400">{lKD.toFixed(2)}</span>
                     </div>
                     <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min((lKD / 2) * 100, 100)}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full rounded-full bg-primary"
+                        className="h-full rounded-full bg-violet-500"
                       />
                     </div>
                   </div>
-                  <div className="glass rounded-xl p-4">
+                  <div className="rounded-xl border border-white/[0.06] bg-white/[.025] p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-muted">HS %</span>
-                      <span className="text-sm font-mono font-bold text-accent">{lHS.toFixed(1)}%</span>
+                      <span className="text-xs text-zinc-400">HS %</span>
+                      <span className="text-sm font-mono font-bold text-indigo-400">{lHS.toFixed(1)}%</span>
                     </div>
                     <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${lHS}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full rounded-full bg-accent"
+                        className="h-full rounded-full bg-indigo-500"
                       />
                     </div>
                   </div>
-                  <div className="glass rounded-xl p-4">
+                  <div className="rounded-xl border border-white/[0.06] bg-white/[.025] p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-muted">ADR</span>
+                      <span className="text-xs text-zinc-400">ADR</span>
                       <span className="text-sm font-mono font-bold text-purple-400">{lADR.toFixed(0)}</span>
                     </div>
                     <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
@@ -210,7 +209,7 @@ export default function AnalyticsPage() {
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min((lADR / 120) * 100, 100)}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full rounded-full bg-purple-400"
+                        className="h-full rounded-full bg-purple-500"
                       />
                     </div>
                   </div>
@@ -227,11 +226,11 @@ export default function AnalyticsPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-white/[0.06]">
-                        <th className="text-left text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Mapa</th>
-                        <th className="text-center text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Partidas</th>
-                        <th className="text-center text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Win Rate</th>
-                        <th className="text-center text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">K/D</th>
-                        <th className="text-center text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">HS%</th>
+                        <th className="text-left text-zinc-500 text-[11px] font-medium pb-3 uppercase tracking-wider">Mapa</th>
+                        <th className="text-center text-zinc-500 text-[11px] font-medium pb-3 uppercase tracking-wider">Partidas</th>
+                        <th className="text-center text-zinc-500 text-[11px] font-medium pb-3 uppercase tracking-wider">Win Rate</th>
+                        <th className="text-center text-zinc-500 text-[11px] font-medium pb-3 uppercase tracking-wider">K/D</th>
+                        <th className="text-center text-zinc-500 text-[11px] font-medium pb-3 uppercase tracking-wider">HS%</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -244,11 +243,11 @@ export default function AnalyticsPage() {
                         return (
                           <tr key={seg.map_name} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors">
                             <td className="py-3 text-sm font-medium capitalize">{name}</td>
-                            <td className="py-3 text-sm text-center text-muted">{matches}</td>
+                            <td className="py-3 text-sm text-center text-zinc-400">{matches}</td>
                             <td className="py-3 text-center">
                               <div className="inline-flex items-center gap-2">
                                 <div className="h-1.5 w-16 rounded-full bg-white/[0.06] overflow-hidden">
-                                  <div className="h-full rounded-full bg-success" style={{ width: `${wr}%` }} />
+                                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${wr}%` }} />
                                 </div>
                                 <span className="text-xs font-medium">{wr.toFixed(0)}%</span>
                               </div>

@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
 import { useUser } from "@/lib/user-context";
 import { useRef, useState } from "react";
 import {
@@ -35,13 +36,13 @@ const HEATMAP_MAPS = ["Dust II", "Mirage", "Inferno"];
 function HeatmapPlaceholder() {
   return (
     <div className="relative">
-      <div className="aspect-[16/10] glass rounded-xl overflow-hidden relative flex items-center justify-center">
+      <div className="aspect-[16/10] rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] overflow-hidden relative flex items-center justify-center">
         <div className="absolute inset-0 grid-bg opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-accent/[0.02]" />
         <div className="relative text-center z-10">
-          <Map className="h-10 w-10 text-muted mx-auto mb-3 opacity-40" />
-          <p className="text-sm font-medium text-muted">No disponible</p>
-          <p className="text-xs text-muted-foreground mt-1">Requiere integración con CSStats</p>
+          <Map className="h-10 w-10 text-zinc-400 mx-auto mb-3 opacity-40" />
+          <p className="text-sm font-medium text-zinc-400">No disponible</p>
+          <p className="text-xs text-zinc-500 mt-1">Requiere integración con CSStats</p>
         </div>
       </div>
     </div>
@@ -64,7 +65,7 @@ function CircularProgress({ value, size = 120, strokeWidth = 8, color, label, su
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.06)"
+            stroke="rgba(113,113,122,0.2)"
             strokeWidth={strokeWidth}
           />
           <circle
@@ -83,10 +84,10 @@ function CircularProgress({ value, size = 120, strokeWidth = 8, color, label, su
         </svg>
         <div className="absolute text-center">
           <div className="text-2xl font-bold font-mono">{value === 0 ? "—" : `${value}%`}</div>
-          {sublabel && <div className="text-[10px] text-muted">{sublabel}</div>}
+          {sublabel && <div className="text-[10px] text-zinc-400">{sublabel}</div>}
         </div>
       </div>
-      <div className="text-xs text-muted mt-2 font-medium">{label}</div>
+      <div className="text-xs text-zinc-400 mt-2 font-medium">{label}</div>
     </div>
   );
 }
@@ -99,8 +100,8 @@ function BarStat({ label, value, max = 100, color, suffix = "%" }: { label: stri
     return (
       <div ref={ref} className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted">{label}</span>
-          <span className="text-xs font-mono font-medium text-muted">—</span>
+          <span className="text-xs text-zinc-400">{label}</span>
+          <span className="text-xs font-mono font-medium text-zinc-400">—</span>
         </div>
         <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden" />
       </div>
@@ -110,7 +111,7 @@ function BarStat({ label, value, max = 100, color, suffix = "%" }: { label: stri
   return (
     <div ref={ref} className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-muted">{label}</span>
+        <span className="text-xs text-zinc-400">{label}</span>
         <span className="text-xs font-mono font-medium">{value}{suffix}</span>
       </div>
       <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
@@ -128,11 +129,11 @@ function BarStat({ label, value, max = 100, color, suffix = "%" }: { label: stri
 
 function NotAvailable({ label, note }: { label: string; note?: string }) {
   return (
-    <div className="glass rounded-xl p-4 text-center">
-      <div className="text-2xl font-bold font-mono text-muted">—</div>
-      <div className="text-xs text-muted mt-1">{label}</div>
-      <div className="text-[10px] text-muted-foreground mt-0.5">No disponible</div>
-      {note && <div className="text-[10px] text-accent mt-1">{note}</div>}
+    <div className="rounded-xl border border-white/[0.06] bg-white/[.025] p-4 text-center">
+      <div className="text-2xl font-bold font-mono text-zinc-400">—</div>
+      <div className="text-xs text-zinc-400 mt-1">{label}</div>
+      <div className="text-[10px] text-zinc-500 mt-0.5">No disponible</div>
+      {note && <div className="text-[10px] text-indigo-400 mt-1">{note}</div>}
     </div>
   );
 }
@@ -145,8 +146,8 @@ export default function StatsPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="h-12 w-12 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-4" />
-          <p className="text-sm text-muted">Cargando estadísticas...</p>
+          <div className="h-12 w-12 rounded-full border-2 border-violet-400 border-t-transparent animate-spin mx-auto mb-4" />
+          <p className="text-sm text-zinc-400">Cargando estadísticas...</p>
         </div>
       </div>
     );
@@ -156,10 +157,10 @@ export default function StatsPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <GlassCard padding="lg" className="text-center max-w-md">
-          <AlertTriangle className="h-12 w-12 text-accent mx-auto mb-4" />
+          <AlertTriangle className="h-12 w-12 text-indigo-400 mx-auto mb-4" />
           <h2 className="text-lg font-semibold mb-2">Conecta tu Steam</h2>
-          <p className="text-sm text-muted mb-4">Inicia sesión con Steam para ver tus estadísticas detalladas.</p>
-          <a href="/login" className="inline-flex items-center gap-2 glass rounded-xl px-6 py-3 text-sm font-semibold hover:bg-white/[0.06] transition-all">
+          <p className="text-sm text-zinc-400 mb-4">Inicia sesión con Steam para ver tus estadísticas detalladas.</p>
+          <a href="/login" className="inline-flex items-center gap-2 border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] text-zinc-300 rounded-xl px-6 py-3 text-sm font-semibold hover:bg-white/[0.06] transition-all">
             Conectar Steam
           </a>
         </GlassCard>
@@ -184,22 +185,26 @@ export default function StatsPage() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
-          <Target className="h-6 w-6 text-primary" />
-          Estadísticas Detalladas
-        </h1>
-        <p className="text-sm text-muted mt-1">
-          {user.faceitNickname
-            ? <>Análisis de tu rendimiento en <span className="text-foreground font-medium">{user.faceitNickname}</span></>
-            : "Análisis profundo de tu rendimiento."}
-        </p>
+        <PageHeader
+          title={
+            <span className="flex items-center gap-3">
+              <Target className="h-6 w-6 text-violet-400" />
+              Estadísticas Detalladas
+            </span>
+          }
+          description={
+            user.faceitNickname
+              ? <>Análisis de tu rendimiento en <span className="text-zinc-200 font-medium">{user.faceitNickname}</span></>
+              : "Análisis profundo de tu rendimiento."
+          }
+        />
       </motion.div>
 
       {!user.faceitPlayerId ? (
         <GlassCard padding="lg" className="text-center max-w-md mx-auto">
-          <Gamepad2 className="h-12 w-12 text-accent mx-auto mb-4" />
+          <Gamepad2 className="h-12 w-12 text-indigo-400 mx-auto mb-4" />
           <h2 className="text-lg font-semibold mb-2">Conecta FACEIT</h2>
-          <p className="text-sm text-muted mb-4">
+          <p className="text-sm text-zinc-400 mb-4">
             Vincula tu cuenta de FACEIT para ver estadísticas detalladas por mapa, K/D, win rate y más.
           </p>
             <Link href="/dashboard/settings" className="cursor-pointer">
@@ -210,8 +215,8 @@ export default function StatsPage() {
         </GlassCard>
       ) : !faceitStats ? (
         <GlassCard padding="lg" className="text-center max-w-md mx-auto">
-          <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto mb-3" />
-          <p className="text-sm text-muted">Cargando estadísticas de FACEIT...</p>
+          <Loader2 className="h-8 w-8 text-violet-400 animate-spin mx-auto mb-3" />
+          <p className="text-sm text-zinc-400">Cargando estadísticas de FACEIT...</p>
         </GlassCard>
       ) : (
         <>
@@ -228,7 +233,7 @@ export default function StatsPage() {
                     <div className="text-2xl font-bold font-mono" style={{ color: stat.value ? stat.color : undefined }}>
                       {stat.value !== null ? `${stat.value}${stat.suffix}` : "—"}
                     </div>
-                    <div className="text-xs text-muted mt-1">{stat.label}</div>
+                    <div className="text-xs text-zinc-400 mt-1">{stat.label}</div>
                   </div>
                 </GlassCard>
               </motion.div>
@@ -248,7 +253,7 @@ export default function StatsPage() {
                     <div className="text-lg font-bold font-mono">
                       {stat.value ? stat.value.toLocaleString() : "—"}
                     </div>
-                    <div className="text-xs text-muted mt-1">{stat.label}</div>
+                    <div className="text-xs text-zinc-400 mt-1">{stat.label}</div>
                   </div>
                 </GlassCard>
               </motion.div>
@@ -261,12 +266,12 @@ export default function StatsPage() {
         <GlassCard padding="md">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Map className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
+                <Map className="h-5 w-5 text-violet-400" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Heatmap de Kills</h3>
-                <p className="text-xs text-muted">Distribución de eliminaciones por zona</p>
+                <p className="text-xs text-zinc-400">Distribución de eliminaciones por zona</p>
               </div>
             </div>
             <div className="flex gap-1">
@@ -276,8 +281,8 @@ export default function StatsPage() {
                   onClick={() => setSelectedMap(map)}
                   className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                     selectedMap === map || (!selectedMap && map === "Dust II")
-                      ? "bg-primary/20 text-primary"
-                      : "text-muted hover:text-foreground hover:bg-white/[0.04]"
+                      ? "bg-violet-500/20 text-violet-400"
+                      : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.04]"
                   }`}
                 >
                   {map}
@@ -293,12 +298,12 @@ export default function StatsPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <GlassCard padding="md">
             <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
-                <BarChart3 className="h-5 w-5 text-success" />
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-emerald-400" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Win Rate por Mapa</h3>
-                <p className="text-xs text-muted">Datos de FACEIT</p>
+                <p className="text-xs text-zinc-400">Datos de FACEIT</p>
               </div>
             </div>
             <div className="space-y-3">
@@ -307,13 +312,13 @@ export default function StatsPage() {
                 const name = seg.map_name.replace("de_", "");
                 return (
                   <div key={seg.map_name} className="flex items-center gap-3">
-                    <span className="text-[11px] text-muted w-16 shrink-0 truncate capitalize">{name}</span>
+                    <span className="text-[11px] text-zinc-400 w-16 shrink-0 truncate capitalize">{name}</span>
                     <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${wr}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full rounded-full bg-success"
+                        className="h-full rounded-full bg-emerald-500"
                       />
                     </div>
                     <span className="text-xs font-mono w-10 text-right">{wr.toFixed(0)}%</span>
@@ -329,12 +334,12 @@ export default function StatsPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <GlassCard padding="md">
             <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Crosshair className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
+                <Crosshair className="h-5 w-5 text-violet-400" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Accuracy</h3>
-                <p className="text-xs text-muted">Precisión por tipo de disparo</p>
+                <p className="text-xs text-zinc-400">Precisión por tipo de disparo</p>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3 mb-6">
@@ -343,10 +348,10 @@ export default function StatsPage() {
               <NotAvailable label="Legshot" />
             </div>
             <div className="space-y-2">
-              <div className="text-xs text-muted font-medium mb-2">Por Arma</div>
+              <div className="text-xs text-zinc-400 font-medium mb-2">Por Arma</div>
               <div className="text-center py-4">
-                <p className="text-xs text-muted">No disponible</p>
-                <p className="text-[10px] text-accent mt-1">Próximamente con CSStats/Leetify</p>
+                <p className="text-xs text-zinc-400">No disponible</p>
+                <p className="text-[10px] text-indigo-400 mt-1">Próximamente con CSStats/Leetify</p>
               </div>
             </div>
           </GlassCard>
@@ -355,12 +360,12 @@ export default function StatsPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
           <GlassCard padding="md">
             <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-orange-400/10 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
                 <Flame className="h-5 w-5 text-orange-400" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Spray Control</h3>
-                <p className="text-xs text-muted">Análisis de patrones de spray</p>
+                <p className="text-xs text-zinc-400">Análisis de patrones de spray</p>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3 mb-6">
@@ -369,10 +374,10 @@ export default function StatsPage() {
               <NotAvailable label="Spray" />
             </div>
             <div className="space-y-2">
-              <div className="text-xs text-muted font-medium mb-2">Por Distancia</div>
+              <div className="text-xs text-zinc-400 font-medium mb-2">Por Distancia</div>
               <div className="text-center py-4">
-                <p className="text-xs text-muted">No disponible</p>
-                <p className="text-[10px] text-accent mt-1">Próximamente con CSStats/Leetify</p>
+                <p className="text-xs text-zinc-400">No disponible</p>
+                <p className="text-[10px] text-indigo-400 mt-1">Próximamente con CSStats/Leetify</p>
               </div>
             </div>
           </GlassCard>
@@ -383,12 +388,12 @@ export default function StatsPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <GlassCard padding="md" className="h-full">
             <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Shield className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
+                <Shield className="h-5 w-5 text-violet-400" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Win Rate CT</h3>
-                <p className="text-xs text-muted">Lado Counter-Terrorist</p>
+                <p className="text-xs text-zinc-400">Lado Counter-Terrorist</p>
               </div>
             </div>
             <div className="flex justify-center">
@@ -402,7 +407,7 @@ export default function StatsPage() {
               />
             </div>
             <div className="mt-3 pt-3 border-t border-white/[0.06] text-center">
-              <span className="text-[10px] text-accent">Próximamente con CSStats/Leetify</span>
+              <span className="text-[10px] text-indigo-400">Próximamente con CSStats/Leetify</span>
             </div>
           </GlassCard>
         </motion.div>
@@ -410,12 +415,12 @@ export default function StatsPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
           <GlassCard padding="md" className="h-full">
             <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-accent" />
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
+                <Zap className="h-5 w-5 text-indigo-400" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Win Rate TT</h3>
-                <p className="text-xs text-muted">Lado Terrorist</p>
+                <p className="text-xs text-zinc-400">Lado Terrorist</p>
               </div>
             </div>
             <div className="flex justify-center">
@@ -429,7 +434,7 @@ export default function StatsPage() {
               />
             </div>
             <div className="mt-3 pt-3 border-t border-white/[0.06] text-center">
-              <span className="text-[10px] text-accent">Próximamente con CSStats/Leetify</span>
+              <span className="text-[10px] text-indigo-400">Próximamente con CSStats/Leetify</span>
             </div>
           </GlassCard>
         </motion.div>
@@ -437,12 +442,12 @@ export default function StatsPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <GlassCard padding="md" className="h-full">
             <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-purple-400/10 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
                 <Award className="h-5 w-5 text-purple-400" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Clutches</h3>
-                <p className="text-xs text-muted">Situaciones 1vsX</p>
+                <p className="text-xs text-zinc-400">Situaciones 1vsX</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -451,16 +456,16 @@ export default function StatsPage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold font-mono w-8">{situation}</span>
-                      <span className="text-[11px] text-muted">— / —</span>
+                      <span className="text-[11px] text-zinc-400">— / —</span>
                     </div>
-                    <span className="text-xs font-mono font-medium text-muted">—</span>
+                    <span className="text-xs font-mono font-medium text-zinc-400">—</span>
                   </div>
                   <div className="h-2.5 rounded-full bg-white/[0.06] overflow-hidden" />
                 </div>
               ))}
             </div>
             <div className="mt-3 text-center">
-              <span className="text-[10px] text-accent">Próximamente con CSStats/Leetify</span>
+              <span className="text-[10px] text-indigo-400">Próximamente con CSStats/Leetify</span>
             </div>
           </GlassCard>
         </motion.div>

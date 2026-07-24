@@ -32,10 +32,9 @@ export function GlassCard({
       whileHover={hover ? { y: -2, scale: 1.005 } : undefined}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className={cn(
-        "glass rounded-2xl relative overflow-hidden",
+        "rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] relative overflow-hidden",
         paddings[padding],
-        hover &&
-          "hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-300",
+        hover && "transition-all duration-300",
         glow && "glow",
         className
       )}

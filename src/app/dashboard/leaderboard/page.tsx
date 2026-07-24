@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface LeaderboardEntry {
   steam_id: string;
@@ -178,26 +179,20 @@ export default function LeaderboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Trophy className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Rankings</h1>
-              <p className="text-sm text-muted">
-                {totalPlayers > 0
-                  ? `${totalPlayers.toLocaleString()} pilotos registrados`
-                  : "Competí con otros pilotos"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          icon={<Trophy className="h-6 w-6 text-violet-400" />}
+          title="Rankings"
+          description={
+            totalPlayers > 0
+              ? `${totalPlayers.toLocaleString()} pilotos registrados`
+              : "Competí con otros pilotos"
+          }
+        />
       </motion.div>
 
       {/* View Tabs + Country Selector */}
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-1 glass rounded-lg p-0.5">
+        <div className="flex items-center gap-1 rounded-lg border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] p-0.5">
           {VIEW_TABS.map((tab) => (
             <button
               key={tab.id}
@@ -207,8 +202,8 @@ export default function LeaderboardPage() {
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
                 activeView === tab.id
-                  ? "bg-primary/20 text-primary"
-                  : "text-muted hover:text-foreground"
+                  ? "bg-violet-500/20 text-violet-400"
+                  : "text-zinc-400 hover:text-zinc-200"
               }`}
             >
               <tab.icon className="h-3 w-3" />
@@ -221,13 +216,13 @@ export default function LeaderboardPage() {
           <div className="relative">
             <button
               onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[11px] font-medium text-foreground hover:bg-white/[0.08] transition-all cursor-pointer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] border border-[rgba(169,149,255,0.12)] text-[11px] font-medium text-zinc-200 hover:bg-white/[0.08] transition-all cursor-pointer"
             >
               {currentCountry ? `${currentCountry.flag} ${currentCountry.label}` : "Seleccionar país"}
               <ChevronDown className="h-3 w-3" />
             </button>
             {showCountryDropdown && (
-              <div className="absolute top-full left-0 mt-1 glass-strong rounded-xl border border-white/[0.08] shadow-xl z-50 py-1 min-w-[180px]">
+              <div className="absolute top-full left-0 mt-1 rounded-xl border border-[rgba(169,149,255,0.12)] bg-[rgba(10,11,22,0.96)] shadow-xl z-50 py-1 min-w-[180px]">
                 {COUNTRIES.map((c) => (
                   <button
                     key={c.code}
@@ -236,7 +231,7 @@ export default function LeaderboardPage() {
                       setShowCountryDropdown(false);
                     }}
                     className={`w-full text-left px-3 py-2 text-[11px] hover:bg-white/[0.06] transition-colors cursor-pointer flex items-center gap-2 ${
-                      selectedCountry === c.code ? "text-primary bg-primary/10" : ""
+                      selectedCountry === c.code ? "text-violet-400 bg-violet-500/10" : ""
                     }`}
                   >
                     <span className="text-base">{c.flag}</span>
@@ -257,8 +252,8 @@ export default function LeaderboardPage() {
             onClick={() => setActiveTab(tab.id)}
             className={`text-[11px] px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all font-medium cursor-pointer ${
               activeTab === tab.id
-                ? "bg-primary text-white shadow-lg shadow-primary/20"
-                : "bg-white/[0.04] text-muted hover:bg-white/[0.08]"
+                ? "bg-violet-600 text-white shadow-lg shadow-violet-500/20"
+                : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08]"
             }`}
           >
             <tab.icon className="h-3 w-3" />
@@ -272,24 +267,24 @@ export default function LeaderboardPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-strong rounded-xl px-4 py-3 border border-primary/20"
+          className="rounded-xl border border-violet-500/20 bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] px-4 py-3"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center">
                 <span className="text-xs font-bold text-white">TÚ</span>
               </div>
               <div>
-                <div className="text-xs text-muted">Tu posición</div>
+                <div className="text-xs text-zinc-400">Tu posición</div>
                 <div className="text-lg font-bold">
-                  <span className="text-primary">#{userPosition.position.toLocaleString()}</span>
-                  <span className="text-muted text-sm font-normal"> de {userPosition.total.toLocaleString()} jugadores</span>
+                  <span className="text-violet-400">#{userPosition.position.toLocaleString()}</span>
+                  <span className="text-zinc-400 text-sm font-normal"> de {userPosition.total.toLocaleString()} jugadores</span>
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-muted">{getRankLabel(activeTab)}</div>
-              <div className="text-lg font-bold font-mono text-primary">
+              <div className="text-xs text-zinc-400">{getRankLabel(activeTab)}</div>
+              <div className="text-lg font-bold font-mono text-violet-400">
                 {formatValue(activeTab, userPosition.value)}
               </div>
             </div>
@@ -301,21 +296,21 @@ export default function LeaderboardPage() {
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto mb-3" />
-            <p className="text-sm text-muted">Cargando rankings...</p>
+            <Loader2 className="h-8 w-8 text-violet-400 animate-spin mx-auto mb-3" />
+            <p className="text-sm text-zinc-400">Cargando rankings...</p>
           </div>
         </div>
       ) : displayEntries.length === 0 ? (
         <GlassCard padding="lg" className="text-center">
-          <Trophy className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-          <p className="text-sm font-medium text-muted mb-1">
+          <Trophy className="h-12 w-12 text-zinc-500/50 mx-auto mb-3" />
+          <p className="text-sm font-medium text-zinc-400 mb-1">
             {activeView === "friends"
               ? "Ningún amigo registrado aún"
               : activeView === "country"
                 ? "No hay jugadores de este país"
                 : "No hay rankings disponibles"}
           </p>
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-xs text-zinc-500/70">
             {activeView === "friends"
               ? "Tus amigos de Steam aparecerán aquí cuando se registren en CS2Pilot"
               : "Los jugadores aparecen aquí al iniciar sesión con Steam"}
@@ -333,9 +328,9 @@ export default function LeaderboardPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(i * 0.02, 0.5) }}
-                className={`glass-strong rounded-xl px-4 py-3 flex items-center gap-4 transition-all hover:bg-white/[0.04] ${
-                  rank <= 3 ? "border border-primary/20" : ""
-                } ${isMe ? "ring-1 ring-primary/40 bg-primary/5" : ""}`}
+                className={`rounded-xl border border-white/[0.06] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] p-4 flex items-center gap-4 transition-all hover:bg-white/[0.04] ${
+                  rank <= 3 ? "border border-violet-500/20" : ""
+                } ${isMe ? "ring-1 ring-violet-500/40 bg-violet-500/5" : ""}`}
               >
                 {/* Rank */}
                 <div className="w-8 text-center shrink-0">
@@ -344,7 +339,7 @@ export default function LeaderboardPage() {
                       <span className="text-sm font-bold text-white">{rank}</span>
                     </div>
                   ) : (
-                    <span className="text-sm font-bold text-muted">#{rank}</span>
+                    <span className="text-sm font-bold text-zinc-400">#{rank}</span>
                   )}
                 </div>
 
@@ -359,7 +354,7 @@ export default function LeaderboardPage() {
                     }}
                   />
                 ) : (
-                  <div className={`h-10 w-10 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center text-xs font-bold text-primary shrink-0 ${getFrameClasses(entry.equipped_frame)}`}>
+                  <div className={`h-10 w-10 rounded-full bg-gradient-to-br from-violet-500/30 to-indigo-500/30 flex items-center justify-center text-xs font-bold text-violet-400 shrink-0 ${getFrameClasses(entry.equipped_frame)}`}>
                     {entry.steam_name?.slice(0, 2).toUpperCase() || "??"}
                   </div>
                 )}
@@ -369,12 +364,12 @@ export default function LeaderboardPage() {
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/player/${entry.steam_id}`}
-                      className="text-sm font-bold truncate hover:text-primary transition-colors"
+                      className="text-sm font-bold text-zinc-200 truncate hover:text-violet-400 transition-colors"
                     >
                       <span className={getEffectClass(entry.equipped_effect)}>{entry.steam_name || "Jugador"}</span>
                       {getEmoji(entry.equipped_emoji) && <span className="ml-1">{getEmoji(entry.equipped_emoji)}</span>}
                     </Link>
-                    <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded-full shrink-0">
+                    <span className="text-[10px] text-violet-400 bg-violet-500/10 px-1.5 py-0.5 rounded-full shrink-0">
                       Nv. {entry.level}
                     </span>
                     {entry.steam_level > 0 && (
@@ -394,9 +389,9 @@ export default function LeaderboardPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-3 mt-0.5">
-                    <span className="text-[10px] text-muted">{entry.total_hours.toLocaleString()}h jugadas</span>
+                    <span className="text-[10px] text-zinc-400">{entry.total_hours.toLocaleString()}h jugadas</span>
                     {entry.best_elo > 0 && (
-                      <span className="text-[10px] text-muted">ELO {entry.best_elo}</span>
+                      <span className="text-[10px] text-zinc-400">ELO {entry.best_elo}</span>
                     )}
                   </div>
                 </div>
@@ -406,7 +401,7 @@ export default function LeaderboardPage() {
                   <div className={`text-lg font-bold font-mono ${RANK_TABS.find((t) => t.id === activeTab)?.color || ""}`}>
                     {formatValue(activeTab, val)}
                   </div>
-                  <div className="text-[10px] text-muted">{getRankLabel(activeTab)}</div>
+                  <div className="text-[10px] text-zinc-400">{getRankLabel(activeTab)}</div>
                 </div>
               </motion.div>
             );

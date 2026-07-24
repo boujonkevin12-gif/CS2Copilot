@@ -239,7 +239,7 @@ function MapOverview({ selectedMap, grenadeType }: { selectedMap: MapName; grena
 
   return (
     <div className="relative">
-      <div className="aspect-[16/10] glass rounded-xl overflow-hidden relative">
+      <div className="aspect-[16/10] panel rounded-xl overflow-hidden relative">
         <div className="absolute inset-0 grid-bg opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-br from-white/[0.01] to-white/[0.02]" />
 
@@ -325,7 +325,7 @@ function MapOverview({ selectedMap, grenadeType }: { selectedMap: MapName; grena
         </svg>
 
         {/* Legend */}
-        <div className="absolute bottom-3 right-3 glass rounded-lg px-3 py-2">
+        <div className="absolute bottom-3 right-3 panel rounded-lg px-3 py-2">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: typeInfo.color }} />
@@ -427,7 +427,7 @@ function LineupCard({ lineup, index }: { lineup: GrenadeLineup; index: number })
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <div className="glass rounded-xl p-4 hover:bg-white/[0.04] transition-all group">
+      <div className="panel rounded-xl p-4 hover:bg-white/[0.04] transition-all group">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: typeInfo.bgColor }}>
@@ -536,7 +536,7 @@ export default function UtilityPage() {
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap cursor-pointer ${
                 selectedMap === map.id
                   ? "bg-primary/20 text-primary border border-primary/30"
-                  : "glass text-muted hover:text-foreground hover:bg-white/[0.04] border border-transparent"
+                  : "panel text-muted hover:text-foreground hover:bg-white/[0.04] border border-transparent"
               }`}
             >
               <Map className="h-4 w-4" />
@@ -562,7 +562,7 @@ export default function UtilityPage() {
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
                   selectedType === type.id
                     ? "border"
-                    : "glass text-muted hover:text-foreground hover:bg-white/[0.04]"
+                    : "panel text-muted hover:text-foreground hover:bg-white/[0.04]"
                 }`}
                 style={
                   selectedType === type.id
@@ -671,21 +671,21 @@ export default function UtilityPage() {
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-              <div className="glass rounded-xl p-4">
+              <div className="panel rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Download className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium">Descarga CFG</span>
                 </div>
                 <p className="text-xs text-muted">Cada lineup tiene un botón para descargar un .cfg con comandos de entrenamiento (infinite ammo, noclip, trajectory, etc.)</p>
               </div>
-              <div className="glass rounded-xl p-4">
+              <div className="panel rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <ExternalLink className="h-4 w-4 text-success" />
                   <span className="text-sm font-medium">Abre CS2</span>
                 </div>
                 <p className="text-xs text-muted">Haz clic en "Probar en CS2" para abrir Steam directamente en el mapa correspondiente. Ejecuta el CFG en la consola con <code className="text-primary">exec</code>.</p>
               </div>
-              <div className="glass rounded-xl p-4">
+              <div className="panel rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle2 className="h-4 w-4 text-accent" />
                   <span className="text-sm font-medium">Practica</span>

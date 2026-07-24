@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
+import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, Download, Calendar, Loader2, RefreshCw, Gamepad2, Link2 } from "lucide-react";
@@ -54,9 +55,9 @@ type MatchType = {
 };
 
 function getMatchResult(match: { playerResult: string; results?: { winner: string; score: { faction1: number; faction2: number } }; teams: Record<string, { team_id: string; players: { player_id: string }[] }> }, faceitPlayerId: string): { result: string; color: string } {
-  if (match.playerResult === "win") return { result: "Victoria", color: "text-success" };
-  if (match.playerResult === "lose") return { result: "Derrota", color: "text-danger" };
-  return { result: "?", color: "text-muted" };
+  if (match.playerResult === "win") return { result: "Victoria", color: "text-emerald-400" };
+  if (match.playerResult === "lose") return { result: "Derrota", color: "text-red-400" };
+  return { result: "?", color: "text-zinc-400" };
 }
 
 function getPlayerStats(match: { playerStats: Record<string, string> | null }, faceitPlayerId: string) {
@@ -109,11 +110,11 @@ export default function MatchesPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <GlassCard padding="lg" className="text-center max-w-md">
-          <Gamepad2 className="h-12 w-12 text-accent mx-auto mb-4" />
+        <GlassCard className="text-center max-w-md">
+          <Gamepad2 className="h-12 w-12 text-violet-400 mx-auto mb-4" />
           <h2 className="text-lg font-semibold mb-2">Conecta tu Steam</h2>
-          <p className="text-sm text-muted mb-4">Inicia sesión con Steam para ver tu historial de partidas.</p>
-          <a href="/login" className="inline-flex items-center gap-2 glass rounded-xl px-6 py-3 text-sm font-semibold hover:bg-white/[0.06] transition-all">
+          <p className="text-sm text-zinc-400 mb-4">Inicia sesión con Steam para ver tu historial de partidas.</p>
+          <a href="/login" className="inline-flex items-center gap-2 rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] px-6 py-3 text-sm font-semibold hover:bg-white/[0.06] transition-all">
             Conectar Steam
           </a>
         </GlassCard>
@@ -123,17 +124,16 @@ export default function MatchesPage() {
 
   if (!faceitPlayerId) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Historial de Partidas</h1>
-          <p className="text-sm text-muted mt-1">
-            Explora y analiza todas tus partidas anteriores.
-          </p>
-        </div>
-        <GlassCard padding="lg" className="text-center max-w-md mx-auto">
-          <Gamepad2 className="h-12 w-12 text-accent mx-auto mb-4" />
+      <div className="dashboard-shell mx-auto max-w-[1400px] space-y-6">
+        <PageHeader
+          icon={<Gamepad2 className="h-5 w-5 text-violet-400" />}
+          title="Historial de Partidas"
+          description="Explora y analiza todas tus partidas anteriores."
+        />
+        <GlassCard className="text-center max-w-md mx-auto">
+          <Gamepad2 className="h-12 w-12 text-violet-400 mx-auto mb-4" />
           <h2 className="text-lg font-semibold mb-2">Conecta FACEIT</h2>
-          <p className="text-sm text-muted mb-4">
+          <p className="text-sm text-zinc-400 mb-4">
             Vincula tu cuenta de FACEIT para ver tu historial de partidas, estadísticas por mapa y rendimiento detallado.
           </p>
           <Link href="/dashboard/settings">
@@ -147,40 +147,39 @@ export default function MatchesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Historial de Partidas</h1>
-          <p className="text-sm text-muted mt-1">
-            FACEIT: <span className="text-foreground font-medium">{user.faceitNickname}</span> · Nivel {user.faceitLevel ?? "—"} · ELO {user.faceitElo ?? "—"}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            onClick={handleSync}
-            disabled={syncing}
-          >
-            {syncing ? "Sincronizando..." : "Sincronizar"}
-          </Button>
-          <Button variant="secondary" size="sm" icon={<Download className="h-4 w-4" />}>
-            Exportar CSV
-          </Button>
-        </div>
-      </div>
+    <div className="dashboard-shell mx-auto max-w-[1400px] space-y-6">
+      <PageHeader
+        icon={<Gamepad2 className="h-5 w-5 text-violet-400" />}
+        title="Historial de Partidas"
+        description={`FACEIT: ${user.faceitNickname} · Nivel ${user.faceitLevel ?? "—"} · ELO ${user.faceitElo ?? "—"}`}
+        actions={
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              onClick={handleSync}
+              disabled={syncing}
+            >
+              {syncing ? "Sincronizando..." : "Sincronizar"}
+            </Button>
+            <Button variant="secondary" size="sm" icon={<Download className="h-4 w-4" />}>
+              Exportar CSV
+            </Button>
+          </div>
+        }
+      />
 
-      <GlassCard padding="sm" hover={false}>
+      <GlassCard hover={false}>
         <div className="flex items-center gap-3 p-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar por mapa, modo..."
-              className="w-full h-9 pl-10 pr-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+              className="w-full h-9 pl-10 pr-4 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 transition-all"
             />
           </div>
           <Button variant="ghost" size="sm" icon={<Filter className="h-4 w-4" />}>
@@ -193,58 +192,52 @@ export default function MatchesPage() {
       </GlassCard>
 
       <div className="grid grid-cols-3 gap-4 mb-2">
-        <GlassCard padding="sm" hover={false}>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-success">{faceitMatches.length ? summary.wins : "—"}</div>
-            <div className="text-xs text-muted">Victorias</div>
-          </div>
-        </GlassCard>
-        <GlassCard padding="sm" hover={false}>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-danger">{faceitMatches.length ? summary.losses : "—"}</div>
-            <div className="text-xs text-muted">Derrotas</div>
-          </div>
-        </GlassCard>
-        <GlassCard padding="sm" hover={false}>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">{faceitMatches.length ? `${summary.winRate}%` : "—"}</div>
-            <div className="text-xs text-muted">Tasa de Victoria</div>
-          </div>
-        </GlassCard>
+        <div className="panel p-5 text-center">
+          <div className="text-2xl font-bold text-emerald-400">{faceitMatches.length ? summary.wins : "—"}</div>
+          <div className="text-xs text-zinc-400">Victorias</div>
+        </div>
+        <div className="panel p-5 text-center">
+          <div className="text-2xl font-bold text-red-400">{faceitMatches.length ? summary.losses : "—"}</div>
+          <div className="text-xs text-zinc-400">Derrotas</div>
+        </div>
+        <div className="panel p-5 text-center">
+          <div className="text-2xl font-bold text-violet-400">{faceitMatches.length ? `${summary.winRate}%` : "—"}</div>
+          <div className="text-xs text-zinc-400">Tasa de Victoria</div>
+        </div>
       </div>
 
-      <GlassCard padding="sm" hover={false}>
+      <GlassCard hover={false}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/[0.06]">
-                <th className="text-left text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Mapa</th>
-                <th className="text-left text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Modo</th>
-                <th className="text-left text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Resultado</th>
-                <th className="text-center text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">K/D/A</th>
-                <th className="text-center text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">HS%</th>
-                <th className="text-right text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">K/D</th>
-                <th className="text-right text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Duración</th>
-                <th className="text-right text-[11px] text-muted-foreground font-medium pb-3 uppercase tracking-wider">Fecha</th>
+                <th className="text-left text-[11px] text-zinc-500 font-medium pb-3 uppercase tracking-wider">Mapa</th>
+                <th className="text-left text-[11px] text-zinc-500 font-medium pb-3 uppercase tracking-wider">Modo</th>
+                <th className="text-left text-[11px] text-zinc-500 font-medium pb-3 uppercase tracking-wider">Resultado</th>
+                <th className="text-center text-[11px] text-zinc-500 font-medium pb-3 uppercase tracking-wider">K/D/A</th>
+                <th className="text-center text-[11px] text-zinc-500 font-medium pb-3 uppercase tracking-wider">HS%</th>
+                <th className="text-right text-[11px] text-zinc-500 font-medium pb-3 uppercase tracking-wider">K/D</th>
+                <th className="text-right text-[11px] text-zinc-500 font-medium pb-3 uppercase tracking-wider">Duración</th>
+                <th className="text-right text-[11px] text-zinc-500 font-medium pb-3 uppercase tracking-wider">Fecha</th>
               </tr>
             </thead>
             <tbody>
               {loadingFaceitMatches || syncing ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center">
-                    <Loader2 className="h-6 w-6 text-primary animate-spin mx-auto mb-3" />
-                    <p className="text-sm text-muted">Cargando partidas...</p>
+                    <Loader2 className="h-6 w-6 text-violet-400 animate-spin mx-auto mb-3" />
+                    <p className="text-sm text-zinc-400">Cargando partidas...</p>
                   </td>
                 </tr>
               ) : filteredMatches.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center">
                     <div className="max-w-sm mx-auto space-y-2">
-                      <p className="text-sm text-muted">
+                      <p className="text-sm text-zinc-400">
                         {faceitMatches.length ? "No se encontraron partidas con esos filtros" : "No hay partidas disponibles"}
                       </p>
                       {!faceitMatches.length && (
-                        <p className="text-xs text-muted">
+                        <p className="text-xs text-zinc-400">
                           Haz clic en Sincronizar para obtener tus partidas recientes de FACEIT
                         </p>
                       )}
@@ -253,7 +246,7 @@ export default function MatchesPage() {
                 </tr>
               ) : (
                 filteredMatches.map((match, index) => {
-                  const result = faceitPlayerId ? getMatchResult(match, faceitPlayerId) : { result: "?", color: "text-muted" };
+                  const result = faceitPlayerId ? getMatchResult(match, faceitPlayerId) : { result: "?", color: "text-zinc-400" };
                   const pStats = faceitPlayerId ? getPlayerStats(match, faceitPlayerId) : null;
                   const mapName = MAP_LABELS[match.map] || match.map;
 
@@ -280,27 +273,27 @@ export default function MatchesPage() {
                         {pStats ? (
                           <span>{pStats.kills}/{pStats.deaths}/{pStats.assists}</span>
                         ) : (
-                          <span className="text-muted">—</span>
+                          <span className="text-zinc-400">—</span>
                         )}
                       </td>
                       <td className="py-3 text-center text-sm font-mono">
                         {pStats ? (
-                          <span className={pStats.hsPercent >= 50 ? "text-success" : ""}>{pStats.hsPercent.toFixed(0)}%</span>
+                          <span className={pStats.hsPercent >= 50 ? "text-emerald-400" : ""}>{pStats.hsPercent.toFixed(0)}%</span>
                         ) : (
-                          <span className="text-muted">—</span>
+                          <span className="text-zinc-400">—</span>
                         )}
                       </td>
                       <td className="py-3 text-right text-sm font-mono">
                         {pStats ? (
-                          <span className={pStats.kd >= 1 ? "text-success" : "text-danger"}>{pStats.kd.toFixed(2)}</span>
+                          <span className={pStats.kd >= 1 ? "text-emerald-400" : "text-red-400"}>{pStats.kd.toFixed(2)}</span>
                         ) : (
-                          <span className="text-muted">—</span>
+                          <span className="text-zinc-400">—</span>
                         )}
                       </td>
-                      <td className="py-3 text-right text-xs text-muted">
+                      <td className="py-3 text-right text-xs text-zinc-400">
                         {formatDuration(match.startedAt, match.finishedAt)}
                       </td>
-                      <td className="py-3 text-right text-xs text-muted">
+                      <td className="py-3 text-right text-xs text-zinc-400">
                         {formatDate(match.startedAt)}
                       </td>
                     </motion.tr>

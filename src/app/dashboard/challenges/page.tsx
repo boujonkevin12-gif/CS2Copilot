@@ -5,6 +5,7 @@ import { Swords, CheckCircle, Timer, Star, Gift, Flame, Lock } from "lucide-reac
 import Link from "next/link";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { PageHeader } from "@/components/ui/page-header";
 
 const difficultyConfig: Record<string, { label: string; color: string; bg: string; ring: string }> = {
   easy: { label: "Fácil", color: "text-green-400", bg: "bg-green-500/10", ring: "ring-green-500/30" },
@@ -50,27 +51,23 @@ export default function ChallengesPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <Swords className="h-5 w-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold">Desafíos</h1>
-          <p className="text-sm text-muted">Completá misiones para ganar recompensas</p>
-        </div>
-      </div>
+      <PageHeader
+        icon={<Swords className="h-5 w-5 text-violet-400" />}
+        title="Desafíos"
+        description="Completá misiones para ganar recompensas"
+      />
 
       {/* Daily Challenges */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <Timer className="h-4 w-4 text-accent" />
-          <h2 className="text-lg font-bold">Desafíos Diarios</h2>
-          <span className="text-[10px] text-muted bg-white/[0.04] px-2 py-0.5 rounded-full">Se renuevan cada día</span>
+          <Timer className="h-4 w-4 text-violet-400" />
+          <h2 className="text-lg font-bold text-zinc-200">Desafíos Diarios</h2>
+          <span className="text-[10px] text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded-full">Se renuevan cada día</span>
         </div>
 
         <div className="grid gap-3 grid-cols-1 md:grid-cols-3">
           {dailyChallenges.length === 0 ? (
-            <div className="glass rounded-xl p-8 text-center text-sm text-muted col-span-3">No hay desafíos disponibles hoy</div>
+            <div className="rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] p-8 text-center text-sm text-zinc-400 col-span-3">No hay desafíos disponibles hoy</div>
           ) : (
             dailyChallenges.map((c) => {
               const pct = c.target > 0 ? Math.min(100, (c.progress / c.target) * 100) : 0;
@@ -78,7 +75,7 @@ export default function ChallengesPage() {
               return (
                 <div
                   key={c.id}
-                  className={`glass-strong rounded-xl p-4 transition-all ring-1 ${diff.ring} ${
+                  className={`rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] p-4 transition-all ring-1 ${diff.ring} ${
                     c.claimed ? "opacity-50" : ""
                   }`}
                 >
@@ -92,17 +89,17 @@ export default function ChallengesPage() {
                       <button
                         onClick={() => handleClaim(c.id)}
                         disabled={claiming === c.id}
-                        className="text-[10px] font-bold text-white bg-gradient-to-r from-primary to-accent px-3 py-1 rounded-lg hover:opacity-90 transition-all flex items-center gap-1"
+                        className="text-[10px] font-bold text-white bg-gradient-to-r from-violet-500 to-indigo-500 px-3 py-1 rounded-lg hover:opacity-90 transition-all flex items-center gap-1"
                       >
                         {claiming === c.id ? <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Gift className="h-3 w-3" />}
                         Reclamar
                       </button>
                     ) : (
-                      <span className="text-[10px] text-muted font-mono">{c.progress}/{c.target}</span>
+                      <span className="text-[10px] text-zinc-400 font-mono">{c.progress}/{c.target}</span>
                     )}
                   </div>
 
-                  <h3 className="text-sm font-bold mb-3">{c.name}</h3>
+                  <h3 className="text-sm font-bold text-zinc-200 mb-3">{c.name}</h3>
 
                   <div className="w-full h-2.5 rounded-full bg-white/[0.06] overflow-hidden mb-3">
                     <div
@@ -116,8 +113,8 @@ export default function ChallengesPage() {
                   </div>
 
                   <div className="flex items-center gap-3 pt-2 border-t border-white/[0.04]">
-                    <span className="text-[10px] text-primary font-medium">⚡ +{c.xp} XP</span>
-                    {c.coins > 0 && <span className="text-[10px] text-accent font-medium">🪙 +{c.coins}</span>}
+                    <span className="text-[10px] text-violet-400 font-medium">⚡ +{c.xp} XP</span>
+                    {c.coins > 0 && <span className="text-[10px] text-violet-400 font-medium">🪙 +{c.coins}</span>}
                     {c.badge && <span className="text-[10px] text-yellow-500 font-medium">🏅 +Badge</span>}
                   </div>
                 </div>
@@ -129,12 +126,12 @@ export default function ChallengesPage() {
         {/* Daily Chest */}
         {dailyChallenges.length > 0 && (
           <div className="mt-4">
-            <div className={`glass-strong rounded-xl p-4 flex items-center gap-4 ${
-              allDailyDone && !dailyChestClaimed ? "ring-1 ring-primary/50" : ""
+            <div className={`rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] p-4 flex items-center gap-4 ${
+              allDailyDone && !dailyChestClaimed ? "ring-1 ring-violet-500/50" : ""
             }`}>
               <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-2xl ${
                 allDailyDone && !dailyChestClaimed
-                  ? "bg-primary/10 animate-pulse"
+                  ? "bg-violet-500/20 animate-pulse"
                   : dailyChestClaimed
                     ? "bg-white/[0.04] opacity-50"
                     : "bg-white/[0.04]"
@@ -142,10 +139,10 @@ export default function ChallengesPage() {
                 {dailyChestClaimed ? "✅" : allDailyDone ? "🎁" : "📦"}
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-bold">
+                <h3 className="text-sm font-bold text-zinc-200">
                   {dailyChestClaimed ? "Cofre Diario Reclamado" : allDailyDone ? "¡Cofre Diario Listo!" : "Cofre Diario"}
                 </h3>
-                <p className="text-xs text-muted">
+                <p className="text-xs text-zinc-400">
                   {dailyChestClaimed
                     ? "Vuelve mañana para más recompensas"
                     : allDailyDone
@@ -157,7 +154,7 @@ export default function ChallengesPage() {
               {allDailyDone && !dailyChestClaimed && (
                 <button
                   onClick={() => handleClaim("daily_chest", "chest")}
-                  className="gradient-btn text-xs font-bold text-white px-4 py-2 rounded-xl shadow-lg shadow-primary/20"
+                  className="text-xs font-bold text-white bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-2 rounded-xl shadow-lg shadow-violet-500/20"
                 >
                   🎁 Abrir Cofre
                 </button>
@@ -173,7 +170,7 @@ export default function ChallengesPage() {
           initial={{ opacity: 0, y: 20, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20 }}
-          className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-primary to-accent rounded-2xl p-5 shadow-2xl shadow-primary/30 text-white text-center"
+          className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-[#8b5cf6] to-[#6366f1] rounded-2xl p-5 shadow-2xl shadow-[rgba(139,92,246,0.3)] text-white text-center"
         >
           <div className="text-3xl mb-2">🎁</div>
           <div className="text-lg font-bold">+{chestReward.amount} 🪙</div>
@@ -185,17 +182,17 @@ export default function ChallengesPage() {
       <div>
         <div className="flex items-center gap-2 mb-4">
           <Star className="h-4 w-4 text-yellow-500" />
-          <h2 className="text-lg font-bold">Misiones Semanales</h2>
-          <span className="text-[10px] text-muted bg-white/[0.04] px-2 py-0.5 rounded-full">Se renuevan los lunes</span>
+          <h2 className="text-lg font-bold text-zinc-200">Misiones Semanales</h2>
+          <span className="text-[10px] text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded-full">Se renuevan los lunes</span>
         </div>
         <div className="grid gap-3 grid-cols-1 md:grid-cols-3">
           {weeklyMissions.length === 0 ? (
-            <div className="glass rounded-xl p-8 text-center text-sm text-muted col-span-3">No hay misiones semanales</div>
+            <div className="rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] p-8 text-center text-sm text-zinc-400 col-span-3">No hay misiones semanales</div>
           ) : (
             weeklyMissions.map((m) => {
               const pct = m.target > 0 ? Math.min(100, (m.progress / m.target) * 100) : 0;
               return (
-                <div key={m.id} className={`glass-strong rounded-xl p-4 transition-all ${m.claimed ? "opacity-50" : ""}`}>
+                <div key={m.id} className={`rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] p-4 transition-all ${m.claimed ? "opacity-50" : ""}`}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-bold uppercase tracking-wide text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full">
                       Semanal
@@ -206,16 +203,16 @@ export default function ChallengesPage() {
                       <button
                         onClick={() => handleClaim(m.id, "weekly")}
                         disabled={claiming === m.id}
-                        className="text-[10px] font-bold text-white bg-gradient-to-r from-primary to-accent px-3 py-1 rounded-lg hover:opacity-90 transition-all flex items-center gap-1"
+                        className="text-[10px] font-bold text-white bg-gradient-to-r from-violet-500 to-indigo-500 px-3 py-1 rounded-lg hover:opacity-90 transition-all flex items-center gap-1"
                       >
                         {claiming === m.id ? <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Gift className="h-3 w-3" />}
                         Reclamar
                       </button>
                     ) : (
-                      <span className="text-[10px] text-muted font-mono">{m.progress}/{m.target}</span>
+                      <span className="text-[10px] text-zinc-400 font-mono">{m.progress}/{m.target}</span>
                     )}
                   </div>
-                  <h3 className="text-sm font-bold mb-3">{m.name}</h3>
+                  <h3 className="text-sm font-bold text-zinc-200 mb-3">{m.name}</h3>
                   <div className="w-full h-2.5 rounded-full bg-white/[0.06] overflow-hidden mb-3">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 transition-all duration-500"
@@ -223,8 +220,8 @@ export default function ChallengesPage() {
                     />
                   </div>
                   <div className="flex items-center gap-3 pt-2 border-t border-white/[0.04]">
-                    <span className="text-[10px] text-primary font-medium">⚡ +{m.xp} XP</span>
-                    <span className="text-[10px] text-accent font-medium">🪙 +{m.coins}</span>
+                    <span className="text-[10px] text-violet-400 font-medium">⚡ +{m.xp} XP</span>
+                    <span className="text-[10px] text-violet-400 font-medium">🪙 +{m.coins}</span>
                   </div>
                 </div>
               );
@@ -235,10 +232,10 @@ export default function ChallengesPage() {
 
       {/* Navigation */}
       <div className="flex justify-center gap-3 pt-4">
-        <Link href="/dashboard/achievements" className="glass rounded-xl px-4 py-2 text-sm font-medium hover:bg-white/[0.06] transition-all">
+        <Link href="/dashboard/achievements" className="rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] px-4 py-2 text-sm font-medium text-zinc-300 transition-all">
           ← Logros
         </Link>
-        <Link href="/dashboard/shop" className="glass rounded-xl px-4 py-2 text-sm font-medium hover:bg-white/[0.06] transition-all">
+        <Link href="/dashboard/shop" className="rounded-xl border border-[rgba(169,149,255,0.12)] bg-gradient-to-br from-[rgba(20,20,37,0.94)] to-[rgba(10,11,22,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,.025),0_12px_35px_rgba(0,0,0,.13)] px-4 py-2 text-sm font-medium text-zinc-300 transition-all">
           Tienda →
         </Link>
       </div>
