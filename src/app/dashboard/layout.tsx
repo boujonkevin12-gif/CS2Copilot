@@ -287,7 +287,7 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex h-16 items-center justify-between gap-4 border-b border-white/[0.06] px-6 bg-[#0d0d11]/60 backdrop-blur-xl">
+        <header className="flex h-16 items-center justify-between gap-4 border-b border-white/[0.06] px-6 bg-[#0d0d11]/60 backdrop-blur-xl z-10 relative">
           <div className="flex items-center gap-4 flex-1">
             <div className="relative max-w-md flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
