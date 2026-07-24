@@ -168,96 +168,63 @@ export default function CoachPage() {
     }
   }, [faceitStats, faceitMatches, fetchAnalysis]);
 
+  const isLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+
+  const parseResult = async (data: any, warning?: string) => {
+    if (!data || !data.teams || data.teams.length < 2) {
+      setDemoError("No se pudieron extraer los datos de la partida. La demo podria estar incompleta.");
+      setDemoUploading(false);
+      return;
+    }
+    setDemoResult({
+      map: data.map,
+      serverName: data.serverName,
+      duration: data.duration,
+      rounds: data.rounds || 0,
+      teams: data.teams,
+      allPlayers: data.allPlayers || [],
+    });
+    if (warning) setDemoError(warning);
+    await fetchAnalysis({ demoData: data });
+    await logGamification();
+  };
+
   const handleDemoUpload = async (file: File) => {
     setDemoUploading(true);
     setDemoError("");
     setDemoResult(null);
 
     try {
-      // Try direct upload first (works locally, may 413 on Vercel for large files)
-      const formData = new FormData();
-      formData.append("demo", file);
-
-      const directRes = await fetch("/api/demo/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (directRes.ok) {
-        const json = await directRes.json();
-        const data = json.data;
-        if (data && data.teams && data.teams.length >= 2) {
-          setDemoResult({
-            map: data.map,
-            serverName: data.serverName,
-            duration: data.duration,
-            rounds: data.rounds || 0,
-            teams: data.teams,
-            allPlayers: data.allPlayers || [],
-          });
-          if (json.warning) setDemoError(json.warning);
-          await fetchAnalysis({ demoData: data });
-          await logGamification();
-          return;
-        }
+      if (isLocal) {
+        const formData = new FormData();
+        formData.append("demo", file);
+        const res = await fetch("/api/demo/upload", { method: "POST", body: formData });
+        const json = await res.json();
+        if (!res.ok) { setDemoError(json.error || "Error al procesar"); setDemoUploading(false); return; }
+        await parseResult(json.data, json.warning);
+        return;
       }
 
-      // Fallback: upload via Vercel Blob (bypasses 4.5MB serverless limit)
+      // Vercel: upload directo a Blob (bypass 4.5MB)
       const tokenRes = await fetch("/api/demo/upload-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileName: file.name }),
       });
-
-      if (!tokenRes.ok) {
-        setDemoError("No se pudo iniciar la subida. Intentá de nuevo.");
-        setDemoUploading(false);
-        return;
-      }
-
+      if (!tokenRes.ok) { setDemoError("No se pudo iniciar la subida"); setDemoUploading(false); return; }
       const { token, pathname } = await tokenRes.json();
 
       const { put } = await import("@vercel/blob/client");
-      const blob = await put(pathname, file, {
-        access: "public",
-        token,
-      });
+      const blob = await put(pathname, file, { access: "public", token });
 
-      // Parse the demo from blob URL
       const parseRes = await fetch("/api/demo/parse-from-blob", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ blobUrl: blob.url }),
       });
-
       const parseJson = await parseRes.json();
-
-      if (!parseRes.ok) {
-        setDemoError(parseJson.error || "Error al analizar la demo");
-        setDemoUploading(false);
-        return;
-      }
-
-      const data = parseJson.data;
-      if (!data || !data.teams || data.teams.length < 2) {
-        setDemoError("No se pudieron extraer los datos de la partida. La demo podria estar incompleta.");
-        setDemoUploading(false);
-        return;
-      }
-
-      setDemoResult({
-        map: data.map,
-        serverName: data.serverName,
-        duration: data.duration,
-        rounds: data.rounds || 0,
-        teams: data.teams,
-        allPlayers: data.allPlayers || [],
-      });
-
-      if (parseJson.warning) setDemoError(parseJson.warning);
-
-      await fetchAnalysis({ demoData: data });
-      await logGamification();
+      if (!parseRes.ok) { setDemoError(parseJson.error || "Error al analizar"); setDemoUploading(false); return; }
+      await parseResult(parseJson.data, parseJson.warning);
     } catch {
       setDemoError("Error al subir la demo. Verifica que el archivo no este corrupto.");
     } finally {
