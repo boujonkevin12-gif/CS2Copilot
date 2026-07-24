@@ -302,7 +302,7 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             <Link
-              href="/dashboard/analytics"
+              href="/dashboard/coach"
               className="gradient-btn hidden sm:flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20"
             >
               <Plus className="h-4 w-4" />
