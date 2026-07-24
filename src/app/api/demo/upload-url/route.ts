@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { generateClientTokenFromReadWriteToken } = await import("@vercel/blob");
+    const { generateClientTokenFromReadWriteToken } = await import("@vercel/blob/client");
     const body = await request.json().catch(() => ({}));
     const fileName = body.fileName || `demo-${Date.now()}.dem`;
 
     const clientToken = await generateClientTokenFromReadWriteToken({
+      token: process.env.BLOB_READ_WRITE_TOKEN!,
       pathname: `demos/${fileName}`,
       allowedContentTypes: ["application/octet-stream", "application/x-demo"],
       maximumSizeInBytes: 100 * 1024 * 1024,
