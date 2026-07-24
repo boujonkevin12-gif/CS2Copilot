@@ -340,7 +340,7 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
               {userMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-52 glass-strong rounded-xl border border-white/[0.08] shadow-2xl z-50 overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-surface rounded-xl border border-white/[0.08] shadow-2xl z-50 overflow-hidden">
                     <Link
                       href="/dashboard/profile"
                       onClick={() => setUserMenuOpen(false)}
