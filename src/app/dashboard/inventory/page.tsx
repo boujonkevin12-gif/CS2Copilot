@@ -15,7 +15,6 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useUser } from "@/lib/user-context";
-import { fetchInventoryClientSide, type SteamInventoryItem } from "@/lib/services/steam-inventory-client";
 
 const QUALITY_COLORS: Record<string, string> = {
   "Contrabanda": "#e4ae39",
@@ -30,7 +29,7 @@ const QUALITY_COLORS: Record<string, string> = {
 
 export default function InventoryPage() {
   const { user, loading } = useUser();
-  const [inventory, setInventory] = useState<SteamInventoryItem[]>([]);
+  const [inventory, setInventory] = useState<any[]>([]);
   const [inventoryLoading, setInventoryLoading] = useState(false);
   const [inventoryError, setInventoryError] = useState("");
   const [search, setSearch] = useState("");
@@ -58,16 +57,15 @@ export default function InventoryPage() {
         return;
       }
 
-      if (!data.success || !data.steamId) {
+      if (!data.success) {
         setInventoryError("No se pudo verificar tu perfil de Steam.");
         setInventoryLoading(false);
         return;
       }
 
-      const result = await fetchInventoryClientSide(data.steamId);
-      setInventory(result.items);
-      setTotalItems(result.totalItems);
-      setRarityBreakdown(result.rarityBreakdown);
+      setInventory(data.items || []);
+      setTotalItems(data.totalItems || 0);
+      setRarityBreakdown(data.rarityBreakdown || {});
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Error al obtener inventario";
       setInventoryError(msg);
