@@ -211,7 +211,7 @@ export default function CoachPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileName: file.name }),
       });
-      if (!tokenRes.ok) { setDemoError("No se pudo iniciar la subida"); setDemoUploading(false); return; }
+      if (!tokenRes.ok) { const err = await tokenRes.json().catch(() => ({ error: "No se pudo iniciar la subida" })); setDemoError(err.error); setDemoUploading(false); return; }
       const { token, pathname } = await tokenRes.json();
 
       const { put } = await import("@vercel/blob/client");
