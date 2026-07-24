@@ -183,6 +183,29 @@ CREATE TABLE IF NOT EXISTS connected_accounts (
 
 CREATE INDEX IF NOT EXISTS idx_user_preferences ON user_preferences(steam_id);
 CREATE INDEX IF NOT EXISTS idx_connected_accounts ON connected_accounts(steam_id);
+
+CREATE TABLE IF NOT EXISTS inventory_cache (
+  steam_id TEXT PRIMARY KEY,
+  items TEXT NOT NULL,
+  total_value REAL DEFAULT 0,
+  knife_count INTEGER DEFAULT 0,
+  glove_count INTEGER DEFAULT 0,
+  most_expensive_item TEXT DEFAULT NULL,
+  rarity_distribution TEXT DEFAULT '{}',
+  category_distribution TEXT DEFAULT '{}',
+  total_items INTEGER DEFAULT 0,
+  cached_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  FOREIGN KEY (steam_id) REFERENCES player_profile(steam_id)
+);
+
+CREATE TABLE IF NOT EXISTS price_cache (
+  market_hash_name TEXT PRIMARY KEY,
+  price REAL NOT NULL,
+  currency TEXT DEFAULT 'USD',
+  source TEXT DEFAULT '',
+  updated_at TEXT NOT NULL
+);
 `;
 
 export async function initializeDatabase() {
