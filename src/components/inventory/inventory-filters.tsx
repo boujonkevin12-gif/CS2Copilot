@@ -12,9 +12,7 @@ interface FilterState {
   category: string[];
   stattrak: boolean | null;
   souvenir: boolean | null;
-  minPrice: string;
-  maxPrice: string;
-  sortBy: "price" | "name" | "rarity" | "recent";
+  sortBy: "name" | "rarity" | "recent";
   sortDir: "asc" | "desc";
 }
 
@@ -44,7 +42,6 @@ const RARITIES: { key: ItemRarity; label: string }[] = [
 const EXTERIORS = ["Factory New", "Minimal Wear", "Field-Tested", "Well-Worn", "Battle-Scarred"];
 
 const SORT_OPTIONS = [
-  { value: "price", label: "Precio" },
   { value: "name", label: "Nombre" },
   { value: "rarity", label: "Rareza" },
   { value: "recent", label: "Recientes" },
@@ -59,15 +56,13 @@ export const DEFAULT_FILTERS: FilterState = {
   category: [],
   stattrak: null,
   souvenir: null,
-  minPrice: "",
-  maxPrice: "",
   sortBy: "recent",
   sortDir: "desc",
 };
 
 export function InventoryFilters({ filters, onChange, view, onViewChange, onRefresh, refreshing, totalFiltered, rarityOptions, exteriorOptions, categoryOptions }: Props) {
   const [showMore, setShowMore] = useState(false);
-  const hasActiveFilters = filters.rarity.length > 0 || filters.exterior.length > 0 || filters.category.length > 0 || filters.stattrak !== null || filters.souvenir !== null || filters.minPrice || filters.maxPrice || filters.search;
+  const hasActiveFilters = filters.rarity.length > 0 || filters.exterior.length > 0 || filters.category.length > 0 || filters.stattrak !== null || filters.souvenir !== null || filters.search;
 
   const clearFilters = () => {
     onChange({ ...DEFAULT_FILTERS, sortBy: filters.sortBy, sortDir: filters.sortDir });
@@ -240,24 +235,6 @@ export function InventoryFilters({ filters, onChange, view, onViewChange, onRefr
                     </button>
                   </div>
 
-                  <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mt-3 mb-2 block">Precio</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={filters.minPrice}
-                      onChange={(e) => onChange({ ...filters, minPrice: e.target.value })}
-                      placeholder="Min"
-                      className="w-full h-8 px-2.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-primary/30"
-                    />
-                    <span className="text-zinc-600">—</span>
-                    <input
-                      type="number"
-                      value={filters.maxPrice}
-                      onChange={(e) => onChange({ ...filters, maxPrice: e.target.value })}
-                      placeholder="Max"
-                      className="w-full h-8 px-2.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-primary/30"
-                    />
-                  </div>
                 </div>
               </div>
 

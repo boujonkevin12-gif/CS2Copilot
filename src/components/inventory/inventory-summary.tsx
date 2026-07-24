@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Package, DollarSign, Crosshair, Shield, Sparkles } from "lucide-react";
+import { Package, Crosshair, Shield } from "lucide-react";
 import { InventorySummary as SummaryType } from "@/types/inventory";
 
 interface Props {
@@ -19,20 +19,12 @@ export function InventorySummary({ summary }: Props) {
       delay: 0,
     },
     {
-      icon: DollarSign,
-      label: "Valor total",
-      value: summary.totalValue > 0 ? `$${summary.totalValue.toFixed(2)}` : "—",
-      color: "text-green-400",
-      bg: "bg-green-400/10",
-      delay: 0.05,
-    },
-    {
       icon: Crosshair,
       label: "Cuchillos",
       value: summary.knifeCount,
       color: "text-purple-400",
       bg: "bg-purple-400/10",
-      delay: 0.1,
+      delay: 0.05,
     },
     {
       icon: Shield,
@@ -40,20 +32,12 @@ export function InventorySummary({ summary }: Props) {
       value: summary.gloveCount,
       color: "text-cyan-400",
       bg: "bg-cyan-400/10",
-      delay: 0.15,
-    },
-    {
-      icon: Sparkles,
-      label: "Más cara",
-      value: summary.mostExpensive ? `$${summary.mostExpensive.price?.toFixed(2) || "—"}` : "—",
-      color: "text-amber-400",
-      bg: "bg-amber-400/10",
-      delay: 0.2,
+      delay: 0.1,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+    <div className="grid grid-cols-3 gap-2.5">
       {cards.map((card) => (
         <motion.div
           key={card.label}

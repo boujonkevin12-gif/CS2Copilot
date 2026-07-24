@@ -89,18 +89,7 @@ export function InventoryCard({ item, index }: Props) {
                 {item.rarityName}
               </span>
             </div>
-            {item.price != null && (
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs font-semibold text-zinc-200">
-                  ${item.price.toFixed(2)}
-                </span>
-                {item.quantity > 1 && (
-                  <span className="text-[10px] text-zinc-500">
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </span>
-                )}
-              </div>
-            )}
+
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ExternalLink, Package, Shield, Star, DollarSign, Layers, Tag } from "lucide-react";
+import { X, ExternalLink, Package, Shield, Star, Layers, Tag } from "lucide-react";
 import { InventoryItem } from "@/types/inventory";
 import { GlassCard } from "@/components/ui/glass-card";
 
@@ -90,24 +90,13 @@ export function InventoryItemDetail({ item, onClose }: Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mt-5">
-              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 mb-1">
-                  <DollarSign className="h-3 w-3" />
-                  Precio unitario
-                </div>
-                <div className="text-sm font-semibold text-zinc-200">
-                  {item.price != null ? `$${item.price.toFixed(2)}` : "—"}
-                </div>
+            <div className="mt-5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 mb-1">
+                <Tag className="h-3 w-3" />
+                Cantidad
               </div>
-              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 mb-1">
-                  <Tag className="h-3 w-3" />
-                  Cantidad
-                </div>
-                <div className="text-sm font-semibold text-zinc-200">
-                  {item.quantity}
-                </div>
+              <div className="text-sm font-semibold text-zinc-200">
+                {item.quantity}
               </div>
             </div>
 

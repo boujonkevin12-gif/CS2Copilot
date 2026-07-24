@@ -85,11 +85,6 @@ export interface InventoryItem {
   inspectLink: string | null;
   marketLink: string;
 
-  price: number | null;
-  totalPrice: number | null;
-  priceUpdatedAt: string | null;
-  priceSource: string | null;
-
   quantity: number;
 
   floatValue: number | null;
@@ -106,8 +101,6 @@ export interface InventoryItem {
 
 export interface InventorySummary {
   totalItems: number;
-  totalValue: number;
-  mostExpensive: InventoryItem | null;
   knifeCount: number;
   gloveCount: number;
   rarityDistribution: Record<string, number>;

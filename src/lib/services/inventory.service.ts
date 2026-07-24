@@ -1,6 +1,5 @@
 import { InventoryItem, ItemCategory, ItemRarity, RARITY_COLORS, CATEGORY_LABELS, InventorySummary, AppliedSticker } from "@/types/inventory";
 import { getDb } from "@/lib/db";
-import { getCachedPricesBatch, enqueuePriceLookups } from "./price.service";
 
 const CS2_APPID = 730;
 const CS2_CONTEXT_ID = 2;
@@ -321,10 +320,6 @@ function parseItem(
     marketable: desc.marketable === 1,
     inspectLink,
     marketLink,
-    price: null,
-    totalPrice: null,
-    priceUpdatedAt: null,
-    priceSource: null,
     quantity: Number(asset.amount) || 1,
     floatValue: null,
     paintSeed: null,
@@ -439,21 +434,12 @@ async function fetchFullInventory(steamId: string): Promise<InventoryItem[]> {
 }
 
 function computeSummary(items: InventoryItem[]): InventorySummary {
-  let totalValue = 0;
-  let mostExpensive: InventoryItem | null = null;
   let knifeCount = 0;
   let gloveCount = 0;
   const rarityDistribution: Record<string, number> = {};
   const categoryDistribution: Record<string, number> = {};
 
   for (const item of items) {
-    if (item.price) {
-      const itemTotal = item.price * item.quantity;
-      if (itemTotal > totalValue) {
-        totalValue = itemTotal;
-        mostExpensive = item;
-      }
-    }
     if (item.category === "knife") knifeCount++;
     if (item.category === "gloves") gloveCount++;
 
@@ -464,8 +450,6 @@ function computeSummary(items: InventoryItem[]): InventorySummary {
 
   return {
     totalItems: items.length,
-    totalValue,
-    mostExpensive,
     knifeCount,
     gloveCount,
     rarityDistribution,
@@ -475,10 +459,8 @@ function computeSummary(items: InventoryItem[]): InventorySummary {
 
 interface CacheRow {
   items: string;
-  total_value: number;
   knife_count: number;
   glove_count: number;
-  most_expensive_item: string | null;
   rarity_distribution: string;
   category_distribution: string;
   total_items: number;
@@ -499,8 +481,6 @@ async function getCachedInventory(steamId: string): Promise<{ items: InventoryIt
     const items = JSON.parse(row.items) as InventoryItem[];
     const summary: InventorySummary = {
       totalItems: row.total_items,
-      totalValue: row.total_value,
-      mostExpensive: row.most_expensive_item ? JSON.parse(row.most_expensive_item) : null,
       knifeCount: row.knife_count,
       gloveCount: row.glove_count,
       rarityDistribution: JSON.parse(row.rarity_distribution),
@@ -526,8 +506,6 @@ async function getStaleInventory(steamId: string): Promise<{ items: InventoryIte
       items: JSON.parse(row.items) as InventoryItem[],
       summary: {
         totalItems: row.total_items,
-        totalValue: row.total_value,
-        mostExpensive: row.most_expensive_item ? JSON.parse(row.most_expensive_item) : null,
         knifeCount: row.knife_count,
         gloveCount: row.glove_count,
         rarityDistribution: JSON.parse(row.rarity_distribution),
@@ -547,16 +525,14 @@ async function setCachedInventory(steamId: string, items: InventoryItem[], summa
     const expires = new Date(Date.now() + CACHE_TTL_MS).toISOString();
     await db.execute({
       sql: `INSERT OR REPLACE INTO inventory_cache
-        (steam_id, items, total_value, knife_count, glove_count, most_expensive_item,
+        (steam_id, items, knife_count, glove_count,
          rarity_distribution, category_distribution, total_items, cached_at, expires_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         steamId,
         JSON.stringify(items),
-        summary.totalValue,
         summary.knifeCount,
         summary.gloveCount,
-        summary.mostExpensive ? JSON.stringify(summary.mostExpensive) : null,
         JSON.stringify(summary.rarityDistribution),
         JSON.stringify(summary.categoryDistribution),
         summary.totalItems,
@@ -592,24 +568,6 @@ export async function getInventory(steamId: string, forceRefresh: boolean = fals
     }
     throw err;
   }
-
-  const marketHashNames = [...new Set(items.map((i) => i.marketHashName))];
-  const prices = await getCachedPricesBatch(marketHashNames);
-
-  const missing: string[] = [];
-  for (const item of items) {
-    const priceData = prices.get(item.marketHashName);
-    if (priceData) {
-      item.price = priceData.price;
-      item.totalPrice = priceData.price * item.quantity;
-      item.priceUpdatedAt = priceData.updatedAt;
-      item.priceSource = priceData.source;
-    } else {
-      missing.push(item.marketHashName);
-    }
-  }
-
-  void enqueuePriceLookups(missing);
 
   const summary = computeSummary(items);
   await setCachedInventory(steamId, items, summary);

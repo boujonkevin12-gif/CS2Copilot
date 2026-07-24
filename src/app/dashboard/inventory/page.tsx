@@ -105,22 +105,9 @@ export default function InventoryPage() {
       result = result.filter((i) => i.souvenir === filters.souvenir);
     }
 
-    if (filters.minPrice) {
-      const min = parseFloat(filters.minPrice);
-      if (!isNaN(min)) result = result.filter((i) => (i.price ?? 0) >= min);
-    }
-
-    if (filters.maxPrice) {
-      const max = parseFloat(filters.maxPrice);
-      if (!isNaN(max)) result = result.filter((i) => (i.price ?? 0) <= max);
-    }
-
     result.sort((a, b) => {
       let cmp = 0;
       switch (filters.sortBy) {
-        case "price":
-          cmp = (a.price ?? 0) - (b.price ?? 0);
-          break;
         case "name":
           cmp = a.name.localeCompare(b.name);
           break;
@@ -169,9 +156,7 @@ export default function InventoryPage() {
             <p className="text-sm text-zinc-500 mt-0.5">
               {summary ? `${summary.totalItems} objetos` : "Cargando..."}
               {cachedAt && !pageLoading && (
-                <span className="text-zinc-600 ml-1.5">
-                  · {summary && summary.totalItems > 0 ? `Valor total: $${summary.totalValue.toFixed(2)}` : ""}
-                </span>
+                <span className="text-zinc-600 ml-1.5">· En caché</span>
               )}
             </p>
           </div>
