@@ -46,7 +46,7 @@ const sidebarGroups = [
     links: [
       { icon: BarChart3, label: "Análisis", href: "/dashboard/analytics" },
       { icon: Target, label: "Estadísticas", href: "/dashboard/stats" },
-      { icon: Package, label: "Inventario", href: "/dashboard/inventory" },
+      { icon: Package, label: "Inventario", href: "/dashboard/inventory", badge: "Próximamente" },
     ],
   },
   {
@@ -302,13 +302,11 @@ function DashboardNav({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              href="/dashboard/coach"
-              className="gradient-btn hidden sm:flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20"
-            >
+            <div className="hidden sm:flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-zinc-500 bg-white/[0.04] cursor-not-allowed">
               <Plus className="h-4 w-4" />
               Analizar demo
-            </Link>
+              <span className="text-[9px] font-bold uppercase tracking-wide bg-primary/20 text-primary rounded-full px-1.5 py-0.5">Próximamente</span>
+            </div>
             <CoinDisplay />
             <NotificationBell />
             <div className="relative">
