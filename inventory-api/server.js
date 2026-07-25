@@ -298,8 +298,21 @@ async function fetchSteamPage(steamId, startAssetId) {
   const text = await res.text();
   if (text === "null") throw new Error("inventory_unavailable");
 
-  const data = JSON.parse(text);
-  if (data.success !== 1) throw new Error("inventory_unavailable");
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("inventory_unavailable");
+  }
+
+  if (!data.success) {
+    console.log(`[STEAM] response has no success`, { steamId, startAssetId, successValue: data.success, typeofSuccess: typeof data.success, textPreview: text.substring(0, 300) });
+    throw new Error("inventory_unavailable");
+  }
+
+  const assetCount = data.assets ? Object.keys(data.assets).length : 0;
+  console.log(`[STEAM] response ok`, { steamId, startAssetId, assetGroups: assetCount, totalInventoryCount: data.total_inventory_count, descCount: data.descriptions ? Object.keys(data.descriptions).length : 0, moreItems: data.more_items, lastAssetId: data.last_assetid });
+
   return data;
 }
 
@@ -336,11 +349,75 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", uptime: process.uptime() });
 });
 
-app.get("/inventory/:steamId", async (req, res) => {
+app.get("/debug/inventory/:steamId", async (req, res) => {
   const { steamId } = req.params;
   const start = Date.now();
 
-  console.log(`[INVENTORY] request`, { steamId, ip: req.ip });
+  if (!/^\d{17}$/.test(steamId)) {
+    return res.status(400).json({ code: "invalid_steam_id", error: "SteamID must be 17 digits" });
+  }
+
+  try {
+    let url = `https://steamcommunity.com/inventory/${steamId}/${CS2_APPID}/${CS2_CONTEXT_ID}`;
+    console.log(`[DEBUG] fetching Steam URL`, { url });
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+    let steamRes;
+    try {
+      steamRes = await fetch(url, {
+        signal: controller.signal,
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+
+    const text = await steamRes.text();
+    const elapsed = Date.now() - start;
+
+    let parsed = null;
+    let parseError = null;
+    try { parsed = JSON.parse(text); } catch (e) { parseError = e.message; }
+
+    const assetCount = parsed?.assets ? Object.keys(parsed.assets).length : 0;
+    let innerCount = 0;
+    if (parsed?.assets) {
+      for (const [, ctx] of Object.entries(parsed.assets)) {
+        if (typeof ctx === "object" && ctx) {
+          for (const [, map] of Object.entries(ctx)) {
+            if (typeof map === "object" && map) innerCount += Object.keys(map).length;
+          }
+        }
+      }
+    }
+
+    res.json({
+      steamStatus: steamRes.status,
+      steamStatusText: steamRes.statusText,
+      elapsed,
+      textLength: text.length,
+      isNull: text === "null",
+      parseError,
+      success: parsed?.success,
+      total_inventory_count: parsed?.total_inventory_count,
+      more_items: parsed?.more_items,
+      assetGroups: assetCount,
+      totalAssets: innerCount,
+      descCount: parsed?.descriptions ? Object.keys(parsed.descriptions).length : 0,
+      textPreview: text.substring(0, 500),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/inventory/:steamId", async (req, res) => {
+  const { steamId } = req.params;
+  const force = req.query.force === "1";
+  const start = Date.now();
+
+  console.log(`[INVENTORY] request`, { steamId, force, ip: req.ip });
 
   // Validate steamId
   if (!/^\d{17}$/.test(steamId)) {
@@ -348,9 +425,9 @@ app.get("/inventory/:steamId", async (req, res) => {
     return res.status(400).json({ code: "invalid_steam_id", error: "SteamID must be 17 digits" });
   }
 
-  // Check in-memory cache
+  // Check in-memory cache (skip if force refresh)
   const cached = cache.get(steamId);
-  if (cached && cached.expiresAt > Date.now()) {
+  if (!force && cached && cached.expiresAt > Date.now()) {
     console.log(`[INVENTORY] cache hit`, { steamId, items: cached.items.length, age: Math.round((Date.now() - cached.cachedAt) / 1000) + "s" });
     return res.json({ items: cached.items, meta: { source: "cache", cachedAt: cached.cachedAt } });
   }

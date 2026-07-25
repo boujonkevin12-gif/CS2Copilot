@@ -334,7 +334,7 @@ async function fetchSteamPage(steamId: string, startAssetId?: string): Promise<S
   if (text === "null") throw new Error("inventory_unavailable");
 
   const data = JSON.parse(text) as SteamResponse;
-  if (data.success !== 1) throw new Error("inventory_unavailable");
+  if (!data.success) throw new Error("inventory_unavailable");
   return data;
 }
 
