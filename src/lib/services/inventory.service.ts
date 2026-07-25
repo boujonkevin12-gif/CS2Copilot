@@ -2,11 +2,17 @@ import { InventoryItem, InventorySummary } from "@/types/inventory";
 import { getDb } from "@/lib/db";
 import { InventoryProvider } from "@/lib/services/inventory-provider.interface";
 import { steamInventoryProvider } from "@/lib/services/providers/steam-inventory-provider";
+import { renderInventoryProvider } from "@/lib/services/providers/render-inventory-provider";
 
 const CACHE_TTL_MS = 30 * 60 * 1000;
 const RATE_LIMIT_COOLDOWN_MS = 10 * 60 * 1000;
 
-let activeProvider: InventoryProvider = steamInventoryProvider;
+const INVENTORY_API_URL = process.env.INVENTORY_API_URL;
+let activeProvider: InventoryProvider = INVENTORY_API_URL ? renderInventoryProvider : steamInventoryProvider;
+
+if (INVENTORY_API_URL) {
+  console.log("[INVENTORY] usando Render backend:", INVENTORY_API_URL);
+}
 
 export function setInventoryProvider(provider: InventoryProvider) {
   activeProvider = provider;
