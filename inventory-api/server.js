@@ -259,16 +259,28 @@ function parseItem(asset, desc, steamId) {
 function parseInventoryResponse(data, steamId) {
   const items = [];
   if (!data.assets || !data.descriptions) return items;
-  for (const [, contexts] of Object.entries(data.assets)) {
-    if (typeof contexts !== "object" || !contexts) continue;
-    for (const [, assetsMap] of Object.entries(contexts)) {
-      if (typeof assetsMap !== "object" || !assetsMap) continue;
-      for (const [, assetRaw] of Object.entries(assetsMap)) {
-        const asset = assetRaw;
-        if (!asset.classid) continue;
-        const desc = data.descriptions[`${asset.appid || CS2_APPID}_${asset.classid}`];
-        if (!desc) continue;
-        try { items.push(parseItem(asset, desc, steamId)); } catch { /* skip */ }
+
+  if (Array.isArray(data.assets)) {
+    // New format: assets is a flat array
+    for (const asset of data.assets) {
+      if (!asset.classid) continue;
+      const desc = data.descriptions[`${asset.appid || CS2_APPID}_${asset.classid}`];
+      if (!desc) continue;
+      try { items.push(parseItem(asset, desc, steamId)); } catch { /* skip */ }
+    }
+  } else {
+    // Old format: assets is a nested object { "730": { "2": { "assetid": {} } } }
+    for (const [, contexts] of Object.entries(data.assets)) {
+      if (typeof contexts !== "object" || !contexts) continue;
+      for (const [, assetsMap] of Object.entries(contexts)) {
+        if (typeof assetsMap !== "object" || !assetsMap) continue;
+        for (const [, assetRaw] of Object.entries(assetsMap)) {
+          const asset = assetRaw;
+          if (!asset.classid) continue;
+          const desc = data.descriptions[`${asset.appid || CS2_APPID}_${asset.classid}`];
+          if (!desc) continue;
+          try { items.push(parseItem(asset, desc, steamId)); } catch { /* skip */ }
+        }
       }
     }
   }

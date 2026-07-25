@@ -42,7 +42,7 @@ interface SteamResponse {
   total_inventory_count?: number;
   more_items?: number;
   last_assetid?: string;
-  assets?: Record<string, Record<string, Record<string, SteamAsset>>>;
+  assets?: SteamAsset[] | Record<string, Record<string, Record<string, SteamAsset>>>;
   descriptions?: Record<string, SteamDescription>;
 }
 
@@ -294,16 +294,26 @@ function parseItem(asset: SteamAsset, desc: SteamDescription, steamId: string): 
 function parseInventoryResponse(data: SteamResponse, steamId: string): InventoryItem[] {
   const items: InventoryItem[] = [];
   if (!data.assets || !data.descriptions) return items;
-  for (const [, contexts] of Object.entries(data.assets)) {
-    if (typeof contexts !== "object" || !contexts) continue;
-    for (const [, assetsMap] of Object.entries(contexts)) {
-      if (typeof assetsMap !== "object" || !assetsMap) continue;
-      for (const [, assetRaw] of Object.entries(assetsMap)) {
-        const asset = assetRaw as SteamAsset;
-        if (!asset.classid) continue;
-        const desc = data.descriptions[`${asset.appid || CS2_APPID}_${asset.classid}`];
-        if (!desc) continue;
-        try { items.push(parseItem(asset, desc, steamId)); } catch { /* skip */ }
+
+  if (Array.isArray(data.assets)) {
+    for (const asset of data.assets) {
+      if (!asset.classid) continue;
+      const desc = data.descriptions[`${asset.appid || CS2_APPID}_${asset.classid}`];
+      if (!desc) continue;
+      try { items.push(parseItem(asset, desc, steamId)); } catch { /* skip */ }
+    }
+  } else {
+    for (const [, contexts] of Object.entries(data.assets)) {
+      if (typeof contexts !== "object" || !contexts) continue;
+      for (const [, assetsMap] of Object.entries(contexts)) {
+        if (typeof assetsMap !== "object" || !assetsMap) continue;
+        for (const [, assetRaw] of Object.entries(assetsMap)) {
+          const asset = assetRaw as SteamAsset;
+          if (!asset.classid) continue;
+          const desc = data.descriptions[`${asset.appid || CS2_APPID}_${asset.classid}`];
+          if (!desc) continue;
+          try { items.push(parseItem(asset, desc, steamId)); } catch { /* skip */ }
+        }
       }
     }
   }
