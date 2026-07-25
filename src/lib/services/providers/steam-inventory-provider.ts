@@ -4,7 +4,6 @@ import { InventoryProvider } from "@/lib/services/inventory-provider.interface";
 const CS2_APPID = 730;
 const CS2_CONTEXT_ID = 2;
 const MAX_PAGES = 20;
-const PAGE_SIZE = 5000;
 
 interface SteamDescription {
   [key: string]: unknown;
@@ -312,10 +311,8 @@ function parseInventoryResponse(data: SteamResponse, steamId: string): Inventory
 }
 
 async function fetchSteamPage(steamId: string, startAssetId?: string): Promise<SteamResponse> {
-  const params = new URLSearchParams({ l: "english", count: String(PAGE_SIZE) });
-  if (startAssetId) params.set("start_assetid", startAssetId);
-
-  const url = `https://steamcommunity.com/inventory/${steamId}/${CS2_APPID}/${CS2_CONTEXT_ID}?${params.toString()}`;
+  let url = `https://steamcommunity.com/inventory/${steamId}/${CS2_APPID}/${CS2_CONTEXT_ID}`;
+  if (startAssetId) url += `?start_assetid=${startAssetId}`;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 30000);
