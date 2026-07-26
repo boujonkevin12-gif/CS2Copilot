@@ -180,6 +180,14 @@ export default function StatsPage() {
   const lADR = lifetime ? parseFloat(String(lifetime["ADR"] || "0")) : 0;
   const l1v1Wins = lifetime ? parseInt(String(lifetime["Total 1v1 Wins"] || "0"), 10) : 0;
   const l1v2Wins = lifetime ? parseInt(String(lifetime["Total 1v2 Wins"] || "0"), 10) : 0;
+  const l1v3Wins = lifetime ? parseInt(String(lifetime["Total 1v3 Wins"] || "0"), 10) : 0;
+  const l1v4Wins = lifetime ? parseInt(String(lifetime["Total 1v4 Wins"] || "0"), 10) : 0;
+  const l1v5Wins = lifetime ? parseInt(String(lifetime["Total 1v5 Wins"] || "0"), 10) : 0;
+  const lMVPs = lifetime ? parseInt(String(lifetime["MVPs"] || "0"), 10) : 0;
+  const lTotalHS = lifetime ? parseInt(String(lifetime["Total Headshots"] || "0"), 10) : 0;
+  const lAvgAssists = lifetime ? parseFloat(String(lifetime["Average Assists"] || "0")) : 0;
+  const lAvgDeaths = lifetime ? parseFloat(String(lifetime["Average Deaths"] || "0")) : 0;
+  const lWinStreak = lifetime ? parseInt(String(lifetime["Longest Win Streak"] || "0"), 10) : 0;
   const lClutches = l1v1Wins + l1v2Wins;
 
   return (
@@ -342,34 +350,69 @@ export default function StatsPage() {
             </div>
           </div>
           <div className="grid grid-cols-5 gap-4">
-            {["1v1", "1v2", "1v3", "1v4", "1v5"].map((situation) => (
-              <div key={situation} className="text-center">
-                <div className="text-lg font-bold font-mono text-zinc-300">—</div>
-                <div className="text-[11px] text-zinc-500 mt-0.5">{situation}</div>
-                <div className="text-[10px] text-zinc-600">— / —</div>
+            {[
+              { key: "1v1", wins: l1v1Wins },
+              { key: "1v2", wins: l1v2Wins },
+              { key: "1v3", wins: l1v3Wins },
+              { key: "1v4", wins: l1v4Wins },
+              { key: "1v5", wins: l1v5Wins },
+            ].map((s) => (
+              <div key={s.key} className="text-center">
+                <div className="text-lg font-bold font-mono" style={{ color: s.wins > 0 ? "var(--color-primary)" : undefined }}>
+                  {s.wins || "—"}
+                </div>
+                <div className="text-[11px] text-zinc-500 mt-0.5">{s.key}</div>
               </div>
             ))}
-          </div>
-          <div className="mt-4 pt-3 border-t border-white/[0.06] text-center">
-            <span className="text-[10px] text-indigo-400">Próximamente con CSStats/Leetify</span>
           </div>
         </GlassCard>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
         <GlassCard padding="md">
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-6">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
               <Crosshair className="h-5 w-5 text-violet-400" />
             </div>
             <div>
               <h3 className="text-sm font-semibold">Estadísticas avanzadas</h3>
-              <p className="text-xs text-zinc-400">Accuracy, Spray Control, Win Rate por lado, y más</p>
+              <p className="text-xs text-zinc-400">Datos de FACEIT</p>
             </div>
           </div>
-          <div className="text-center py-6">
-            <p className="text-sm text-zinc-400">Requiere integración con CSStats/Leetify</p>
-            <p className="text-[10px] text-indigo-400 mt-1">Próximamente</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "MVPs", value: lMVPs, suffix: "", color: "var(--color-primary)" },
+              { label: "Headshots totales", value: lTotalHS, suffix: "", color: "var(--color-accent)" },
+              { label: "Assists x partida", value: lAvgAssists, suffix: "", color: "var(--color-success)" },
+              { label: "Mejor racha", value: lWinStreak, suffix: "", color: "var(--color-danger)" },
+            ].map((stat, i) => (
+              <motion.div key={stat.label} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 + i * 0.05 }}>
+                <div className="text-center">
+                  <div className="text-xl font-bold font-mono" style={{ color: stat.value ? stat.color : undefined }}>
+                    {stat.value !== null && stat.value !== undefined && stat.value > 0 ? `${stat.value}${stat.suffix}` : "—"}
+                  </div>
+                  <div className="text-xs text-zinc-400 mt-1">{stat.label}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          <div className="mt-4 pt-3 border-t border-white/[0.06] grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
+            <div className="text-[10px] text-zinc-500">
+              <span className="block text-zinc-400 font-medium">Accuracy</span>
+              <span className="text-indigo-400">CSStats pronto</span>
+            </div>
+            <div className="text-[10px] text-zinc-500">
+              <span className="block text-zinc-400 font-medium">Spray Control</span>
+              <span className="text-indigo-400">CSStats pronto</span>
+            </div>
+            <div className="text-[10px] text-zinc-500">
+              <span className="block text-zinc-400 font-medium">Win Rate CT</span>
+              <span className="text-indigo-400">CSStats pronto</span>
+            </div>
+            <div className="text-[10px] text-zinc-500">
+              <span className="block text-zinc-400 font-medium">Win Rate TT</span>
+              <span className="text-indigo-400">CSStats pronto</span>
+            </div>
           </div>
         </GlassCard>
       </motion.div>
