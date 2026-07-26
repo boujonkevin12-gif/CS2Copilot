@@ -313,7 +313,7 @@ export function calculateMetrics(
     totalKills: cs2Stats?.totalKills ?? null,
     totalDeaths: cs2Stats?.totalDeaths ?? null,
     totalMVPs: cs2Stats?.totalMVPs ?? null,
-    totalMatches: faceitStats?.lifetime?.Matches ? parseInt(faceitStats.lifetime.Matches) : null,
+    totalMatches: cs2Stats?.totalMatchesPlayed ?? (faceitStats?.lifetime?.Matches ? parseInt(faceitStats.lifetime.Matches) : null),
     adr: faceitStats?.lifetime?.ADR ? parseFloat(faceitStats.lifetime.ADR) : null,
     killsPerRound: cs2Stats?.totalKills && cs2Stats?.totalRounds ?
       cs2Stats.totalKills / cs2Stats.totalRounds : null,

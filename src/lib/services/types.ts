@@ -57,6 +57,7 @@ export interface CS2AggregateStats {
   totalWins: number;
   totalLosses: number;
   totalMVPs: number;
+  totalMatchesPlayed: number;
   totalRoundsPlayed: number;
   totalRoundsWon: number;
   totalHeadshotKills: number;

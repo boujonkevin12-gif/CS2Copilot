@@ -182,6 +182,7 @@ class SteamService {
       totalWins: matchesPlayed > 0 ? matchesWon : wins,
       totalLosses: matchesPlayed > 0 ? Math.max(0, matchesPlayed - matchesWon) : 0,
       totalMVPs: stats.get("total_mvps") || 0,
+      totalMatchesPlayed: matchesPlayed,
       totalRoundsPlayed: roundsPlayed,
       totalRoundsWon: roundsWon,
       totalHeadshotKills: headshots,
