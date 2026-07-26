@@ -43,7 +43,7 @@ interface SteamResponse {
   more_items?: number;
   last_assetid?: string;
   assets?: SteamAsset[] | Record<string, Record<string, Record<string, SteamAsset>>>;
-  descriptions?: Record<string, SteamDescription>;
+  descriptions?: SteamDescription[] | Record<string, SteamDescription>;
 }
 
 const KNIFE_PATTERNS = [
@@ -295,27 +295,39 @@ function parseInventoryResponse(data: SteamResponse, steamId: string): Inventory
   const items: InventoryItem[] = [];
   if (!data.assets || !data.descriptions) return items;
 
+  // Normalize assets to a flat array
+  const assetsList: SteamAsset[] = [];
   if (Array.isArray(data.assets)) {
-    for (const asset of data.assets) {
-      if (!asset.classid) continue;
-      const desc = data.descriptions[`${asset.appid || CS2_APPID}_${asset.classid}`];
-      if (!desc) continue;
-      try { items.push(parseItem(asset, desc, steamId)); } catch { /* skip */ }
-    }
+    assetsList.push(...data.assets);
   } else {
     for (const [, contexts] of Object.entries(data.assets)) {
       if (typeof contexts !== "object" || !contexts) continue;
       for (const [, assetsMap] of Object.entries(contexts)) {
         if (typeof assetsMap !== "object" || !assetsMap) continue;
-        for (const [, assetRaw] of Object.entries(assetsMap)) {
-          const asset = assetRaw as SteamAsset;
-          if (!asset.classid) continue;
-          const desc = data.descriptions[`${asset.appid || CS2_APPID}_${asset.classid}`];
-          if (!desc) continue;
-          try { items.push(parseItem(asset, desc, steamId)); } catch { /* skip */ }
+        for (const [, asset] of Object.entries(assetsMap)) {
+          assetsList.push(asset as SteamAsset);
         }
       }
     }
+  }
+
+  // Build description lookup
+  const descLookup: Record<string, SteamDescription> = {};
+  if (Array.isArray(data.descriptions)) {
+    for (const d of data.descriptions) {
+      if (d.classid) {
+        descLookup[`${d.appid || CS2_APPID}_${d.classid}`] = d;
+      }
+    }
+  } else {
+    Object.assign(descLookup, data.descriptions);
+  }
+
+  for (const asset of assetsList) {
+    if (!asset.classid) continue;
+    const desc = descLookup[`${asset.appid || CS2_APPID}_${asset.classid}`];
+    if (!desc) continue;
+    try { items.push(parseItem(asset, desc, steamId)); } catch { /* skip */ }
   }
   return items;
 }
