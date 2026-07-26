@@ -330,146 +330,49 @@ export default function StatsPage() {
         </motion.div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-2 gap-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <GlassCard padding="md">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
-                <Crosshair className="h-5 w-5 text-violet-400" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Accuracy</h3>
-                <p className="text-xs text-zinc-400">Precisión por tipo de disparo</p>
-              </div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <GlassCard padding="md">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/20 border border-purple-500/10 flex items-center justify-center">
+              <Award className="h-5 w-5 text-purple-400" />
             </div>
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <NotAvailable label="Headshot" />
-              <NotAvailable label="Bodyshot" />
-              <NotAvailable label="Legshot" />
+            <div>
+              <h3 className="text-sm font-semibold">Clutches</h3>
+              <p className="text-xs text-zinc-400">Situaciones 1vsX</p>
             </div>
-            <div className="space-y-2">
-              <div className="text-xs text-zinc-400 font-medium mb-2">Por Arma</div>
-              <div className="text-center py-4">
-                <p className="text-xs text-zinc-400">No disponible</p>
-                <p className="text-[10px] text-indigo-400 mt-1">Próximamente con CSStats/Leetify</p>
+          </div>
+          <div className="grid grid-cols-5 gap-4">
+            {["1v1", "1v2", "1v3", "1v4", "1v5"].map((situation) => (
+              <div key={situation} className="text-center">
+                <div className="text-lg font-bold font-mono text-zinc-300">—</div>
+                <div className="text-[11px] text-zinc-500 mt-0.5">{situation}</div>
+                <div className="text-[10px] text-zinc-600">— / —</div>
               </div>
-            </div>
-          </GlassCard>
-        </motion.div>
+            ))}
+          </div>
+          <div className="mt-4 pt-3 border-t border-white/[0.06] text-center">
+            <span className="text-[10px] text-indigo-400">Próximamente con CSStats/Leetify</span>
+          </div>
+        </GlassCard>
+      </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-          <GlassCard padding="md">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
-                <Flame className="h-5 w-5 text-orange-400" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Spray Control</h3>
-                <p className="text-xs text-zinc-400">Análisis de patrones de spray</p>
-              </div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+        <GlassCard padding="md">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
+              <Crosshair className="h-5 w-5 text-violet-400" />
             </div>
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <NotAvailable label="Tap" />
-              <NotAvailable label="Burst" />
-              <NotAvailable label="Spray" />
+            <div>
+              <h3 className="text-sm font-semibold">Estadísticas avanzadas</h3>
+              <p className="text-xs text-zinc-400">Accuracy, Spray Control, Win Rate por lado, y más</p>
             </div>
-            <div className="space-y-2">
-              <div className="text-xs text-zinc-400 font-medium mb-2">Por Distancia</div>
-              <div className="text-center py-4">
-                <p className="text-xs text-zinc-400">No disponible</p>
-                <p className="text-[10px] text-indigo-400 mt-1">Próximamente con CSStats/Leetify</p>
-              </div>
-            </div>
-          </GlassCard>
-        </motion.div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <GlassCard padding="md" className="h-full">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
-                <Shield className="h-5 w-5 text-violet-400" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Win Rate CT</h3>
-                <p className="text-xs text-zinc-400">Lado Counter-Terrorist</p>
-              </div>
-            </div>
-            <div className="flex justify-center">
-              <CircularProgress
-                value={0}
-                size={140}
-                strokeWidth={10}
-                color="var(--color-primary)"
-                label="Promedio General"
-                sublabel="No disponible"
-              />
-            </div>
-            <div className="mt-3 pt-3 border-t border-white/[0.06] text-center">
-              <span className="text-[10px] text-indigo-400">Próximamente con CSStats/Leetify</span>
-            </div>
-          </GlassCard>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-          <GlassCard padding="md" className="h-full">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-indigo-400" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Win Rate TT</h3>
-                <p className="text-xs text-zinc-400">Lado Terrorist</p>
-              </div>
-            </div>
-            <div className="flex justify-center">
-              <CircularProgress
-                value={0}
-                size={140}
-                strokeWidth={10}
-                color="var(--color-accent)"
-                label="Promedio General"
-                sublabel="No disponible"
-              />
-            </div>
-            <div className="mt-3 pt-3 border-t border-white/[0.06] text-center">
-              <span className="text-[10px] text-indigo-400">Próximamente con CSStats/Leetify</span>
-            </div>
-          </GlassCard>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-          <GlassCard padding="md" className="h-full">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/10 flex items-center justify-center">
-                <Award className="h-5 w-5 text-purple-400" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold">Clutches</h3>
-                <p className="text-xs text-zinc-400">Situaciones 1vsX</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              {["1v1", "1v2", "1v3", "1v4", "1v5"].map((situation) => (
-                <div key={situation}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold font-mono w-8">{situation}</span>
-                      <span className="text-[11px] text-zinc-400">— / —</span>
-                    </div>
-                    <span className="text-xs font-mono font-medium text-zinc-400">—</span>
-                  </div>
-                  <div className="h-2.5 rounded-full bg-white/[0.06] overflow-hidden" />
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 text-center">
-              <span className="text-[10px] text-indigo-400">Próximamente con CSStats/Leetify</span>
-            </div>
-          </GlassCard>
-        </motion.div>
-      </div>
+          </div>
+          <div className="text-center py-6">
+            <p className="text-sm text-zinc-400">Requiere integración con CSStats/Leetify</p>
+            <p className="text-[10px] text-indigo-400 mt-1">Próximamente</p>
+          </div>
+        </GlassCard>
+      </motion.div>
     </div>
   );
 }
