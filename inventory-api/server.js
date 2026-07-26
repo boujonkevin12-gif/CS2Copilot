@@ -410,11 +410,11 @@ app.get("/debug/inventory/:steamId", async (req, res) => {
     if (parsed?.descriptions) {
       sampleDescKeys = Object.keys(parsed.descriptions).slice(0, 3);
     }
-    let sampleDescItem = null;
+    let sampleDescAll = null;
     if (descsIsArray && parsed.descriptions.length > 0) {
-      sampleDescItem = JSON.stringify(parsed.descriptions[0]).substring(0, 300);
+      sampleDescAll = parsed.descriptions[0];
     } else if (!descsIsArray && sampleDescKeys.length > 0) {
-      sampleDescItem = JSON.stringify(parsed.descriptions[sampleDescKeys[0]]).substring(0, 300);
+      sampleDescAll = parsed.descriptions[sampleDescKeys[0]];
     }
 
     res.json({
@@ -433,7 +433,7 @@ app.get("/debug/inventory/:steamId", async (req, res) => {
       descsType: descsIsArray ? "array" : typeof parsed?.descriptions,
       descCount,
       sampleDescKeys,
-      sampleDescItem,
+      firstDesc: sampleDescAll,
       firstAsset: Array.isArray(parsed?.assets) ? parsed.assets[0] : null,
     });
   } catch (err) {
