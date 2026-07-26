@@ -212,7 +212,7 @@ function parseItem(asset, desc, steamId) {
 
   const classification = classifyItem(name, marketHashName, tags);
   const { rarity, rarityName } = parseSteamRarity(tags);
-  const stattrak = name.startsWith("StatTrak™") || tags.some((t) => t.internal_name === "strange" || t.category === "Quality");
+  const stattrak = name.startsWith("StatTrak™") || tags.some((t) => t.internal_name === "strange");
   const souvenir = name.includes("Souvenir") || marketHashName.includes("Souvenir");
   const exterior = parseExterior(name, tags);
   const { collection, collectionName } = extractCollection(tags);
