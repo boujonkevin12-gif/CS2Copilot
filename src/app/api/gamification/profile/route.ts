@@ -93,13 +93,39 @@ export async function POST(request: NextRequest) {
     if (faceitPlayer?.player_id) {
       const faceitStats = await faceit.getPlayerStats(faceitPlayer.player_id);
       if (faceitStats?.lifetime) {
+        const lt = faceitStats.lifetime;
         const elo = faceitPlayer.games?.cs2?.faceit_elo;
         const faceitLevel = faceitPlayer.games?.cs2?.skill_level;
+
+        // Extract numeric lifetime stats (FACEIT keys vary in casing)
+        const kv = (key: string): number | undefined => {
+          const v = lt[key] ?? lt[key.toLowerCase()] ?? lt[key.toUpperCase()] ?? lt[key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()];
+          return v !== undefined ? Number(v) : undefined;
+        };
+
+        const faceitAces = kv("ACEs");
+        const faceitMVPs = kv("MVPs");
+        const faceitClutches = kv("Clutches");
 
         await syncProfileStats(steamId, {
           elo: elo ? Number(elo) : undefined,
           faceitLevel: faceitLevel ? Number(faceitLevel) : undefined,
+          aces: faceitAces,
+          mvps: faceitMVPs,
+          clutches: faceitClutches,
         });
+
+        // Log actions for challenge/XP progress
+        if (faceitAces) {
+          const prevAces = profile.total_aces || 0;
+          const deltaAces = Math.max(0, faceitAces - (isFirstSync ? faceitAces : prevAces));
+          if (deltaAces > 0) await logAction(steamId, "ace", deltaAces);
+        }
+        if (faceitClutches) {
+          const prevClutches = profile.total_clutches || 0;
+          const deltaClutches = Math.max(0, faceitClutches - (isFirstSync ? faceitClutches : prevClutches));
+          if (deltaClutches > 0) await logAction(steamId, "clutch", deltaClutches);
+        }
       }
     }
   } catch {
