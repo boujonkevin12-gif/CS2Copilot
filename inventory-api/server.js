@@ -392,32 +392,39 @@ app.get("/debug/inventory/:steamId", async (req, res) => {
     let parseError = null;
     try { parsed = JSON.parse(text); } catch (e) { parseError = e.message; }
 
+    const assetsIsArray = Array.isArray(parsed?.assets);
     const assetCount = parsed?.assets ? Object.keys(parsed.assets).length : 0;
-    let innerCount = 0;
-    if (parsed?.assets) {
-      for (const [, ctx] of Object.entries(parsed.assets)) {
-        if (typeof ctx === "object" && ctx) {
-          for (const [, map] of Object.entries(ctx)) {
-            if (typeof map === "object" && map) innerCount += Object.keys(map).length;
-          }
-        }
-      }
+    const descsIsArray = Array.isArray(parsed?.descriptions);
+    const descCount = parsed?.descriptions ? Object.keys(parsed.descriptions).length : 0;
+    let sampleDescKeys = [];
+    if (parsed?.descriptions) {
+      sampleDescKeys = Object.keys(parsed.descriptions).slice(0, 3);
+    }
+    let sampleDescItem = null;
+    if (descsIsArray && parsed.descriptions.length > 0) {
+      sampleDescItem = JSON.stringify(parsed.descriptions[0]).substring(0, 300);
+    } else if (!descsIsArray && sampleDescKeys.length > 0) {
+      sampleDescItem = JSON.stringify(parsed.descriptions[sampleDescKeys[0]]).substring(0, 300);
     }
 
     res.json({
       steamStatus: steamRes.status,
-      steamStatusText: steamRes.statusText,
       elapsed,
       textLength: text.length,
       isNull: text === "null",
       parseError,
       success: parsed?.success,
+      typeofSuccess: typeof parsed?.success,
       total_inventory_count: parsed?.total_inventory_count,
-      more_items: parsed?.more_items,
-      assetGroups: assetCount,
-      totalAssets: innerCount,
-      descCount: parsed?.descriptions ? Object.keys(parsed.descriptions).length : 0,
-      textPreview: text.substring(0, 500),
+      moreItems: parsed?.more_items,
+      lastAssetId: parsed?.last_assetid,
+      assetsType: Array.isArray(parsed?.assets) ? "array" : typeof parsed?.assets,
+      assetsCount: assetCount,
+      descsType: descsIsArray ? "array" : typeof parsed?.descriptions,
+      descCount,
+      sampleDescKeys,
+      sampleDescItem,
+      firstAsset: Array.isArray(parsed?.assets) ? parsed.assets[0] : null,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
