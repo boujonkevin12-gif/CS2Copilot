@@ -62,7 +62,7 @@ export default function DashboardOverview() {
 
   return <div className="dashboard-shell mx-auto max-w-[1400px] space-y-5">
     <section className="flex flex-wrap items-end justify-between gap-4 pt-1">
-      <div><h1 className="text-2xl font-bold tracking-tight">{(() => { const h = new Date().getHours(); return h < 12 ? "¡Buenos días" : h < 19 ? "¡Buenas tardes" : "¡Buenas noches"; })()}, <span className="text-violet-400">{name} ↗</span>! <span className="inline-block animate-[wave_2s_ease-in-out_infinite]">👋</span></h1><p className="mt-1 text-sm text-zinc-400">Aquí tienes tu resumen de rendimiento y actividad.</p></div>
+      <div><h1 className="text-2xl font-bold tracking-tight">{(() => { const h = new Date().getHours(); return h >= 5 && h < 12 ? "¡Buenos días" : h >= 12 && h < 20 ? "¡Buenas tardes" : "¡Buenas noches"; })()}, <span className="text-violet-400">{name} ↗</span>! <span className="inline-block animate-[wave_2s_ease-in-out_infinite]">👋</span></h1><p className="mt-1 text-sm text-zinc-400">Aquí tienes tu resumen de rendimiento y actividad.</p></div>
       <button className="panel flex items-center gap-8 px-4 py-2.5 text-xs font-medium text-zinc-300">Últimos 30 días <ChevronDown size={14}/></button>
     </section>
 
