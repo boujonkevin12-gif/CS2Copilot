@@ -198,6 +198,11 @@ function parseSteamRarity(tags: Array<{ category?: string; internal_name?: strin
   if (rarityTag?.internal_name) {
     const mapped = STEAM_RARITY_MAP[rarityTag.internal_name];
     if (mapped) return { rarity: mapped, rarityName: rarityTag.localized_tag_name || rarityTag.internal_name };
+    for (const [key, value] of Object.entries(STEAM_RARITY_MAP)) {
+      if (rarityTag.internal_name.startsWith(key)) {
+        return { rarity: value, rarityName: rarityTag.localized_tag_name || rarityTag.internal_name };
+      }
+    }
   }
   return { rarity: "common", rarityName: "Common" };
 }
@@ -213,7 +218,7 @@ function extractStickers(descriptions: Array<{ type?: string; value?: string }>)
 }
 
 function extractCollection(tags: Array<{ category?: string; internal_name?: string; localized_tag_name?: string }>): { collection: string | null; collectionName: string | null } {
-  const setTag = tags.find((t) => t.category === "Item Set" || t.category === "item_set" || t.category === "Collection");
+  const setTag = tags.find((t) => t.category === "Item Set" || t.category === "item_set" || t.category === "Collection" || t.category === "ItemSet");
   if (setTag?.localized_tag_name) {
     return { collection: setTag.internal_name || null, collectionName: setTag.localized_tag_name };
   }
@@ -247,7 +252,7 @@ function parseItem(asset: SteamAsset, desc: SteamDescription, steamId: string): 
 
   const classification = classifyItem(name, marketHashName, tags);
   const { rarity, rarityName } = parseSteamRarity(tags);
-  const stattrak = name.startsWith("StatTrak\u2122") || tags.some((t) => t.internal_name === "strange");
+  const stattrak = false;
   const souvenir = name.includes("Souvenir") || marketHashName.includes("Souvenir");
   const exterior = parseExterior(name, tags);
   const { collection, collectionName } = extractCollection(tags);

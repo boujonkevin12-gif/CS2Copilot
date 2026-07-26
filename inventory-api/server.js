@@ -166,6 +166,12 @@ function parseSteamRarity(tags) {
   if (rarityTag?.internal_name) {
     const mapped = STEAM_RARITY_MAP[rarityTag.internal_name];
     if (mapped) return { rarity: mapped, rarityName: rarityTag.localized_tag_name || rarityTag.internal_name };
+    // New format: "Rarity_Uncommon_Weapon" → match by prefix
+    for (const [key, value] of Object.entries(STEAM_RARITY_MAP)) {
+      if (rarityTag.internal_name.startsWith(key)) {
+        return { rarity: value, rarityName: rarityTag.localized_tag_name || rarityTag.internal_name };
+      }
+    }
   }
   return { rarity: "common", rarityName: "Common" };
 }
@@ -181,7 +187,7 @@ function extractStickers(descriptions) {
 }
 
 function extractCollection(tags) {
-  const setTag = tags.find((t) => t.category === "Item Set" || t.category === "item_set" || t.category === "Collection");
+  const setTag = tags.find((t) => t.category === "Item Set" || t.category === "item_set" || t.category === "Collection" || t.category === "ItemSet");
   if (setTag?.localized_tag_name)
     return { collection: setTag.internal_name || null, collectionName: setTag.localized_tag_name };
   return { collection: null, collectionName: null };
@@ -212,7 +218,7 @@ function parseItem(asset, desc, steamId) {
 
   const classification = classifyItem(name, marketHashName, tags);
   const { rarity, rarityName } = parseSteamRarity(tags);
-  const stattrak = name.startsWith("StatTrak™") || tags.some((t) => t.internal_name === "strange");
+  const stattrak = false;
   const souvenir = name.includes("Souvenir") || marketHashName.includes("Souvenir");
   const exterior = parseExterior(name, tags);
   const { collection, collectionName } = extractCollection(tags);
