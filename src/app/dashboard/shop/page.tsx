@@ -78,6 +78,28 @@ function FramePreview({ itemId }: { itemId: string }) {
 function BackgroundPreview({ itemId }: { itemId: string }) {
   const config = getBackgroundConfig(itemId);
   if (!config) return <EmptyPreview />;
+  if (config.video) {
+    return (
+      <div className="w-full h-full relative overflow-hidden">
+        <video className="absolute inset-0 w-full h-full object-cover" src={config.video} autoPlay loop muted playsInline />
+        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <Sparkles className="h-8 w-8 text-white/20" />
+        </div>
+      </div>
+    );
+  }
+  if (config.image) {
+    return (
+      <div className="w-full h-full relative overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${config.image})` }} />
+        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <Sparkles className="h-8 w-8 text-white/20" />
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={`w-full h-full relative overflow-hidden ${config.className}`}>
       <div className="absolute inset-0" style={{ background: config.gradient }} />

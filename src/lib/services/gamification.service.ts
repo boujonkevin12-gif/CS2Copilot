@@ -827,27 +827,13 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: "frame_crimson", name: "Crimson", category: "frame", price: 800, levelReq: 20, rarity: "rare", desc: "Marco carmesí" },
   { id: "frame_holographic", name: "Holographic", category: "frame", price: 1500, levelReq: 30, rarity: "legendary", desc: "Marco holográfico" },
 
-  { id: "bg_mirage", name: "Mirage", category: "background", price: 300, levelReq: 5, rarity: "common", desc: "Fondo de Mirage" },
-  { id: "bg_inferno", name: "Inferno", category: "background", price: 300, levelReq: 5, rarity: "common", desc: "Fondo de Inferno" },
-  { id: "bg_dust2", name: "Dust2", category: "background", price: 300, levelReq: 5, rarity: "common", desc: "Fondo de Dust2" },
-  { id: "bg_anubis", name: "Anubis", category: "background", price: 300, levelReq: 5, rarity: "common", desc: "Fondo de Anubis" },
-  { id: "bg_galaxy", name: "Galaxy", category: "background", price: 600, levelReq: 15, rarity: "rare", desc: "Fondo galáctico" },
-  { id: "bg_cyberpunk", name: "Cyberpunk", category: "background", price: 800, levelReq: 20, rarity: "rare", desc: "Fondo cyberpunk" },
-  { id: "bg_matrix", name: "Matrix", category: "background", price: 1000, levelReq: 25, rarity: "epic", desc: "Fondo Matrix" },
-  { id: "bg_purple_smoke", name: "Purple Smoke", category: "background", price: 600, levelReq: 15, rarity: "rare", desc: "Humo púrpura" },
-  { id: "bg_purple_particles", name: "Purple Particles", category: "background", price: 1500, levelReq: 30, rarity: "legendary", desc: "Partículas flotantes moradas" },
-  { id: "bg_futuristic_grid", name: "Futuristic Grid", category: "background", price: 1200, levelReq: 25, rarity: "epic", desc: "Grid neón futurista" },
-  { id: "bg_cs2_radar", name: "CS2 Radar", category: "background", price: 1200, levelReq: 25, rarity: "epic", desc: "Radar estilo CS2" },
-  { id: "bg_cs_smoke", name: "CS Smoke", category: "background", price: 800, levelReq: 20, rarity: "rare", desc: "Humo ambiental de CS" },
-  { id: "bg_topographic", name: "Topographic", category: "background", price: 1000, levelReq: 22, rarity: "epic", desc: "Mapa topográfico premium" },
-  { id: "bg_wireframe", name: "Wireframe 3D", category: "background", price: 1000, levelReq: 22, rarity: "epic", desc: "Montañas wireframe" },
-  { id: "bg_data_stream", name: "Data Stream", category: "background", price: 800, levelReq: 18, rarity: "rare", desc: "Flujo de datos" },
-  { id: "bg_constellation", name: "Constellation", category: "background", price: 1200, levelReq: 25, rarity: "epic", desc: "Constelación de estrellas" },
-  { id: "bg_hexagons", name: "Hexagons", category: "background", price: 1000, levelReq: 22, rarity: "epic", desc: "Patrón hexagonal" },
-  { id: "bg_aurora", name: "Aurora", category: "background", price: 1500, levelReq: 30, rarity: "legendary", desc: "Aurora boreal difuminada" },
-  { id: "bg_crystals", name: "Crystals", category: "background", price: 1000, levelReq: 22, rarity: "epic", desc: "Cristales girando" },
-  { id: "bg_living_gradient", name: "Living Gradient", category: "background", price: 600, levelReq: 15, rarity: "rare", desc: "Gradiente vivo cambiante" },
-  { id: "bg_calm_night", name: "Calm Night", category: "background", price: 2000, levelReq: 35, rarity: "legendary", desc: "Noche serena con luna" },
+  { id: "bg_anime_img_1", name: "Anime Scenery 1", category: "background", price: 400, levelReq: 8, rarity: "rare", desc: "Paisaje anime estático" },
+  { id: "bg_anime_img_2", name: "Anime Scenery 2", category: "background", price: 500, levelReq: 10, rarity: "rare", desc: "Paisaje anime estático" },
+  { id: "bg_anime_vid_1", name: "Anime Video 1", category: "background", price: 600, levelReq: 12, rarity: "rare", desc: "Fondo anime animado" },
+  { id: "bg_anime_vid_2", name: "Anime Video 2", category: "background", price: 900, levelReq: 18, rarity: "epic", desc: "Fondo anime animado" },
+  { id: "bg_calm_night", name: "Calm Night", category: "background", price: 1500, levelReq: 25, rarity: "epic", desc: "Noche serena animada" },
+  { id: "bg_anime_vid_4", name: "Anime Video 4", category: "background", price: 2000, levelReq: 30, rarity: "legendary", desc: "Fondo anime animado premium" },
+  { id: "bg_anime_vid_5", name: "Anime Video 5", category: "background", price: 2500, levelReq: 35, rarity: "legendary", desc: "Fondo anime animado legendario" },
 
   { id: "title_rookie", name: "Rookie", category: "title", price: 100, levelReq: 1, rarity: "common", desc: "Título de principiante" },
   { id: "title_entry_fragger", name: "Entry Fragger", category: "title", price: 300, levelReq: 10, rarity: "common", desc: "El primero en entrar" },
@@ -1174,11 +1160,11 @@ export async function syncProfileStats(steamId: string, stats: {
   if (stats.kills !== undefined) { sets.push("total_kills = MAX(total_kills, ?)"); args.push(stats.kills); }
   if (stats.headshots !== undefined) { sets.push("total_headshots = MAX(total_headshots, ?)"); args.push(stats.headshots); }
   if (stats.mvps !== undefined) { sets.push("total_mvps = MAX(total_mvps, ?)"); args.push(stats.mvps); }
-  if (stats.hours !== undefined) { sets.push("total_hours = MAX(total_hours, ?)"); args.push(stats.hours); }
-  if (stats.kd !== undefined) { sets.push("best_kd = MAX(best_kd, ?)"); args.push(stats.kd); }
-  if (stats.hsPct !== undefined) { sets.push("best_hs_pct = MAX(best_hs_pct, ?)"); args.push(stats.hsPct); }
-  if (stats.elo !== undefined) { sets.push("best_elo = MAX(best_elo, ?)"); args.push(stats.elo); }
-  if (stats.faceitLevel !== undefined) { sets.push("best_faceit_level = MAX(best_faceit_level, ?)"); args.push(stats.faceitLevel); }
+  if (stats.hours !== undefined) { sets.push("total_hours = ?"); args.push(stats.hours); }
+  if (stats.kd !== undefined) { sets.push("best_kd = ?"); args.push(stats.kd); }
+  if (stats.hsPct !== undefined) { sets.push("best_hs_pct = ?"); args.push(stats.hsPct); }
+  if (stats.elo !== undefined) { sets.push("best_elo = ?"); args.push(stats.elo); }
+  if (stats.faceitLevel !== undefined) { sets.push("best_faceit_level = ?"); args.push(stats.faceitLevel); }
   if (stats.premier !== undefined) { sets.push("best_premier = MAX(best_premier, ?)"); args.push(stats.premier); }
   if (stats.clutches !== undefined) { sets.push("total_clutches = MAX(total_clutches, ?)"); args.push(stats.clutches); }
   if (stats.aces !== undefined) { sets.push("total_aces = MAX(total_aces, ?)"); args.push(stats.aces); }

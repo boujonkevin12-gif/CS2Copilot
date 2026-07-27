@@ -29,6 +29,11 @@ export async function POST(request: NextRequest) {
         steamLevel: userData.steamLevel || 0,
         cs2Hours: userData.cs2?.hoursPlayed ? Math.round(userData.cs2.hoursPlayed) : 0,
       });
+      // Sync hours as total_hours for leaderboard
+      const cs2Hours = userData.cs2?.hoursPlayed ? Math.round(userData.cs2.hoursPlayed) : 0;
+      if (cs2Hours > 0) {
+        await syncProfileStats(steamId, { hours: cs2Hours });
+      }
     }
   } catch {
     // Cookie sync failed
@@ -106,6 +111,8 @@ export async function POST(request: NextRequest) {
         const faceitAces = kv("ACEs");
         const faceitMVPs = kv("MVPs");
         const faceitClutches = kv("Clutches");
+        const faceitKD = kv("Average K/D Ratio");
+        const faceitHS = kv("Average Headshots %");
 
         await syncProfileStats(steamId, {
           elo: elo ? Number(elo) : undefined,
@@ -113,6 +120,8 @@ export async function POST(request: NextRequest) {
           aces: faceitAces,
           mvps: faceitMVPs,
           clutches: faceitClutches,
+          kd: faceitKD !== undefined ? Number(faceitKD) : undefined,
+          hsPct: faceitHS !== undefined ? Number(faceitHS) : undefined,
         });
 
         // Log actions for challenge/XP progress
