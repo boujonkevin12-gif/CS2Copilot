@@ -46,7 +46,7 @@ const sidebarGroups = [
     links: [
       { icon: BarChart3, label: "Análisis", href: "/dashboard/analytics" },
       { icon: Target, label: "Estadísticas", href: "/dashboard/stats" },
-      { icon: Package, label: "Inventario", href: "/dashboard/inventory", badge: "Próximamente" },
+      { icon: Package, label: "Inventario", href: "/dashboard/inventory" },
     ],
   },
   {
