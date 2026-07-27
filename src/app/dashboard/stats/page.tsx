@@ -171,23 +171,43 @@ export default function StatsPage() {
   const lifetime = faceitStats?.lifetime;
   const mapStats = faceitStats?.segments?.filter((s) => s.type === "Map" && s.map_name) || [];
 
-  const lMatches = lifetime ? parseInt(String(lifetime.Matches || "0"), 10) : 0;
-  const lWinRate = lifetime ? parseFloat(String(lifetime["Win Rate %"] || "0")) : 0;
-  const lKD = lifetime ? parseFloat(String(lifetime["Average K/D Ratio"] || "0")) : 0;
-  const lHS = lifetime ? parseFloat(String(lifetime["Average Headshots %"] || "0")) : 0;
-  const lKills = lifetime ? parseInt(String(lifetime["Total Kills with extended stats"] || "0"), 10) : 0;
-  const lTotalDamage = lifetime ? parseInt(String(lifetime["Total Damage"] || "0"), 10) : 0;
-  const lADR = lifetime ? parseFloat(String(lifetime["ADR"] || "0")) : 0;
-  const l1v1Wins = lifetime ? parseInt(String(lifetime["Total 1v1 Wins"] || "0"), 10) : 0;
-  const l1v2Wins = lifetime ? parseInt(String(lifetime["Total 1v2 Wins"] || "0"), 10) : 0;
-  const l1v3Wins = lifetime ? parseInt(String(lifetime["Total 1v3 Wins"] || "0"), 10) : 0;
-  const l1v4Wins = lifetime ? parseInt(String(lifetime["Total 1v4 Wins"] || "0"), 10) : 0;
-  const l1v5Wins = lifetime ? parseInt(String(lifetime["Total 1v5 Wins"] || "0"), 10) : 0;
-  const lMVPs = lifetime ? parseInt(String(lifetime["MVPs"] || "0"), 10) : 0;
-  const lTotalHS = lifetime ? parseInt(String(lifetime["Total Headshots"] || "0"), 10) : 0;
-  const lAvgAssists = lifetime ? parseFloat(String(lifetime["Average Assists"] || "0")) : 0;
-  const lAvgDeaths = lifetime ? parseFloat(String(lifetime["Average Deaths"] || "0")) : 0;
-  const lWinStreak = lifetime ? parseInt(String(lifetime["Longest Win Streak"] || "0"), 10) : 0;
+  // Helper to find FACEIT keys with flexible casing/prefix
+  function lv(key: string, asFloat = false): number {
+    if (!lifetime) return 0;
+    const variants = [
+      key, key.toLowerCase(), key.toUpperCase(),
+      key.charAt(0).toUpperCase() + key.slice(1).toLowerCase(),
+      "Total " + key, "Average " + key,
+      key.replace("Total ", ""), key.replace("Average ", ""),
+    ];
+    for (const v of variants) {
+      if (lifetime[v] !== undefined) {
+        const n = asFloat ? parseFloat(String(lifetime[v])) : parseInt(String(lifetime[v]), 10);
+        if (!isNaN(n)) return n;
+      }
+    }
+    return 0;
+  }
+
+  const lMatches = lv("Matches");
+  const lWinRate = lv("Win Rate %", true);
+  const lKD = lv("Average K/D Ratio", true);
+  const lHS = lv("Average Headshots %", true);
+  const lKills = lv("Total Kills with extended stats");
+  const lTotalDamage = lv("Total Damage");
+  const lADR = lv("ADR", true);
+  const l1v1Wins = lv("Total 1v1 Wins");
+  const l1v2Wins = lv("Total 1v2 Wins");
+  const l1v3Wins = lv("Total 1v3 Wins");
+  const l1v4Wins = lv("Total 1v4 Wins");
+  const l1v5Wins = lv("Total 1v5 Wins");
+  const lMVPs = lv("MVPs");
+  const lTotalHS = lv("Headshots");
+  const lAvgAssists = lifetime && lifetime["Average Assists"] !== undefined
+    ? parseFloat(String(lifetime["Average Assists"]))
+    : (lMatches > 0 ? lv("Assists") / lMatches : 0);
+  const lAvgDeaths = lv("Average Deaths", true);
+  const lWinStreak = lv("Longest Win Streak");
   const lClutches = l1v1Wins + l1v2Wins;
 
   return (
