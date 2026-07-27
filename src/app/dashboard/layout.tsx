@@ -29,6 +29,8 @@ import {
   ShoppingBag,
   Swords,
   Zap,
+  CircleDollarSign,
+  Medal,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -56,6 +58,7 @@ const sidebarGroups = [
       { icon: Swords, label: "Desafíos", href: "/dashboard/challenges" },
       { icon: ShoppingBag, label: "Tienda", href: "/dashboard/shop" },
       { icon: Zap, label: "Rankings", href: "/dashboard/leaderboard" },
+      { icon: Medal, label: "Torneos", href: "/dashboard/tournaments" },
     ],
   },
   {
@@ -163,7 +166,7 @@ function CoinDisplay() {
 
   return (
     <Link href="/dashboard/shop" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent/10 hover:bg-accent/15 transition-all">
-      <span className="text-xs">🪙</span>
+      <CircleDollarSign className="h-4 w-4 text-accent" />
       <span className="text-xs font-bold font-mono text-accent">{profile.pilot_coins.toLocaleString()}</span>
     </Link>
   );

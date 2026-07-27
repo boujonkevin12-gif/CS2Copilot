@@ -78,6 +78,17 @@ const MAP_NAMES: Record<string, string> = {
   de_aztec: "Aztec",
 };
 
+interface FaceitMatch {
+  matchId: string;
+  result: string;
+  score: string;
+  playerKills: number;
+  playerDeaths: number;
+  playerKD: number;
+  map: string;
+  finishedAt: string;
+}
+
 interface PlayerData {
   profile: {
     steam_id: string;
@@ -122,6 +133,7 @@ interface PlayerData {
   followerCount: number;
   followingCount: number;
   isFollowing: boolean;
+  faceitMatches: FaceitMatch[];
 }
 
 function StatCard({ icon: Icon, label, value, color, sub }: { icon: any; label: string; value: string | number; color: string; sub?: string }) {
@@ -455,6 +467,34 @@ export default function PlayerProfilePage({ params }: { params: Promise<{ steamI
                   <span className="text-muted ml-auto shrink-0">
                     {timeAgo(a.created_at)}
                   </span>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        </motion.div>
+      )}
+
+      {/* FACEIT Recent Matches */}
+      {data.faceitMatches?.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}>
+          <GlassCard padding="md">
+            <div className="flex items-center gap-3 mb-4">
+              <Swords className="h-5 w-5 text-orange-400" />
+              <h3 className="text-sm font-semibold">Últimas Partidas (FACEIT)</h3>
+            </div>
+            <div className="space-y-2">
+              {data.faceitMatches.map((m) => (
+                <div key={m.matchId} className="flex items-center gap-3 glass rounded-xl px-4 py-2.5">
+                  <div className={`h-2 w-2 rounded-full shrink-0 ${m.result === "win" ? "bg-green-500" : "bg-red-500"}`} />
+                  <span className="text-xs font-medium w-16 shrink-0">{m.map || "—"}</span>
+                  <span className={`text-xs font-bold font-mono w-10 ${m.result === "win" ? "text-green-400" : "text-red-400"}`}>
+                    {m.result === "win" ? "W" : "L"}
+                  </span>
+                  <span className="text-xs text-muted">{m.score}</span>
+                  <span className="text-xs font-mono text-zinc-300 ml-auto">
+                    {m.playerKD.toFixed(2)} ({m.playerKills}/{m.playerDeaths})
+                  </span>
+                  <span className="text-[10px] text-muted shrink-0">{timeAgo(m.finishedAt)}</span>
                 </div>
               ))}
             </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { getSteamId } from "@/lib/auth-helpers";
+import { getFaceitService } from "@/lib/services/faceit.service";
 
 export async function GET(
   request: NextRequest,
@@ -69,6 +70,46 @@ export async function GET(
     isFollowing = followCheck.rows.length > 0;
   }
 
+  // Fetch FACEIT recent matches
+  let faceitMatches: Array<{ matchId: string; result: string; score: string; playerKills: number; playerDeaths: number; playerKD: number; map: string; finishedAt: string }> = [];
+  try {
+    const faceit = getFaceitService();
+    const faceitPlayer = await faceit.getPlayerBySteamId(steamId);
+    if (faceitPlayer?.player_id) {
+      const history = await faceit.getMatchHistory(faceitPlayer.player_id, 0, 5);
+      if (history?.items?.length) {
+        const matchStatsPromises = history.items.map((m) =>
+          faceit.getMatchStats(m.match_id).then((stats) => {
+            const round = stats?.rounds?.[0];
+            const map = round?.round_stats?.Map || "";
+            const score = round?.round_stats?.Score || "";
+            const winner = round?.round_stats?.Winner || "";
+            const myTeam = round?.teams?.find((t) =>
+              t.players?.some((p) => p.player_id === faceitPlayer.player_id)
+            );
+            const myStats = myTeam?.players?.find((p) => p.player_id === faceitPlayer.player_id)?.player_stats;
+            const kills = parseInt(myStats?.Kills || "0");
+            const deaths = parseInt(myStats?.Deaths || "0");
+            return {
+              matchId: m.match_id,
+              result: myTeam?.team_id === winner ? "win" : "loss",
+              score,
+              playerKills: kills,
+              playerDeaths: deaths,
+              playerKD: deaths > 0 ? Math.round((kills / deaths) * 100) / 100 : kills,
+              map,
+              finishedAt: new Date(m.finished_at * 1000).toISOString(),
+            };
+          }).catch(() => null)
+        );
+        const results = await Promise.all(matchStatsPromises);
+        faceitMatches = results.filter(Boolean) as typeof faceitMatches;
+      }
+    }
+  } catch {
+    // FACEIT not available
+  }
+
   return NextResponse.json({
     profile,
     position,
@@ -78,5 +119,6 @@ export async function GET(
     followerCount: (followerCount.rows[0]?.count as number) || 0,
     followingCount: (followingCount.rows[0]?.count as number) || 0,
     isFollowing,
+    faceitMatches,
   });
 }

@@ -205,6 +205,51 @@ CREATE TABLE IF NOT EXISTS inventory_fetch_state (
   fetching_since TEXT
 );
 
+CREATE TABLE IF NOT EXISTS tournaments (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  creator_steam_id TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  entry_fee INTEGER NOT NULL DEFAULT 0,
+  prize_pool INTEGER NOT NULL DEFAULT 0,
+  duration_hours INTEGER NOT NULL DEFAULT 72,
+  status TEXT NOT NULL DEFAULT 'pending',
+  max_participants INTEGER DEFAULT 0,
+  start_time TEXT,
+  end_time TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (creator_steam_id) REFERENCES player_profile(steam_id)
+);
+
+CREATE TABLE IF NOT EXISTS tournament_participants (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tournament_id TEXT NOT NULL,
+  steam_id TEXT NOT NULL,
+  joined_at TEXT DEFAULT (datetime('now')),
+  placement INTEGER DEFAULT NULL,
+  prize_earned INTEGER DEFAULT 0,
+  FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+  FOREIGN KEY (steam_id) REFERENCES player_profile(steam_id),
+  UNIQUE(tournament_id, steam_id)
+);
+
+CREATE TABLE IF NOT EXISTS tournament_invites (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tournament_id TEXT NOT NULL,
+  from_steam_id TEXT NOT NULL,
+  to_steam_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
+  UNIQUE(tournament_id, to_steam_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tournaments_creator ON tournaments(creator_steam_id);
+CREATE INDEX IF NOT EXISTS idx_tournaments_status ON tournaments(status);
+CREATE INDEX IF NOT EXISTS idx_tournament_participants_tournament ON tournament_participants(tournament_id);
+CREATE INDEX IF NOT EXISTS idx_tournament_participants_player ON tournament_participants(steam_id);
+CREATE INDEX IF NOT EXISTS idx_tournament_invites_player ON tournament_invites(to_steam_id, status);
+
 `;
 
 export async function initializeDatabase() {
