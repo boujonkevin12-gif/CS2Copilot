@@ -61,6 +61,18 @@ export async function createTournament(data: {
     args: [id, data.creatorSteamId],
   });
 
+  // Creator also pays entry fee
+  if (data.entryFee > 0) {
+    await getDb().execute({
+      sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ? WHERE steam_id = ?",
+      args: [data.entryFee, data.creatorSteamId],
+    });
+    await getDb().execute({
+      sql: "UPDATE tournaments SET prize_pool = prize_pool + ? WHERE id = ?",
+      args: [data.entryFee, id],
+    });
+  }
+
   return getTournament(id) as Promise<Tournament>;
 }
 

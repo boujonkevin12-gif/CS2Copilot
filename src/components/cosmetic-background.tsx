@@ -88,6 +88,10 @@ const BG_CONFIG: Record<string, {
     gradient: "linear-gradient(135deg, #080008, #0a0015, #050015, #080008)",
     className: "bg-living-gradient",
   },
+  bg_calm_night: {
+    gradient: "linear-gradient(180deg, #020015, #0a0025, #120030, #0a0025, #020015)",
+    className: "bg-calm-night",
+  },
 };
 
 export function getBackgroundConfig(bgId: string | null | undefined) {

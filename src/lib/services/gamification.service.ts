@@ -847,6 +847,7 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: "bg_aurora", name: "Aurora", category: "background", price: 1500, levelReq: 30, rarity: "legendary", desc: "Aurora boreal difuminada" },
   { id: "bg_crystals", name: "Crystals", category: "background", price: 1000, levelReq: 22, rarity: "epic", desc: "Cristales girando" },
   { id: "bg_living_gradient", name: "Living Gradient", category: "background", price: 600, levelReq: 15, rarity: "rare", desc: "Gradiente vivo cambiante" },
+  { id: "bg_calm_night", name: "Calm Night", category: "background", price: 2000, levelReq: 35, rarity: "legendary", desc: "Noche serena con luna" },
 
   { id: "title_rookie", name: "Rookie", category: "title", price: 100, levelReq: 1, rarity: "common", desc: "Título de principiante" },
   { id: "title_entry_fragger", name: "Entry Fragger", category: "title", price: 300, levelReq: 10, rarity: "common", desc: "El primero en entrar" },
