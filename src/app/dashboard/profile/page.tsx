@@ -5,8 +5,9 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/lib/user-context";
 import { useGamification } from "@/lib/gamification-context";
-import { getFrameClasses, getEffectClass, getEmoji } from "@/lib/cosmetics";
+import { getEffectClass, getEmoji } from "@/lib/cosmetics";
 import { CosmeticBackground } from "@/components/cosmetic-background";
+import { CosmeticFrame } from "@/components/cosmetic-frame";
 import { useRef } from "react";
 import {
   User,
@@ -112,13 +113,15 @@ export default function ProfilePage() {
         <GlassCard style={{ background: "transparent", border: "none" }}>
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             <div className="relative">
+              <CosmeticFrame frameId={profile?.equipped_frame} rounded="rounded-2xl">
               {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className={`h-28 w-28 rounded-2xl border-2 border-white/[0.1] shadow-lg shadow-violet-500/20 ${getFrameClasses(profile?.equipped_frame)}`} />
+                <img src={user.avatar} alt={user.name} className="h-28 w-28 rounded-2xl border-2 border-white/[0.1] shadow-lg shadow-violet-500/20" />
               ) : (
-                <div className={`h-28 w-28 rounded-2xl bg-gradient-to-br from-violet-500 via-cyan-500 to-purple-500 flex items-center justify-center text-4xl font-bold text-white shadow-lg shadow-violet-500/20 ${getFrameClasses(profile?.equipped_frame)}`}>
+                <div className="h-28 w-28 rounded-2xl bg-gradient-to-br from-violet-500 via-cyan-500 to-purple-500 flex items-center justify-center text-4xl font-bold text-white shadow-lg shadow-violet-500/20">
                   {user.name?.slice(0, 2).toUpperCase() || "SP"}
                 </div>
               )}
+              </CosmeticFrame>
               {user.visibility === 3 && (
                 <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center border-2 border-[#09090b]">
                   <span className="text-[10px] font-bold text-white">✓</span>

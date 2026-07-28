@@ -1,5 +1,25 @@
 export type CosmeticCategory = "frame" | "background" | "effect" | "emoji";
 
+export interface FrameImageConfig {
+  src: string;
+  type: "image" | "video";
+}
+
+const FRAME_IMAGE_CONFIG: Record<string, FrameImageConfig> = {
+  frame_anime_1: { src: "/frames/4030da4ac3376c3162c596c02509d6ca.jpg", type: "image" },
+  frame_anime_2: { src: "/frames/ea1f7e39a979c0bb41e90b6e8fa6f562.jpg", type: "image" },
+  frame_anime_3: { src: "/frames/c39245e163447addb0aecfe6abe3c274.jpg", type: "image" },
+  frame_anime_4: { src: "/frames/edcd321ffe09872a8bf936a05005f8a1.jpg", type: "image" },
+  frame_anime_5: { src: "/frames/6764cb9c927cf05f3c13ac86dae6f99f.mp4", type: "video" },
+  frame_anime_6: { src: "/frames/1459afcabde5e1bed78d702a4917d3ee_720w.mp4", type: "video" },
+  frame_anime_7: { src: "/frames/e35412b19e05cc7d1878bbe29be302cc_720w.mp4", type: "video" },
+};
+
+export function getFrameImageConfig(frameId: string | null | undefined): FrameImageConfig | null {
+  if (!frameId) return null;
+  return FRAME_IMAGE_CONFIG[frameId] || null;
+}
+
 const FRAME_STYLES: Record<string, { border: string; glow: string; className: string }> = {
   frame_neon_blue: {
     border: "3px solid #3b82f6",

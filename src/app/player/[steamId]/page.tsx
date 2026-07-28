@@ -4,8 +4,9 @@ import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/lib/user-context";
-import { getFrameClasses, getEffectClass, getEmoji } from "@/lib/cosmetics";
+import { getEffectClass, getEmoji } from "@/lib/cosmetics";
 import { CosmeticBackground } from "@/components/cosmetic-background";
+import { CosmeticFrame } from "@/components/cosmetic-frame";
 import { useState, useEffect, useCallback, use } from "react";
 import Link from "next/link";
 import {
@@ -259,17 +260,19 @@ export default function PlayerProfilePage({ params }: { params: Promise<{ steamI
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
               {/* Avatar */}
               <div className="relative shrink-0">
+                <CosmeticFrame frameId={p.equipped_frame} rounded="rounded-2xl">
                 {p.avatar_url ? (
                   <img
                     src={p.avatar_url}
                     alt={p.steam_name}
-                    className={`h-28 w-28 rounded-2xl border-2 border-white/[0.15] shadow-lg ${getFrameClasses(p.equipped_frame)}`}
+                    className="h-28 w-28 rounded-2xl border-2 border-white/[0.15] shadow-lg"
                   />
                 ) : (
-                  <div className={`h-28 w-28 rounded-2xl bg-gradient-to-br from-primary via-cyan-500 to-purple-500 flex items-center justify-center text-4xl font-bold text-white ${getFrameClasses(p.equipped_frame)}`}>
+                  <div className="h-28 w-28 rounded-2xl bg-gradient-to-br from-primary via-cyan-500 to-purple-500 flex items-center justify-center text-4xl font-bold text-white">
                     {p.steam_name?.slice(0, 2).toUpperCase() || "??"}
                   </div>
                 )}
+                </CosmeticFrame>
                 <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary flex items-center justify-center border-2 border-background text-xs font-bold text-white">
                   {p.level}
                 </div>

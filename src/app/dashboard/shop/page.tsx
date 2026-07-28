@@ -3,7 +3,7 @@
 import { useGamification } from "@/lib/gamification-context";
 import { ShoppingBag, CheckCircle, Crown, Sparkles, Palette, Award, Smile, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getEmoji } from "@/lib/cosmetics";
+import { getEmoji, getFrameImageConfig } from "@/lib/cosmetics";
 import { getBackgroundConfig } from "@/components/cosmetic-background";
 import { PageHeader } from "@/components/ui/page-header";
 
@@ -38,12 +38,13 @@ const rarityGlow: Record<string, string> = {
 };
 
 const framePreviewClasses: Record<string, { ring: string; glow: string; frameClass: string; icon: string }> = {
-  frame_neon_blue: { ring: "ring-blue-500/70", glow: "shadow-[0_0_20px_rgba(59,130,246,0.5)]", frameClass: "frame-neon-blue", icon: "text-blue-400" },
-  frame_neon_purple: { ring: "ring-purple-500/70", glow: "shadow-[0_0_20px_rgba(168,85,247,0.5)]", frameClass: "frame-neon-purple", icon: "text-purple-400" },
-  frame_gold: { ring: "ring-yellow-500/70", glow: "shadow-[0_0_20px_rgba(234,179,8,0.5)]", frameClass: "frame-gold", icon: "text-yellow-400" },
-  frame_diamond: { ring: "ring-cyan-400/70", glow: "shadow-[0_0_24px_rgba(6,182,212,0.5)]", frameClass: "frame-diamond", icon: "text-cyan-400" },
-  frame_crimson: { ring: "ring-red-500/70", glow: "shadow-[0_0_20px_rgba(239,68,68,0.5)]", frameClass: "frame-crimson", icon: "text-red-400" },
-  frame_holographic: { ring: "ring-transparent", glow: "shadow-[0_0_28px_rgba(168,85,247,0.4)]", frameClass: "frame-holographic", icon: "text-purple-300" },
+  frame_anime_1: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },
+  frame_anime_2: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },
+  frame_anime_3: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },
+  frame_anime_4: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },
+  frame_anime_5: { ring: "ring-violet-500/60", glow: "shadow-[0_0_24px_rgba(139,92,246,0.4)]", frameClass: "", icon: "text-violet-300" },
+  frame_anime_6: { ring: "ring-yellow-500/60", glow: "shadow-[0_0_28px_rgba(234,179,8,0.4)]", frameClass: "", icon: "text-yellow-300" },
+  frame_anime_7: { ring: "ring-violet-500/60", glow: "shadow-[0_0_24px_rgba(139,92,246,0.4)]", frameClass: "", icon: "text-violet-300" },
 };
 
 const effectStyles: Record<string, { text: string; glow: string }> = {
@@ -64,6 +65,23 @@ function AvatarPlaceholder({ className }: { className?: string }) {
 
 function FramePreview({ itemId }: { itemId: string }) {
   const fc = framePreviewClasses[itemId];
+  const imgConfig = getFrameImageConfig(itemId);
+  if (imgConfig) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-white/10 shadow-lg">
+          {imgConfig.type === "video" ? (
+            <video className="absolute inset-0 w-full h-full object-cover" src={imgConfig.src} autoPlay loop muted playsInline />
+          ) : (
+            <img className="absolute inset-0 w-full h-full object-cover" src={imgConfig.src} alt="" />
+          )}
+          <div className="absolute inset-0 m-[3px] rounded-full bg-gradient-to-br from-white/10 to-white/[0.03] flex items-center justify-center backdrop-blur-[1px]">
+            <AvatarPlaceholder className={`w-10 h-10 ${fc?.icon || "text-white/30"}`} />
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex items-center justify-center h-full">
       <div className={`relative ${fc?.frameClass || ""}`}>

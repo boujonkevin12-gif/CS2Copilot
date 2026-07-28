@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { useGamification } from "@/lib/gamification-context";
 import { useUser } from "@/lib/user-context";
-import { getFrameClasses, getEffectClass, getEmoji } from "@/lib/cosmetics";
+import { getEffectClass, getEmoji } from "@/lib/cosmetics";
+import { CosmeticFrame } from "@/components/cosmetic-frame";
 import {
   Trophy,
   Zap,
@@ -344,20 +345,22 @@ export default function LeaderboardPage() {
                 </div>
 
                 {/* Avatar */}
+                <CosmeticFrame frameId={entry.equipped_frame} rounded="rounded-full">
                 {entry.avatar_url ? (
                   <img
                     src={entry.avatar_url}
                     alt={entry.steam_name}
-                    className={`h-10 w-10 rounded-full shrink-0 ${getFrameClasses(entry.equipped_frame)}`}
+                    className="h-10 w-10 rounded-full shrink-0"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = "none";
                     }}
                   />
                 ) : (
-                  <div className={`h-10 w-10 rounded-full bg-gradient-to-br from-violet-500/30 to-indigo-500/30 flex items-center justify-center text-xs font-bold text-violet-400 shrink-0 ${getFrameClasses(entry.equipped_frame)}`}>
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500/30 to-indigo-500/30 flex items-center justify-center text-xs font-bold text-violet-400 shrink-0">
                     {entry.steam_name?.slice(0, 2).toUpperCase() || "??"}
                   </div>
                 )}
+                </CosmeticFrame>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">

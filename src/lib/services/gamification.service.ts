@@ -822,12 +822,13 @@ export interface ShopItem {
 }
 
 export const SHOP_ITEMS: ShopItem[] = [
-  { id: "frame_neon_blue", name: "Neon Blue", category: "frame", price: 200, levelReq: 5, rarity: "common", desc: "Marco azul neón brillante" },
-  { id: "frame_neon_purple", name: "Neon Purple", category: "frame", price: 200, levelReq: 5, rarity: "common", desc: "Marco púrpura neón" },
-  { id: "frame_gold", name: "Gold", category: "frame", price: 500, levelReq: 15, rarity: "rare", desc: "Marco dorado premium" },
-  { id: "frame_diamond", name: "Diamond", category: "frame", price: 1000, levelReq: 25, rarity: "epic", desc: "Marco de diamante" },
-  { id: "frame_crimson", name: "Crimson", category: "frame", price: 800, levelReq: 20, rarity: "rare", desc: "Marco carmesí" },
-  { id: "frame_holographic", name: "Holographic", category: "frame", price: 1500, levelReq: 30, rarity: "legendary", desc: "Marco holográfico" },
+  { id: "frame_anime_1", name: "Anime Frame 1", category: "frame", price: 400, levelReq: 8, rarity: "rare", desc: "Marco anime estático" },
+  { id: "frame_anime_2", name: "Anime Frame 2", category: "frame", price: 500, levelReq: 10, rarity: "rare", desc: "Marco anime estático" },
+  { id: "frame_anime_3", name: "Anime Frame 3", category: "frame", price: 600, levelReq: 12, rarity: "rare", desc: "Marco anime estático" },
+  { id: "frame_anime_4", name: "Anime Frame 4", category: "frame", price: 700, levelReq: 15, rarity: "rare", desc: "Marco anime estático" },
+  { id: "frame_anime_5", name: "Anime Frame 5", category: "frame", price: 1000, levelReq: 22, rarity: "epic", desc: "Marco anime animado" },
+  { id: "frame_anime_6", name: "Anime Frame 6", category: "frame", price: 1500, levelReq: 28, rarity: "legendary", desc: "Marco anime animado premium" },
+  { id: "frame_anime_7", name: "Anime Frame 7", category: "frame", price: 1200, levelReq: 25, rarity: "epic", desc: "Marco anime animado" },
 
   { id: "bg_anime_img_1", name: "Anime Scenery 1", category: "background", price: 400, levelReq: 8, rarity: "rare", desc: "Paisaje anime estático" },
   { id: "bg_anime_img_2", name: "Anime Scenery 2", category: "background", price: 500, levelReq: 10, rarity: "rare", desc: "Paisaje anime estático" },
