@@ -157,6 +157,8 @@ export interface PlayerProfile {
   total_awp_kills: number;
   maps_played: string;
   stats_baseline: string | null;
+  last_faceit_matches: number;
+  last_faceit_wins: number;
   created_at: string;
   updated_at: string;
 }
@@ -1151,6 +1153,8 @@ export async function syncProfileStats(steamId: string, stats: {
   aces?: number;
   awpKills?: number;
   maps?: string[];
+  faceitMatches?: number;
+  faceitWins?: number;
 }) {
   await ensureDb();
   const sets: string[] = [];
@@ -1169,6 +1173,8 @@ export async function syncProfileStats(steamId: string, stats: {
   if (stats.clutches !== undefined) { sets.push("total_clutches = MAX(total_clutches, ?)"); args.push(stats.clutches); }
   if (stats.aces !== undefined) { sets.push("total_aces = MAX(total_aces, ?)"); args.push(stats.aces); }
   if (stats.awpKills !== undefined) { sets.push("total_awp_kills = MAX(total_awp_kills, ?)"); args.push(stats.awpKills); }
+  if (stats.faceitMatches !== undefined) { sets.push("last_faceit_matches = ?"); args.push(stats.faceitMatches); }
+  if (stats.faceitWins !== undefined) { sets.push("last_faceit_wins = ?"); args.push(stats.faceitWins); }
   if (stats.maps !== undefined) {
     sets.push("maps_played = ?");
     args.push(JSON.stringify(stats.maps));

@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS player_profile (
   best_faceit_level INTEGER DEFAULT 0,
   best_premier INTEGER DEFAULT 0,
   total_clutches INTEGER DEFAULT 0,
+  last_faceit_matches INTEGER DEFAULT 0,
+  last_faceit_wins INTEGER DEFAULT 0,
   total_aces INTEGER DEFAULT 0,
   total_awp_kills INTEGER DEFAULT 0,
   maps_played TEXT DEFAULT '[]',
@@ -157,6 +159,8 @@ CREATE INDEX IF NOT EXISTS idx_player_profile_country ON player_profile(country)
 CREATE INDEX IF NOT EXISTS idx_player_profile_xp ON player_profile(xp DESC);
 CREATE INDEX IF NOT EXISTS idx_player_profile_level ON player_profile(level DESC);
 CREATE INDEX IF NOT EXISTS idx_player_profile_hours ON player_profile(total_hours DESC);
+ALTER TABLE player_profile ADD COLUMN last_faceit_matches INTEGER DEFAULT 0;
+ALTER TABLE player_profile ADD COLUMN last_faceit_wins INTEGER DEFAULT 0;
 CREATE INDEX IF NOT EXISTS idx_player_profile_coins ON player_profile(pilot_coins DESC);
 
 CREATE TABLE IF NOT EXISTS user_preferences (

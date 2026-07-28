@@ -135,6 +135,26 @@ export async function POST(request: NextRequest) {
           const deltaClutches = Math.max(0, faceitClutches - (isFirstSync ? faceitClutches : prevClutches));
           if (deltaClutches > 0) await logAction(steamId, "clutch", deltaClutches);
         }
+
+        // Track match_played and match_won from FACEIT lifetime
+        const faceitMatchesRaw = lt["Matches"] ? parseInt(String(lt["Matches"]), 10) : 0;
+        const faceitWinsRaw = lt["Wins"] ? parseInt(String(lt["Wins"]), 10) : 0;
+        const prevFaceitMatches = profile.last_faceit_matches || 0;
+        const prevFaceitWins = profile.last_faceit_wins || 0;
+        if (faceitMatchesRaw > 0) {
+          const deltaMatches = Math.max(0, faceitMatchesRaw - (isFirstSync ? faceitMatchesRaw : prevFaceitMatches));
+          if (deltaMatches > 0) await logAction(steamId, "match_played", deltaMatches);
+        }
+        if (faceitWinsRaw > 0) {
+          const deltaWinsFaceit = Math.max(0, faceitWinsRaw - (isFirstSync ? faceitWinsRaw : prevFaceitWins));
+          if (deltaWinsFaceit > 0) await logAction(steamId, "match_won", deltaWinsFaceit);
+        }
+        if (faceitMatchesRaw > 0 || faceitWinsRaw > 0) {
+          await syncProfileStats(steamId, {
+            faceitMatches: faceitMatchesRaw,
+            faceitWins: faceitWinsRaw,
+          });
+        }
       }
     }
   } catch {
