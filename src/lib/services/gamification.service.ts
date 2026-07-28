@@ -324,7 +324,6 @@ const DAILY_EASY = [
   { id: "deasy_kill10", name: "Consigue 10 kills", target: 10, xp: 100, coins: 0, action: "kill" },
   { id: "deasy_hs3", name: "Haz 3 headshots", target: 3, xp: 100, coins: 0, action: "headshot" },
   { id: "deasy_mvp1", name: "Consigue 1 MVP", target: 1, xp: 100, coins: 0, action: "mvp" },
-  { id: "deasy_demo", name: "Analiza 1 demo", target: 1, xp: 100, coins: 0, action: "demo_analyzed" },
 ];
 
 const DAILY_MEDIUM = [
@@ -429,7 +428,6 @@ const WEEKLY_MISSIONS = [
   { id: "w_wins10", name: "10 victorias", target: 10, xp: 400, coins: 75, action: "match_won" },
   { id: "w_hs50", name: "50 headshots", target: 50, xp: 300, coins: 50, action: "headshot" },
   { id: "w_mvp20", name: "20 MVPs", target: 20, xp: 350, coins: 60, action: "mvp" },
-  { id: "w_demos5", name: "5 demos analizadas", target: 5, xp: 250, coins: 40, action: "demo_analyzed" },
   { id: "w_play20", name: "Jugar 20 partidas", target: 20, xp: 300, coins: 50, action: "match_played" },
 ];
 
@@ -999,7 +997,6 @@ export async function logAction(steamId: string, action: string, value: number =
     kill: ["deasy_kill10", "dmed_kill25", "dhard_kill50"],
     headshot: ["deasy_hs3", "dmed_hs10", "dhard_hs20"],
     mvp: ["deasy_mvp1", "dmed_mvp3"],
-    demo_analyzed: ["deasy_demo"],
     ace: ["dhard_ace"],
     clutch: ["dhard_clutch3"],
   };
@@ -1009,7 +1006,6 @@ export async function logAction(steamId: string, action: string, value: number =
     match_won: ["w_wins10"],
     headshot: ["w_hs50"],
     mvp: ["w_mvp20"],
-    demo_analyzed: ["w_demos5"],
     match_played: ["w_play20"],
   };
 
@@ -1027,7 +1023,6 @@ export async function logAction(steamId: string, action: string, value: number =
     match_played: 15,
     match_won: 25,
     mvp: 10,
-    demo_analyzed: 50,
     ace: 30,
     clutch: 20,
   };
@@ -1037,7 +1032,6 @@ export async function logAction(steamId: string, action: string, value: number =
     match_played: 5,
     match_won: 10,
     mvp: 3,
-    demo_analyzed: 10,
     ace: 15,
     clutch: 8,
   };
