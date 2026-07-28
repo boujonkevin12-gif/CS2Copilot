@@ -324,6 +324,7 @@ const DAILY_EASY = [
   { id: "deasy_kill10", name: "Consigue 10 kills", target: 10, xp: 100, coins: 0, action: "kill" },
   { id: "deasy_hs3", name: "Haz 3 headshots", target: 3, xp: 100, coins: 0, action: "headshot" },
   { id: "deasy_mvp1", name: "Consigue 1 MVP", target: 1, xp: 100, coins: 0, action: "mvp" },
+  { id: "deasy_ai_consult", name: "Consulta la IA", target: 1, xp: 100, coins: 0, action: "ai_consult" },
 ];
 
 const DAILY_MEDIUM = [
@@ -399,6 +400,7 @@ export async function getDailyChallenges(steamId: string) {
       xp: ch?.xp || 0,
       coins: ch?.coins || 0,
       badge: (ch as any)?.badge || false,
+      action: ch?.action || "",
     };
   });
 }
@@ -997,6 +999,7 @@ export async function logAction(steamId: string, action: string, value: number =
     kill: ["deasy_kill10", "dmed_kill25", "dhard_kill50"],
     headshot: ["deasy_hs3", "dmed_hs10", "dhard_hs20"],
     mvp: ["deasy_mvp1", "dmed_mvp3"],
+    ai_consult: ["deasy_ai_consult"],
     ace: ["dhard_ace"],
     clutch: ["dhard_clutch3"],
   };
@@ -1023,6 +1026,7 @@ export async function logAction(steamId: string, action: string, value: number =
     match_played: 15,
     match_won: 25,
     mvp: 10,
+    ai_consult: 50,
     ace: 30,
     clutch: 20,
   };
@@ -1032,6 +1036,7 @@ export async function logAction(steamId: string, action: string, value: number =
     match_played: 5,
     match_won: 10,
     mvp: 3,
+    ai_consult: 5,
     ace: 15,
     clutch: 8,
   };

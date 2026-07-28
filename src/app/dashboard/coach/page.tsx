@@ -273,6 +273,13 @@ export default function CoachPage() {
 
       const data = await res.json();
 
+      // Log AI consult for challenge progress
+      fetch("/api/gamification/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "ai_consult" }),
+      }).catch(() => {});
+
       if (!res.ok) {
         throw new Error(data.error || "Error al obtener respuesta");
       }

@@ -101,6 +101,15 @@ export default function ChallengesPage() {
 
                   <h3 className="text-sm font-bold text-zinc-200 mb-3">{c.name}</h3>
 
+                  {(c as any).action === "ai_consult" && !c.completed && (
+                    <Link
+                      href="/dashboard/coach"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-violet-500 to-indigo-500 px-3 py-1.5 rounded-lg hover:opacity-90 transition-all mb-3"
+                    >
+                      Ir al Chat
+                    </Link>
+                  )}
+
                   <div className="w-full h-2.5 rounded-full bg-white/[0.06] overflow-hidden mb-3">
                     <div
                       className={`h-full rounded-full bg-gradient-to-r ${
