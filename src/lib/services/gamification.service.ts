@@ -320,7 +320,7 @@ export async function checkAchievementsFromStats(steamId: string, stats: PlayerS
 
 // ─── DAILY CHALLENGES ───────────────────────────────────────────
 const DAILY_EASY = [
-  { id: "deasy_play1", name: "Jugar 1 partida", target: 1, xp: 100, coins: 0, action: "match_played" },
+  { id: "deasy_ace1", name: "Consigue 1 ace", target: 1, xp: 100, coins: 0, action: "ace" },
   { id: "deasy_kill10", name: "Consigue 10 kills", target: 10, xp: 100, coins: 0, action: "kill" },
   { id: "deasy_hs3", name: "Haz 3 headshots", target: 3, xp: 100, coins: 0, action: "headshot" },
   { id: "deasy_mvp1", name: "Consigue 1 MVP", target: 1, xp: 100, coins: 0, action: "mvp" },
@@ -426,7 +426,7 @@ export async function getDailyChestStatus(steamId: string) {
 
 // ─── WEEKLY MISSIONS ────────────────────────────────────────────
 const WEEKLY_MISSIONS = [
-  { id: "w_kills100", name: "100 kills totales", target: 100, xp: 300, coins: 50, action: "kill" },
+  { id: "w_clutch15", name: "Gana 15 clutches", target: 15, xp: 300, coins: 50, action: "clutch" },
   { id: "w_wins10", name: "10 victorias", target: 10, xp: 400, coins: 75, action: "match_won" },
   { id: "w_hs50", name: "50 headshots", target: 50, xp: 300, coins: 50, action: "headshot" },
   { id: "w_mvp20", name: "20 MVPs", target: 20, xp: 350, coins: 60, action: "mvp" },
@@ -995,22 +995,22 @@ export async function logAction(steamId: string, action: string, value: number =
   });
 
   const dailyMap: Record<string, string[]> = {
-    match_played: ["deasy_play1", "dmed_play3"],
+    match_played: ["dmed_play3"],
     match_won: ["dmed_win1", "dhard_win3"],
     kill: ["deasy_kill10", "dmed_kill25", "dhard_kill50"],
     headshot: ["deasy_hs3", "dmed_hs10", "dhard_hs20"],
     mvp: ["deasy_mvp1", "dmed_mvp3"],
     ai_consult: ["deasy_ai_consult"],
-    ace: ["dhard_ace"],
+    ace: ["deasy_ace1", "dhard_ace"],
     clutch: ["dhard_clutch3"],
   };
 
   const weeklyMap: Record<string, string[]> = {
-    kill: ["w_kills100"],
     match_won: ["w_wins10"],
     headshot: ["w_hs50"],
     mvp: ["w_mvp20"],
     match_played: ["w_play20"],
+    clutch: ["w_clutch15"],
   };
 
   for (const id of dailyMap[action] || []) {

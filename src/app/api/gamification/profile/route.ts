@@ -3,6 +3,7 @@ import { getOrCreateProfile, syncSteamData, syncProfileStats, logLogin, logActio
 import { getSteamId } from "@/lib/auth-helpers";
 import { getSteamService } from "@/lib/services";
 import { getFaceitService } from "@/lib/services/faceit.service";
+import { checkAndResolveChallenges } from "@/lib/services/match-challenge.service";
 
 export async function GET(request: NextRequest) {
   const steamId = getSteamId(request);
@@ -159,6 +160,13 @@ export async function POST(request: NextRequest) {
     }
   } catch {
     // FACEIT sync failed
+  }
+
+  // Auto-resolve match challenges
+  try {
+    await checkAndResolveChallenges(steamId);
+  } catch {
+    // Match challenge resolution failed
   }
 
   await logLogin(steamId);

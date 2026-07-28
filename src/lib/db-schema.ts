@@ -254,6 +254,25 @@ CREATE INDEX IF NOT EXISTS idx_tournament_participants_tournament ON tournament_
 CREATE INDEX IF NOT EXISTS idx_tournament_participants_player ON tournament_participants(steam_id);
 CREATE INDEX IF NOT EXISTS idx_tournament_invites_player ON tournament_invites(to_steam_id, status);
 
+CREATE TABLE IF NOT EXISTS match_challenges (
+  id TEXT PRIMARY KEY,
+  creator_steam_id TEXT NOT NULL,
+  opponent_steam_id TEXT NOT NULL,
+  stake INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  faceit_match_id TEXT DEFAULT NULL,
+  winner_steam_id TEXT DEFAULT NULL,
+  creator_score REAL DEFAULT 0,
+  opponent_score REAL DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now')),
+  accepted_at TEXT DEFAULT NULL,
+  resolved_at TEXT DEFAULT NULL,
+  FOREIGN KEY (creator_steam_id) REFERENCES player_profile(steam_id),
+  FOREIGN KEY (opponent_steam_id) REFERENCES player_profile(steam_id)
+);
+CREATE INDEX IF NOT EXISTS idx_match_challenges_creator ON match_challenges(creator_steam_id, status);
+CREATE INDEX IF NOT EXISTS idx_match_challenges_opponent ON match_challenges(opponent_steam_id, status);
+
 `;
 
 export async function initializeDatabase() {
