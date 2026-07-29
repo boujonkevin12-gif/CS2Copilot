@@ -160,6 +160,71 @@ function CreateTournamentModal({ open, onClose, onCreated }: { open: boolean; on
   );
 }
 
+function InviteToChallengeModal({ open, onClose, challengeId, onInvited }: { open: boolean; onClose: () => void; challengeId: string; onInvited: () => void }) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [inviting, setInviting] = useState(false);
+  const [error, setError] = useState("");
+
+  const search = async (q: string) => {
+    if (!q.trim()) { setResults([]); return; }
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/players/search?q=${encodeURIComponent(q)}`);
+      if (res.ok) setResults(await res.json());
+    } catch {} finally { setSearching(false); }
+  };
+
+  useEffect(() => {
+    const t = setTimeout(() => search(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const invite = async (steamId: string) => {
+    setInviting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/tournaments/challenges", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "invite", challengeId, toSteamId: steamId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error");
+      onInvited();
+      onClose();
+    } catch (e: any) { setError(e.message); } finally { setInviting(false); }
+  };
+
+  if (!open) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-md">
+          <GlassCard className="p-6 space-y-4">
+            <h2 className="text-lg font-bold">Invitar Jugador</h2>
+            <input value={query} onChange={e => setQuery(e.target.value)} className="w-full h-10 px-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Buscar por nombre o Steam ID..." />
+            {searching && <Loader2 className="h-4 w-4 animate-spin text-primary mx-auto" />}
+            <div className="space-y-1 max-h-48 overflow-y-auto">
+              {results.map((r: any) => (
+                <button key={r.steam_id} onClick={() => invite(r.steam_id)} disabled={inviting} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/[0.04] transition-all text-left disabled:opacity-50">
+                  {r.avatar_url ? <img src={r.avatar_url} className="h-8 w-8 rounded-full" /> : <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">?</div>}
+                  <span className="text-sm font-medium flex-1">{r.steam_name || r.steam_id}</span>
+                  <UserPlus className="h-4 w-4 text-primary" />
+                </button>
+              ))}
+            </div>
+            {error && <p className="text-xs text-danger">{error}</p>}
+          </GlassCard>
+        </motion.div>
+      </div>
+    </>
+  );
+}
+
 function CreateChallengeModal({ open, onClose, onCreated, userSteamId }: { open: boolean; onClose: () => void; onCreated: () => void; userSteamId: string }) {
   const [step, setStep] = useState<"settings" | "invite">("settings");
   const [stake, setStake] = useState(50);
@@ -306,6 +371,7 @@ export default function TournamentsPage() {
   const [joinCode, setJoinCode] = useState("");
   const [joining, setJoining] = useState(false);
   const [pendingInvites, setPendingInvites] = useState<any[]>([]);
+  const [invitingChallengeId, setInvitingChallengeId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -557,8 +623,8 @@ export default function TournamentsPage() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-sm truncate">
                             {c.creatorName}
-                            {c.participants?.length > 0 && (
-                              <span className="text-muted font-normal"> vs {c.participants.filter(p => p.steamId !== c.creatorSteamId).map(p => p.name).join(", ")}</span>
+                            {(c.participants?.length ?? 0) > 0 && (
+                              <span className="text-muted font-normal"> vs {c.participants!.filter(p => p.steamId !== c.creatorSteamId).map(p => p.name).join(", ")}</span>
                             )}
                           </h3>
                           <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${challengeStatusColors[c.status]}`}>{challengeStatusLabels[c.status]}</span>
@@ -611,6 +677,9 @@ export default function TournamentsPage() {
                         )}
                         {isOpen && isCreator && (
                           <>
+                            <button onClick={() => setInvitingChallengeId(c.id)} className="h-8 px-3 rounded-lg text-[11px] font-medium bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 transition-all flex items-center gap-1">
+                              <UserPlus className="h-3 w-3" /> Invitar
+                            </button>
                             <button onClick={() => handleCancel(c.id)} className="h-8 px-3 rounded-lg text-[11px] font-medium bg-white/[0.06] text-muted hover:text-danger hover:bg-red-500/10 transition-all flex items-center gap-1">
                               <Ban className="h-3 w-3" /> Cancelar
                             </button>
@@ -633,6 +702,12 @@ export default function TournamentsPage() {
 
       <CreateTournamentModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={load} />
       <CreateChallengeModal open={showCreateChallenge} onClose={() => setShowCreateChallenge(false)} onCreated={loadChallenges} userSteamId={user?.steamId || ""} />
+      <InviteToChallengeModal
+        open={!!invitingChallengeId}
+        onClose={() => setInvitingChallengeId(null)}
+        challengeId={invitingChallengeId || ""}
+        onInvited={loadChallenges}
+      />
     </div>
   );
 }
