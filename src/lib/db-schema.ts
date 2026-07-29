@@ -273,6 +273,33 @@ CREATE TABLE IF NOT EXISTS match_challenges (
 CREATE INDEX IF NOT EXISTS idx_match_challenges_creator ON match_challenges(creator_steam_id, status);
 CREATE INDEX IF NOT EXISTS idx_match_challenges_opponent ON match_challenges(opponent_steam_id, status);
 
+CREATE TABLE IF NOT EXISTS match_challenge_participants (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  challenge_id TEXT NOT NULL,
+  steam_id TEXT NOT NULL,
+  score REAL DEFAULT 0,
+  joined_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (challenge_id) REFERENCES match_challenges(id),
+  FOREIGN KEY (steam_id) REFERENCES player_profile(steam_id),
+  UNIQUE(challenge_id, steam_id)
+);
+CREATE INDEX IF NOT EXISTS idx_mcp_challenge ON match_challenge_participants(challenge_id);
+CREATE INDEX IF NOT EXISTS idx_mcp_player ON match_challenge_participants(steam_id);
+
+ALTER TABLE match_challenges ADD COLUMN max_participants INTEGER DEFAULT 5;
+
+CREATE TABLE IF NOT EXISTS match_challenge_invites (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  challenge_id TEXT NOT NULL,
+  from_steam_id TEXT NOT NULL,
+  to_steam_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (challenge_id) REFERENCES match_challenges(id),
+  FOREIGN KEY (from_steam_id) REFERENCES player_profile(steam_id),
+  FOREIGN KEY (to_steam_id) REFERENCES player_profile(steam_id),
+  UNIQUE(challenge_id, to_steam_id)
+);
 `;
 
 export async function initializeDatabase() {

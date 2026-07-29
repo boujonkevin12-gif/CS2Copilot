@@ -69,14 +69,19 @@ function FramePreview({ itemId }: { itemId: string }) {
   if (imgConfig) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-white/10 shadow-lg">
-          {imgConfig.type === "video" ? (
-            <video className="absolute inset-0 w-full h-full object-cover" src={imgConfig.src} autoPlay loop muted playsInline />
-          ) : (
-            <img className="absolute inset-0 w-full h-full object-cover" src={imgConfig.src} alt="" />
-          )}
-          <div className="absolute inset-0 m-[3px] rounded-full bg-gradient-to-br from-white/10 to-white/[0.03] flex items-center justify-center backdrop-blur-[1px]">
-            <AvatarPlaceholder className={`w-10 h-10 ${fc?.icon || "text-white/30"}`} />
+        <div className="relative">
+          <div
+            className="absolute rounded-full overflow-hidden"
+            style={{ top: "-8%", left: "-8%", right: "-8%", bottom: "-8%" }}
+          >
+            {imgConfig.type === "video" ? (
+              <video className="w-full h-full object-cover" src={imgConfig.src} autoPlay loop muted playsInline />
+            ) : (
+              <img className="w-full h-full object-cover" src={imgConfig.src} alt="" />
+            )}
+          </div>
+          <div className="relative z-10 w-[72px] h-[72px] rounded-full overflow-hidden bg-gradient-to-br from-white/10 to-white/[0.03] flex items-center justify-center ring-2 ring-white/10 shadow-lg">
+            <AvatarPlaceholder className={`w-9 h-9 ${fc?.icon || "text-white/30"}`} />
           </div>
         </div>
       </div>
