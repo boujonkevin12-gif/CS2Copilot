@@ -8,27 +8,17 @@ const BG_CONFIG: Record<string, {
   image?: string;
   video?: string;
 }> = {
-  bg_calm_night: {
-    video: "/bg-calm-night.mp4",
-  },
-  bg_anime_img_1: {
-    image: "/bg-anime-img-1.jpg",
-  },
-  bg_anime_img_2: {
-    image: "/bg-anime-img-2.jpg",
-  },
-  bg_anime_vid_1: {
-    video: "/bg-anime-vid-1.mp4",
-  },
-  bg_anime_vid_2: {
-    video: "/bg-anime-vid-2.mp4",
-  },
-  bg_anime_vid_4: {
-    video: "/bg-anime-vid-4.mp4",
-  },
-  bg_anime_vid_5: {
-    video: "/bg-anime-vid-5.mp4",
-  },
+  bg_1: { video: "/bg/0c2bca10660d7ea26dc7c12c4dc039659acd0717.webm" },
+  bg_2: { video: "/bg/4d4d1f9cb4b8b79be9a5ad87885b07859483827e.webm" },
+  bg_3: { video: "/bg/9d8750d23ea4c08a0a4068c2992900fb5d9e2741.webm" },
+  bg_4: { video: "/bg/1607d8d3bbe42cfe5f4c6cb79b4afb19_720w.mp4" },
+  bg_5: { video: "/bg/20b7e2e07f4768e99d6ed6b7b069f324.mp4" },
+  bg_6: { video: "/bg/270fd07fb27fcce0c54635d361b2db5b_720w.mp4" },
+  bg_7: { video: "/bg/34efe178841a2d638f0b26458bbba69e.mp4" },
+  bg_8: { video: "/bg/54ba1171f383cc8dc5b5d53f2506c6a4_720w.mp4" },
+  bg_9: { video: "/bg/b2239b51b78ae82372fcd48b2df0ff71.mp4" },
+  bg_10: { image: "/bg/1bb9e70d3203bd44af15a43337078983.jpg" },
+  bg_11: { image: "/bg/8d19f7cea4bb799e34a3f1c0173ef6bf.jpg" },
 };
 
 export function getBackgroundConfig(bgId: string | null | undefined) {

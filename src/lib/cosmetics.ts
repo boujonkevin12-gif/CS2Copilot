@@ -6,16 +6,15 @@ export interface FrameImageConfig {
 }
 
 const FRAME_IMAGE_CONFIG: Record<string, FrameImageConfig> = {
-  frame_png_1: { src: "/frames/frame_png_1.png", type: "image" },
-  frame_png_2: { src: "/frames/frame_png_2.png", type: "image" },
-  frame_png_3: { src: "/frames/frame_png_3.png", type: "image" },
-  frame_anime_1: { src: "/frames/4030da4ac3376c3162c596c02509d6ca.jpg", type: "image" },
-  frame_anime_2: { src: "/frames/ea1f7e39a979c0bb41e90b6e8fa6f562.jpg", type: "image" },
-  frame_anime_3: { src: "/frames/c39245e163447addb0aecfe6abe3c274.jpg", type: "image" },
-  frame_anime_4: { src: "/frames/edcd321ffe09872a8bf936a05005f8a1.jpg", type: "image" },
-  frame_anime_5: { src: "/frames/6764cb9c927cf05f3c13ac86dae6f99f.mp4", type: "video" },
-  frame_anime_6: { src: "/frames/1459afcabde5e1bed78d702a4917d3ee_720w.mp4", type: "video" },
-  frame_anime_7: { src: "/frames/e35412b19e05cc7d1878bbe29be302cc_720w.mp4", type: "video" },
+  frame_1: { src: "/frames/083c19cc935001ee0508aff3b948da62b6a093f6.png", type: "image" },
+  frame_2: { src: "/frames/338a6356da64361a95a9d7064c0e35e2f7bbbf9e.png", type: "image" },
+  frame_3: { src: "/frames/3fd73db5d33e9b6597e6975eb654e89b89b5db5c.png", type: "image" },
+  frame_4: { src: "/frames/439b5ecb247ffb2921aff37a57391121fde631dc.png", type: "image" },
+  frame_5: { src: "/frames/46461aaea39b18a4a3da2e6d3cf253006f2d6193.png", type: "image" },
+  frame_6: { src: "/frames/9b6b26c7a03046da283408d72319f9eec932c80a.gif", type: "image" },
+  frame_7: { src: "/frames/c6a479fae8979bc9c1a02378e488e3ce06b52cb1.png", type: "image" },
+  frame_8: { src: "/frames/d53ca26380b75490cece13536cedab5cf4fd59fa.png", type: "image" },
+  frame_9: { src: "/frames/ebe6b674deca163b28423e3b925bd36b0f0f357b.png", type: "image" },
 };
 
 export function getFrameImageConfig(frameId: string | null | undefined): FrameImageConfig | null {

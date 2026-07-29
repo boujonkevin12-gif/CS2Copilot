@@ -38,16 +38,15 @@ const rarityGlow: Record<string, string> = {
 };
 
 const framePreviewClasses: Record<string, { ring: string; glow: string; frameClass: string; icon: string }> = {
-  frame_png_1: { ring: "ring-emerald-500/50", glow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]", frameClass: "", icon: "text-emerald-300" },
-  frame_png_2: { ring: "ring-amber-500/50", glow: "shadow-[0_0_20px_rgba(245,158,11,0.3)]", frameClass: "", icon: "text-amber-300" },
-  frame_png_3: { ring: "ring-rose-500/50", glow: "shadow-[0_0_20px_rgba(244,63,94,0.3)]", frameClass: "", icon: "text-rose-300" },
-  frame_anime_1: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },
-  frame_anime_2: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },
-  frame_anime_3: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },
-  frame_anime_4: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },
-  frame_anime_5: { ring: "ring-violet-500/60", glow: "shadow-[0_0_24px_rgba(139,92,246,0.4)]", frameClass: "", icon: "text-violet-300" },
-  frame_anime_6: { ring: "ring-yellow-500/60", glow: "shadow-[0_0_28px_rgba(234,179,8,0.4)]", frameClass: "", icon: "text-yellow-300" },
-  frame_anime_7: { ring: "ring-violet-500/60", glow: "shadow-[0_0_24px_rgba(139,92,246,0.4)]", frameClass: "", icon: "text-violet-300" },
+  frame_1: { ring: "ring-emerald-500/50", glow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]", frameClass: "", icon: "text-emerald-300" },
+  frame_2: { ring: "ring-amber-500/50", glow: "shadow-[0_0_20px_rgba(245,158,11,0.3)]", frameClass: "", icon: "text-amber-300" },
+  frame_3: { ring: "ring-rose-500/50", glow: "shadow-[0_0_20px_rgba(244,63,94,0.3)]", frameClass: "", icon: "text-rose-300" },
+  frame_4: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },
+  frame_5: { ring: "ring-blue-500/50", glow: "shadow-[0_0_20px_rgba(59,130,246,0.3)]", frameClass: "", icon: "text-blue-300" },
+  frame_6: { ring: "ring-violet-500/60", glow: "shadow-[0_0_24px_rgba(139,92,246,0.4)]", frameClass: "", icon: "text-violet-300" },
+  frame_7: { ring: "ring-cyan-500/50", glow: "shadow-[0_0_20px_rgba(6,182,212,0.3)]", frameClass: "", icon: "text-cyan-300" },
+  frame_8: { ring: "ring-yellow-500/50", glow: "shadow-[0_0_20px_rgba(234,179,8,0.3)]", frameClass: "", icon: "text-yellow-300" },
+  frame_9: { ring: "ring-pink-500/50", glow: "shadow-[0_0_20px_rgba(236,72,153,0.3)]", frameClass: "", icon: "text-pink-300" },
 };
 
 const effectStyles: Record<string, { text: string; glow: string }> = {
