@@ -70,6 +70,23 @@ function FramePreview({ itemId }: { itemId: string }) {
   const fc = framePreviewClasses[itemId];
   const imgConfig = getFrameImageConfig(itemId);
   if (imgConfig) {
+    const isPng = imgConfig.src.endsWith(".png");
+    if (isPng) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="relative">
+            <div className="relative z-10 w-[72px] h-[72px] rounded-full overflow-hidden bg-gradient-to-br from-white/10 to-white/[0.03] flex items-center justify-center ring-2 ring-white/10 shadow-lg">
+              <AvatarPlaceholder className={`w-9 h-9 ${fc?.icon || "text-white/30"}`} />
+            </div>
+            {imgConfig.type === "video" ? (
+              <video className="absolute inset-0 w-full h-full object-cover pointer-events-none rounded-full" src={imgConfig.src} autoPlay loop muted playsInline />
+            ) : (
+              <img className="absolute inset-0 w-full h-full object-cover pointer-events-none rounded-full" src={imgConfig.src} alt="" />
+            )}
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="flex items-center justify-center h-full">
         <div className="relative">
@@ -107,7 +124,7 @@ function BackgroundPreview({ itemId }: { itemId: string }) {
   if (config.video) {
     return (
       <div className="w-full h-full relative overflow-hidden">
-        <video className="absolute inset-0 w-full h-full object-cover" src={config.video} autoPlay loop muted playsInline />
+        <video className="absolute inset-0 w-full h-full object-contain" src={config.video} autoPlay loop muted playsInline />
         <div className="absolute inset-0 bg-black/30" />
         <div className="absolute inset-0 flex items-center justify-center z-10">
           <Sparkles className="h-8 w-8 text-white/20" />
@@ -118,7 +135,7 @@ function BackgroundPreview({ itemId }: { itemId: string }) {
   if (config.image) {
     return (
       <div className="w-full h-full relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${config.image})` }} />
+        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${config.image})` }} />
         <div className="absolute inset-0 bg-black/30" />
         <div className="absolute inset-0 flex items-center justify-center z-10">
           <Sparkles className="h-8 w-8 text-white/20" />
