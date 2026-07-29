@@ -630,7 +630,7 @@ export default function TournamentsPage() {
                           <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${challengeStatusColors[c.status]}`}>{challengeStatusLabels[c.status]}</span>
                         </div>
                         <p className="text-xs text-muted mt-0.5">
-                          Apuesta: {c.stake} coins c/u · Pozo: {(c.stake * (c.participants?.length || 0)).toLocaleString()} coins · {c.participants?.length || 0}/{c.maxParticipants} jugadores
+                          Apuesta: {c.stake} coins c/u · Pozo: {(c.stake * ((c.participants?.length ?? 0))).toLocaleString()} coins · {c.participants?.length ?? 0}/{c.maxParticipants} jugadores
                         </p>
 
                         {/* Participants list */}
@@ -683,7 +683,7 @@ export default function TournamentsPage() {
                             <button onClick={() => handleCancel(c.id)} className="h-8 px-3 rounded-lg text-[11px] font-medium bg-white/[0.06] text-muted hover:text-danger hover:bg-red-500/10 transition-all flex items-center gap-1">
                               <Ban className="h-3 w-3" /> Cancelar
                             </button>
-                            {c.participants?.length >= 2 && (
+                            {(c.participants?.length ?? 0) >= 2 && (
                               <button onClick={() => handleStart(c.id)} className="h-8 px-3 rounded-lg text-[11px] font-medium bg-violet-500 text-white hover:bg-violet-600 transition-all flex items-center gap-1">
                                 <SwordsIcon className="h-3 w-3" /> Iniciar
                               </button>
