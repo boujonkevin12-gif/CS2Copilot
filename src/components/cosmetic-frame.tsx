@@ -17,6 +17,29 @@ export function CosmeticFrame({ frameId, rounded = "rounded-full", className, ch
     return <div className={`${cls} ${className || ""}`}>{children}</div>;
   }
 
+  const isPng = config.src.endsWith(".png");
+
+  if (isPng) {
+    return (
+      <div className={`relative inline-flex justify-center items-center ${className || ""}`}>
+        <div className={`relative ${rounded} overflow-hidden`}>{children}</div>
+        {config.type === "video" ? (
+          <video
+            autoPlay loop muted playsInline
+            className={`absolute inset-0 w-full h-full object-cover pointer-events-none ${rounded}`}
+            src={config.src}
+          />
+        ) : (
+          <img
+            className={`absolute inset-0 w-full h-full object-cover pointer-events-none ${rounded}`}
+            src={config.src}
+            alt=""
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={`relative inline-flex justify-center items-center ${className || ""}`}>
       <div
@@ -25,10 +48,7 @@ export function CosmeticFrame({ frameId, rounded = "rounded-full", className, ch
       >
         {config.type === "video" ? (
           <video
-            autoPlay
-            loop
-            muted
-            playsInline
+            autoPlay loop muted playsInline
             className="w-full h-full object-cover"
             src={config.src}
           />

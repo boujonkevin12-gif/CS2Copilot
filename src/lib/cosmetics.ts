@@ -6,6 +6,9 @@ export interface FrameImageConfig {
 }
 
 const FRAME_IMAGE_CONFIG: Record<string, FrameImageConfig> = {
+  frame_png_1: { src: "/frames/frame_png_1.png", type: "image" },
+  frame_png_2: { src: "/frames/frame_png_2.png", type: "image" },
+  frame_png_3: { src: "/frames/frame_png_3.png", type: "image" },
   frame_anime_1: { src: "/frames/4030da4ac3376c3162c596c02509d6ca.jpg", type: "image" },
   frame_anime_2: { src: "/frames/ea1f7e39a979c0bb41e90b6e8fa6f562.jpg", type: "image" },
   frame_anime_3: { src: "/frames/c39245e163447addb0aecfe6abe3c274.jpg", type: "image" },

@@ -38,6 +38,9 @@ const rarityGlow: Record<string, string> = {
 };
 
 const framePreviewClasses: Record<string, { ring: string; glow: string; frameClass: string; icon: string }> = {
+  frame_png_1: { ring: "ring-emerald-500/50", glow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]", frameClass: "", icon: "text-emerald-300" },
+  frame_png_2: { ring: "ring-amber-500/50", glow: "shadow-[0_0_20px_rgba(245,158,11,0.3)]", frameClass: "", icon: "text-amber-300" },
+  frame_png_3: { ring: "ring-rose-500/50", glow: "shadow-[0_0_20px_rgba(244,63,94,0.3)]", frameClass: "", icon: "text-rose-300" },
   frame_anime_1: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },
   frame_anime_2: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },
   frame_anime_3: { ring: "ring-purple-500/50", glow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]", frameClass: "", icon: "text-purple-300" },

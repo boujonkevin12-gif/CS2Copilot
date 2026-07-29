@@ -45,7 +45,7 @@ export function CosmeticBackground({ bgId, children }: { bgId: string | null | u
       {config.video && (
         <>
           <video
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-contain"
             src={config.video}
             autoPlay
             loop
@@ -58,7 +58,7 @@ export function CosmeticBackground({ bgId, children }: { bgId: string | null | u
       {config.image && (
         <>
           <div
-            className="absolute inset-0 rounded-2xl bg-cover bg-center"
+            className="absolute inset-0 rounded-2xl bg-contain bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${config.image})` }}
           />
           <div className="absolute inset-0 bg-black/30" />

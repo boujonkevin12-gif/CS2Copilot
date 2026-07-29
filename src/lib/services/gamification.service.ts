@@ -829,6 +829,9 @@ export const SHOP_ITEMS: ShopItem[] = [
   { id: "frame_anime_5", name: "Anime Frame 5", category: "frame", price: 1000, levelReq: 22, rarity: "epic", desc: "Marco anime animado" },
   { id: "frame_anime_6", name: "Anime Frame 6", category: "frame", price: 1500, levelReq: 28, rarity: "legendary", desc: "Marco anime animado premium" },
   { id: "frame_anime_7", name: "Anime Frame 7", category: "frame", price: 1200, levelReq: 25, rarity: "epic", desc: "Marco anime animado" },
+  { id: "frame_png_1", name: "Frame PNG 1", category: "frame", price: 800, levelReq: 16, rarity: "epic", desc: "Marco PNG con transparencia" },
+  { id: "frame_png_2", name: "Frame PNG 2", category: "frame", price: 800, levelReq: 16, rarity: "epic", desc: "Marco PNG con transparencia" },
+  { id: "frame_png_3", name: "Frame PNG 3", category: "frame", price: 800, levelReq: 16, rarity: "epic", desc: "Marco PNG con transparencia" },
 
   { id: "bg_anime_img_1", name: "Anime Scenery 1", category: "background", price: 400, levelReq: 8, rarity: "rare", desc: "Paisaje anime estático" },
   { id: "bg_anime_img_2", name: "Anime Scenery 2", category: "background", price: 500, levelReq: 10, rarity: "rare", desc: "Paisaje anime estático" },
