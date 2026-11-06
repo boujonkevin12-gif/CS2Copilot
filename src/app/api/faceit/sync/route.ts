@@ -1,30 +1,25 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { getFaceitService } from "@/lib/services/faceit.service";
+import { getSession, setSessionCookie, SessionProfile } from "@/lib/session";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
-function parseUserCookie(request: NextRequest): Record<string, unknown> | null {
-  const cookie = request.cookies.get("cs2pilot_user");
-  if (!cookie) return null;
-  try {
-    return JSON.parse(cookie.value);
-  } catch {
-    return null;
-  }
+function checkRateLimit(request: NextRequest, steamId: string): boolean {
+  const ip = getClientIp(request);
+  return (
+    rateLimit(`faceit/sync:${steamId}`, 30, 60_000) &&
+    rateLimit(`faceit/sync:ip:${ip}`, 60, 60_000)
+  );
 }
 
-function setCookie(request: NextRequest, data: Record<string, unknown>): NextResponse {
-  const isSecure = request.url.startsWith("https://");
+function parseUserCookie(request: NextRequest): SessionProfile | null {
+  return getSession(request);
+}
+
+function setCookie(request: NextRequest, data: SessionProfile): NextResponse {
   const response = NextResponse.json({ success: true });
-  const cookieSize = new TextEncoder().encode(JSON.stringify(data)).length;
-  if (cookieSize > 4000) {
-    return NextResponse.json({ error: "Sesion demasiado grande" }, { status: 500 });
+  if (!setSessionCookie(response, data, request)) {
+    return NextResponse.json({ error: "No se pudo crear la sesión" }, { status: 500 });
   }
-  response.cookies.set("cs2pilot_user", JSON.stringify(data), {
-    httpOnly: true,
-    secure: isSecure,
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 30,
-    path: "/",
-  });
   return response;
 }
 
@@ -36,6 +31,10 @@ export async function GET(request: NextRequest) {
   const userData = parseUserCookie(request);
   if (!userData) {
     return NextResponse.json({ error: "No hay sesion activa" }, { status: 401 });
+  }
+
+  if (!checkRateLimit(request, userData.steamId)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes" }, { status: 429 });
   }
 
   const playerId = userData.faceitPlayerId as string | undefined;
@@ -60,6 +59,14 @@ export async function POST(request: NextRequest) {
     body = {};
   }
 
+  // Rate limit por sesión (si hay) + por IP para todas las acciones.
+  const sessionUser = parseUserCookie(request);
+  const ip = getClientIp(request);
+  const userKey = sessionUser ? sessionUser.steamId : `anon:${ip}`;
+  if (!checkRateLimit(request, userKey)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes" }, { status: 429 });
+  }
+
   const action = body.action as string | undefined;
 
   if (action === "connect" || action === "autolink") {
@@ -77,6 +84,18 @@ export async function POST(request: NextRequest) {
   const playerId = body.playerId as string | undefined;
   if (!playerId) {
     return NextResponse.json({ error: "Se requiere el campo playerId" }, { status: 400 });
+  }
+
+  // Sincronización solo permitida para el propio usuario autenticado.
+  const userData = parseUserCookie(request);
+  if (!userData) {
+    return NextResponse.json({ error: "No hay sesion activa" }, { status: 401 });
+  }
+  if (userData.faceitPlayerId !== playerId) {
+    return NextResponse.json(
+      { error: "No puedes sincronizar estadísticas de otro jugador" },
+      { status: 403 }
+    );
   }
 
   return handleSyncMatches(playerId);
@@ -132,14 +151,9 @@ async function handleAutoLink(request: NextRequest) {
       },
     });
 
-    const isSecure = request.url.startsWith("https://");
-    response.cookies.set("cs2pilot_user", JSON.stringify(updatedUser), {
-      httpOnly: true,
-      secure: isSecure,
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30,
-      path: "/",
-    });
+    if (!setSessionCookie(response, updatedUser, request)) {
+      return NextResponse.json({ error: "No se pudo crear la sesión" }, { status: 500 });
+    }
 
     return response;
   } catch {
@@ -200,14 +214,9 @@ async function handleConnectByNickname(nickname: string | undefined, request: Ne
       },
     });
 
-    const isSecure = request.url.startsWith("https://");
-    response.cookies.set("cs2pilot_user", JSON.stringify(updatedUser), {
-      httpOnly: true,
-      secure: isSecure,
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30,
-      path: "/",
-    });
+    if (!setSessionCookie(response, updatedUser, request)) {
+      return NextResponse.json({ error: "No se pudo crear la sesión" }, { status: 500 });
+    }
 
     return response;
   } catch {
@@ -230,15 +239,10 @@ function handleDisconnect(request: NextRequest) {
   delete userData.faceitElo;
   delete userData.faceitLinkedAt;
 
-  const isSecure = request.url.startsWith("https://");
   const response = NextResponse.json({ success: true });
-  response.cookies.set("cs2pilot_user", JSON.stringify(userData), {
-    httpOnly: true,
-    secure: isSecure,
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 30,
-    path: "/",
-  });
+  if (!setSessionCookie(response, userData, request)) {
+    return NextResponse.json({ error: "No se pudo crear la sesión" }, { status: 500 });
+  }
 
   return response;
 }

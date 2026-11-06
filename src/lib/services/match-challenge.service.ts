@@ -41,30 +41,44 @@ export async function searchUsers(query: string, limit = 10): Promise<{ steamId:
 }
 
 export async function createChallenge(creatorSteamId: string, stake: number, maxParticipants = 5): Promise<MatchChallenge | { error: string }> {
+  if (!Number.isFinite(stake) || Math.trunc(stake) !== stake) return { error: "Apuesta inválida" };
   if (stake < 10) return { error: "La apuesta minima es de 10 monedas" };
+  if (stake > 1_000_000) return { error: "La apuesta máxima es de 1.000.000 de monedas" };
   if (maxParticipants < 2 || maxParticipants > 5) return { error: "Deben ser entre 2 y 5 participantes" };
 
-  const creator = await getDb().execute({ sql: "SELECT pilot_coins FROM player_profile WHERE steam_id = ?", args: [creatorSteamId] });
-  if (creator.rows.length === 0) return { error: "Creador no encontrado" };
-  if ((creator.rows[0].pilot_coins as number) < stake) return { error: "No tienes suficientes monedas" };
-
   const id = generateId();
-  await getDb().execute({
-    sql: "INSERT INTO match_challenges (id, creator_steam_id, opponent_steam_id, stake, status, max_participants) VALUES (?, ?, ?, ?, 'open', ?)",
-    args: [id, creatorSteamId, creatorSteamId, stake, maxParticipants],
-  });
 
-  // Creator auto-joins
-  await getDb().execute({
-    sql: "INSERT INTO match_challenge_participants (challenge_id, steam_id) VALUES (?, ?)",
-    args: [id, creatorSteamId],
+  // Débito condicional atómico: solo crea el desafío si el saldo alcanza.
+  const debit = await getDb().execute({
+    sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ? WHERE steam_id = ? AND pilot_coins >= ?",
+    args: [stake, creatorSteamId, stake],
   });
+  if (debit.rowsAffected === 0) {
+    const creator = await getDb().execute({ sql: "SELECT pilot_coins FROM player_profile WHERE steam_id = ?", args: [creatorSteamId] });
+    if (creator.rows.length === 0) return { error: "Creador no encontrado" };
+    return { error: "No tienes suficientes monedas" };
+  }
 
-  // Deduct stake from creator
-  await getDb().execute({
-    sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ? WHERE steam_id = ?",
-    args: [stake, creatorSteamId],
-  });
+  try {
+    await getDb().execute({
+      sql: "INSERT INTO match_challenges (id, creator_steam_id, opponent_steam_id, stake, status, max_participants) VALUES (?, ?, ?, ?, 'open', ?)",
+      args: [id, creatorSteamId, creatorSteamId, stake, maxParticipants],
+    });
+
+    // Creator auto-joins
+    await getDb().execute({
+      sql: "INSERT INTO match_challenge_participants (challenge_id, steam_id) VALUES (?, ?)",
+      args: [id, creatorSteamId],
+    });
+  } catch (err) {
+    // Revertir el débito si la creación falló.
+    await getDb().execute({
+      sql: "UPDATE player_profile SET pilot_coins = pilot_coins + ? WHERE steam_id = ?",
+      args: [stake, creatorSteamId],
+    });
+    console.error("[createChallenge] Falló la creación, débito revertido:", err);
+    return { error: "No se pudo crear el desafío" };
+  }
 
   return getChallenge(id) as Promise<MatchChallenge>;
 }
@@ -85,15 +99,29 @@ export async function joinChallenge(challengeId: string, steamId: string): Promi
   if (player.rows.length === 0) return { error: "Jugador no encontrado" };
   if ((player.rows[0].pilot_coins as number) < challenge.stake) return { error: "No tienes suficientes monedas" };
 
-  await getDb().execute({
-    sql: "INSERT INTO match_challenge_participants (challenge_id, steam_id) VALUES (?, ?)",
-    args: [challengeId, steamId],
+  // Débito condicional atómico: solo descuenta si el saldo alcanza.
+  const debit = await getDb().execute({
+    sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ? WHERE steam_id = ? AND pilot_coins >= ?",
+    args: [challenge.stake, steamId, challenge.stake],
   });
+  if (debit.rowsAffected === 0) return { error: "No tienes suficientes monedas" };
 
-  await getDb().execute({
-    sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ? WHERE steam_id = ?",
-    args: [challenge.stake, steamId],
-  });
+  try {
+    await getDb().execute({
+      sql: "INSERT INTO match_challenge_participants (challenge_id, steam_id) VALUES (?, ?)",
+      args: [challengeId, steamId],
+    });
+  } catch (err) {
+    // Duplicado concurrente u otro error: revertir el débito.
+    await getDb().execute({
+      sql: "UPDATE player_profile SET pilot_coins = pilot_coins + ? WHERE steam_id = ?",
+      args: [challenge.stake, steamId],
+    });
+    const msg = err instanceof Error ? err.message : "";
+    if (msg.includes("UNIQUE")) return { error: "Ya estas en este desafio" };
+    console.error("[joinChallenge] INSERT falló, débito revertido:", err);
+    return { error: "No se pudo unir al desafío" };
+  }
 
   return getChallenge(challengeId) as Promise<MatchChallenge>;
 }
@@ -103,10 +131,14 @@ export async function leaveChallenge(challengeId: string, steamId: string): Prom
   if (!challenge) return { success: false, error: "Desafio no encontrado" };
   if (challenge.status !== "open") return { success: false, error: "El desafio ya no esta abierto" };
 
-  await getDb().execute({
+  // El reembolso solo ocurre si realmente se removió una participación.
+  // Antes se reembolsaba aunque el usuario no estuviera, permitiendo
+  // reembolsos infinitos llamando leaveChallenge repetidamente.
+  const deleted = await getDb().execute({
     sql: "DELETE FROM match_challenge_participants WHERE challenge_id = ? AND steam_id = ?",
     args: [challengeId, steamId],
   });
+  if (deleted.rowsAffected === 0) return { success: false, error: "No estás en este desafío" };
 
   // Refund stake
   await getDb().execute({
@@ -135,6 +167,14 @@ export async function cancelChallenge(challengeId: string, steamId: string): Pro
   if (challenge.creatorSteamId !== steamId) return { success: false, error: "Solo el creador puede cancelar" };
   if (challenge.status !== "open") return { success: false, error: "El desafio ya no esta abierto" };
 
+  // Transición de estado condicional: si dos cancelaciones corren en paralelo,
+  // solo una obtiene rowsAffected > 0 y reembolsa una única vez.
+  const transition = await getDb().execute({
+    sql: "UPDATE match_challenges SET status = 'cancelled' WHERE id = ? AND status = 'open'",
+    args: [challengeId],
+  });
+  if (transition.rowsAffected === 0) return { success: false, error: "El desafio ya fue cancelado" };
+
   // Refund all participants
   for (const p of challenge.participants) {
     await getDb().execute({
@@ -150,11 +190,6 @@ export async function cancelChallenge(challengeId: string, steamId: string): Pro
 
   await getDb().execute({
     sql: "DELETE FROM match_challenge_invites WHERE challenge_id = ?",
-    args: [challengeId],
-  });
-
-  await getDb().execute({
-    sql: "UPDATE match_challenges SET status = 'cancelled' WHERE id = ?",
     args: [challengeId],
   });
 

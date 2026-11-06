@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
-  const cookie = request.cookies.get("cs2pilot_user");
+  const user = getSession(request);
 
-  if (!cookie) {
+  if (!user) {
     return NextResponse.json({ user: null }, { status: 401 });
   }
 
-  try {
-    const userData = JSON.parse(cookie.value);
-    return NextResponse.json({ user: userData });
-  } catch {
-    return NextResponse.json({ user: null }, { status: 401 });
-  }
+  return NextResponse.json({ user });
 }

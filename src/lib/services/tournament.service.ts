@@ -49,24 +49,39 @@ export async function createTournament(data: {
   const now = new Date().toISOString();
   const endTime = new Date(Date.now() + data.durationHours * 3600000).toISOString();
 
-  await getDb().execute({
-    sql: `INSERT INTO tournaments (id, name, creator_steam_id, description, entry_fee, prize_pool, duration_hours, status, max_participants, end_time, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
-    args: [id, data.name, data.creatorSteamId, data.description || "", data.entryFee, 0, data.durationHours, data.maxParticipants || 0, endTime, now],
-  });
-
-  // Creator auto-joins
-  await getDb().execute({
-    sql: "INSERT INTO tournament_participants (tournament_id, steam_id) VALUES (?, ?)",
-    args: [id, data.creatorSteamId],
-  });
-
-  // Creator also pays entry fee
+  // El creador paga la entrada: débito condicional atómico ANTES de crear.
   if (data.entryFee > 0) {
-    await getDb().execute({
-      sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ? WHERE steam_id = ?",
-      args: [data.entryFee, data.creatorSteamId],
+    const debit = await getDb().execute({
+      sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ? WHERE steam_id = ? AND pilot_coins >= ?",
+      args: [data.entryFee, data.creatorSteamId, data.entryFee],
     });
+    if (debit.rowsAffected === 0) throw new Error("No tienes suficientes Pilot Coins para la entrada");
+  }
+
+  try {
+    await getDb().execute({
+      sql: `INSERT INTO tournaments (id, name, creator_steam_id, description, entry_fee, prize_pool, duration_hours, status, max_participants, end_time, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
+      args: [id, data.name, data.creatorSteamId, data.description || "", data.entryFee, 0, data.durationHours, data.maxParticipants || 0, endTime, now],
+    });
+
+    // Creator auto-joins
+    await getDb().execute({
+      sql: "INSERT INTO tournament_participants (tournament_id, steam_id) VALUES (?, ?)",
+      args: [id, data.creatorSteamId],
+    });
+  } catch (err) {
+    if (data.entryFee > 0) {
+      await getDb().execute({
+        sql: "UPDATE player_profile SET pilot_coins = pilot_coins + ? WHERE steam_id = ?",
+        args: [data.entryFee, data.creatorSteamId],
+      });
+    }
+    console.error("[createTournament] Falló la creación:", err);
+    throw new Error("No se pudo crear el torneo");
+  }
+
+  if (data.entryFee > 0) {
     await getDb().execute({
       sql: "UPDATE tournaments SET prize_pool = prize_pool + ? WHERE id = ?",
       args: [data.entryFee, id],
@@ -139,17 +154,42 @@ export async function joinTournament(tournamentId: string, steamId: string): Pro
   if (t.status !== "pending") throw new Error("El torneo ya comenzó o terminó");
   if (t.maxParticipants > 0 && (t.participantCount || 0) >= t.maxParticipants) throw new Error("Torneo lleno");
 
-  await getDb().execute({
+  // Chequeo previo de saldo (el débito de abajo es condicional).
+  if (t.entryFee > 0) {
+    const balance = await getDb().execute({
+      sql: "SELECT pilot_coins FROM player_profile WHERE steam_id = ?",
+      args: [steamId],
+    });
+    if (balance.rows.length === 0) throw new Error("Jugador no encontrado");
+    if ((balance.rows[0].pilot_coins as number) < t.entryFee) {
+      throw new Error("No tienes suficientes Pilot Coins para la entrada");
+    }
+
+    // Débito condicional atómico: solo descuenta si el saldo alcanza.
+    const debit = await getDb().execute({
+      sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ? WHERE steam_id = ? AND pilot_coins >= ?",
+      args: [t.entryFee, steamId, t.entryFee],
+    });
+    if (debit.rowsAffected === 0) throw new Error("No tienes suficientes Pilot Coins para la entrada");
+  }
+
+  const inserted = await getDb().execute({
     sql: "INSERT OR IGNORE INTO tournament_participants (tournament_id, steam_id) VALUES (?, ?)",
     args: [tournamentId, steamId],
   });
 
-  // Charge entry fee
+  // INSERT OR IGNORE con 0 filas = ya era participante → revertir el débito.
+  if (inserted.rowsAffected === 0) {
+    if (t.entryFee > 0) {
+      await getDb().execute({
+        sql: "UPDATE player_profile SET pilot_coins = pilot_coins + ? WHERE steam_id = ?",
+        args: [t.entryFee, steamId],
+      });
+    }
+    throw new Error("Ya estás en este torneo");
+  }
+
   if (t.entryFee > 0) {
-    await getDb().execute({
-      sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ? WHERE steam_id = ? AND pilot_coins >= ?",
-      args: [t.entryFee, steamId, t.entryFee],
-    });
     await getDb().execute({
       sql: "UPDATE tournaments SET prize_pool = prize_pool + ? WHERE id = ?",
       args: [t.entryFee, tournamentId],
@@ -201,10 +241,13 @@ export async function leaveTournament(tournamentId: string, steamId: string): Pr
   if (t.status !== "pending") throw new Error("No puedes salir de un torneo activo o finalizado");
   if (t.creatorSteamId === steamId) throw new Error("El creador no puede salir, debe cancelar el torneo");
 
-  await getDb().execute({
+  // El reembolso solo ocurre si realmente se removió la participación
+  // (evita reembolsos infinitos llamando leaveTournament repetidamente).
+  const deleted = await getDb().execute({
     sql: "DELETE FROM tournament_participants WHERE tournament_id = ? AND steam_id = ?",
     args: [tournamentId, steamId],
   });
+  if (deleted.rowsAffected === 0) throw new Error("No estás inscrito en este torneo");
 
   // Refund entry fee
   if (t.entryFee > 0) {

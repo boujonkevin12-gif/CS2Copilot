@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { analyzePlayer } from "@/lib/services/ai-engine";
 import { getFaceitService } from "@/lib/services/faceit.service";
+import { getSession } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
   let body: { demoData?: Record<string, unknown> };
@@ -10,16 +11,9 @@ export async function POST(request: NextRequest) {
     body = {};
   }
 
-  const cookie = request.cookies.get("cs2pilot_user");
-  if (!cookie) {
+  const userData = getSession(request);
+  if (!userData) {
     return NextResponse.json({ error: "No hay sesion activa" }, { status: 401 });
-  }
-
-  let userData: Record<string, unknown>;
-  try {
-    userData = JSON.parse(cookie.value);
-  } catch {
-    return NextResponse.json({ error: "Sesion invalida" }, { status: 401 });
   }
 
   let lifetimeStats = null;

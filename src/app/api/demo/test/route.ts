@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+// Ruta de diagnóstico: oculta en producción.
 export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   try {
     const cs2parser = await import("cs2parser");
     return NextResponse.json({

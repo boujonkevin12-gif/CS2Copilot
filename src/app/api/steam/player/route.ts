@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 const STEAM_API_KEY = process.env.STEAM_API_KEY;
+const STEAMID64_REGEX = /^\d{17}$/;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -8,6 +10,16 @@ export async function GET(request: NextRequest) {
 
   if (!steamId) {
     return NextResponse.json({ error: "steamId required" }, { status: 400 });
+  }
+
+  // Validar formato: evita inyectar parámetros extra en las URLs de Steam.
+  if (!STEAMID64_REGEX.test(steamId)) {
+    return NextResponse.json({ error: "steamId inválido" }, { status: 400 });
+  }
+
+  // Límite por IP: esta ruta consume la API key del proyecto sin sesión.
+  if (!rateLimit(`steam/player:ip:${getClientIp(request)}`, 60, 60_000)) {
+    return NextResponse.json({ error: "Demasiadas solicitudes" }, { status: 429 });
   }
 
   if (!STEAM_API_KEY) {

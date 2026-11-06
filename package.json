@@ -2,11 +2,13 @@
   "name": "cs2pilot",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --test --experimental-strip-types \"src/__tests__/*.test.ts\""
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrCreateProfile, syncSteamData, syncProfileStats, logLogin, logAction } from "@/lib/services/gamification.service";
 import { getSteamId } from "@/lib/auth-helpers";
+import { getSession } from "@/lib/session";
 import { getSteamService } from "@/lib/services";
 import { getFaceitService } from "@/lib/services/faceit.service";
 import { checkAndResolveChallenges } from "@/lib/services/match-challenge.service";
@@ -16,28 +17,28 @@ export async function POST(request: NextRequest) {
   const steamId = getSteamId(request);
   if (!steamId) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
-  // Sync Steam data from cookie into DB
+  // Sync Steam data from session into DB
   try {
-    const cookie = request.cookies.get("cs2pilot_user");
-    if (cookie) {
-      const userData = JSON.parse(cookie.value);
+    const userData = getSession(request);
+    if (userData) {
+      const cs2 = userData.cs2 as { hoursPlayed?: number } | null | undefined;
+      const cs2Hours = cs2?.hoursPlayed ? Math.round(cs2.hoursPlayed) : 0;
       await getOrCreateProfile(steamId);
       await syncSteamData(steamId, {
-        name: userData.name,
-        avatar: userData.avatar || undefined,
-        profileUrl: userData.profileUrl || undefined,
-        country: userData.country || undefined,
-        steamLevel: userData.steamLevel || 0,
-        cs2Hours: userData.cs2?.hoursPlayed ? Math.round(userData.cs2.hoursPlayed) : 0,
+        name: userData.name as string,
+        avatar: (userData.avatar as string | null) || undefined,
+        profileUrl: (userData.profileUrl as string | null) || undefined,
+        country: (userData.country as string | null) || undefined,
+        steamLevel: (userData.steamLevel as number) || 0,
+        cs2Hours,
       });
       // Sync hours as total_hours for leaderboard
-      const cs2Hours = userData.cs2?.hoursPlayed ? Math.round(userData.cs2.hoursPlayed) : 0;
       if (cs2Hours > 0) {
         await syncProfileStats(steamId, { hours: cs2Hours });
       }
     }
   } catch {
-    // Cookie sync failed
+    // Session sync failed
   }
 
   // Read previous stats for delta tracking
