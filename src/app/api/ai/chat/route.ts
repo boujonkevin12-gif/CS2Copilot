@@ -1,8 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFaceitService } from "@/lib/services/faceit.service";
+import { getSession } from "@/lib/session";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+
+const MAX_MESSAGE_CHARS = 4000;
+const MAX_HISTORY_ITEMS = 20;
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.3-70b-versatile";
+
+/**
+ * Modelos en orden de preferencia.
+ *
+ * Historial: `llama-3.3-70b-versatile` fue retirado por Groq el 16/08/2026
+ * (HTTP 404 model_not_found), lo que dejó al Coach IA en 502 en producción.
+ * El reemplazo oficial de Groq es `openai/gpt-oss-120b`. Se mantiene una
+ * cadena de fallback porque Groq retira modelos cada pocos meses.
+ */
+const MODELS = [
+  "openai/gpt-oss-120b",
+  "qwen/qwen3.8-27b",
+  "openai/gpt-oss-20b",
+];
 
 interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -64,16 +82,21 @@ Puedes dar consejos generales de CS2 sin datos personalizados.`;
 }
 
 export async function POST(request: NextRequest) {
-  const cookie = request.cookies.get("cs2pilot_user");
-  if (!cookie) {
+  const userData = getSession(request);
+  if (!userData) {
     return NextResponse.json({ error: "No hay sesión activa" }, { status: 401 });
   }
 
-  let userData: Record<string, unknown>;
-  try {
-    userData = JSON.parse(cookie.value);
-  } catch {
-    return NextResponse.json({ error: "Sesión inválida" }, { status: 401 });
+  // Límite de mensajes: protege la cuota de Groq y evita spam.
+  const ip = getClientIp(request);
+  if (
+    !rateLimit(`ai/chat:${userData.steamId}`, 20, 60_000) ||
+    !rateLimit(`ai/chat:ip:${ip}`, 40, 60_000)
+  ) {
+    return NextResponse.json(
+      { error: "Demasiadas consultas. Espera un minuto antes de volver a preguntar." },
+      { status: 429 }
+    );
   }
 
   const apiKey = process.env.GROQ_API_KEY;
@@ -90,6 +113,17 @@ export async function POST(request: NextRequest) {
 
   if (!body.message?.trim()) {
     return NextResponse.json({ error: "Mensaje vacío" }, { status: 400 });
+  }
+
+  if (body.message.length > MAX_MESSAGE_CHARS) {
+    return NextResponse.json(
+      { error: `El mensaje no puede superar ${MAX_MESSAGE_CHARS} caracteres` },
+      { status: 400 }
+    );
+  }
+
+  if (Array.isArray(body.history)) {
+    body.history = body.history.slice(-MAX_HISTORY_ITEMS);
   }
 
   const playerName = (userData.faceitNickname as string) || (userData.name as string) || "Jugador";
@@ -137,55 +171,78 @@ export async function POST(request: NextRequest) {
 
   if (body.history && Array.isArray(body.history)) {
     body.history.slice(-10).forEach((h) => {
-      if (h.role === "user" || h.role === "assistant") {
-        messages.push({ role: h.role as "user" | "assistant", content: h.content });
+      if (
+        (h.role === "user" || h.role === "assistant") &&
+        typeof h.content === "string" &&
+        h.content.length <= MAX_MESSAGE_CHARS
+      ) {
+        messages.push({ role: h.role, content: h.content });
       }
     });
   }
 
   messages.push({ role: "user", content: body.message });
 
-  try {
-    const response = await fetch(GROQ_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages,
-        max_tokens: 800,
-        temperature: 0.7,
-        top_p: 0.9,
-      }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Groq error:", response.status, errText);
-      return NextResponse.json(
-        { error: "Error al conectar con la IA. Intenta de nuevo." },
-        { status: 502 }
-      );
+  // Intenta los modelos en orden hasta que uno responda (fallback ante
+  // deprecaciones de Groq). Solo se salta al siguiente en 404/400.
+  let lastError = "";
+  for (const model of MODELS) {
+    let response: Response;
+    try {
+      response = await fetch(GROQ_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          max_tokens: 800,
+          temperature: 0.7,
+          top_p: 0.9,
+        }),
+        signal: AbortSignal.timeout(60_000),
+      });
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : "timeout";
+      console.error(`[AiChat] ${model}: red/timeout`, lastError);
+      continue; // probar siguiente modelo
     }
 
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content;
-
-    if (!reply) {
-      return NextResponse.json(
-        { error: "La IA no devolvió una respuesta válida." },
-        { status: 502 }
-      );
+    if (response.ok) {
+      const data = await response.json();
+      const reply = data.choices?.[0]?.message?.content;
+      if (reply) return NextResponse.json({ reply });
+      lastError = "respuesta vacía";
+      continue;
     }
 
-    return NextResponse.json({ reply });
-  } catch (err) {
-    console.error("Chat API error:", err);
+    const errText = await response.text();
+    console.error(`[AiChat] ${model}: HTTP ${response.status}`, errText.slice(0, 500));
+
+    // 404/400 = modelo no disponible → probar el siguiente.
+    if (response.status === 404 || response.status === 400) {
+      lastError = `modelo ${model} no disponible (${response.status})`;
+      continue;
+    }
+    // 429 = rate limit de Groq → 503 para que el usuario reintente.
+    if (response.status === 429) {
+      return NextResponse.json(
+        { error: "La IA está saturada. Reintentá en unos segundos." },
+        { status: 503 }
+      );
+    }
+    // Cualquier otro error del provider → 502 con detalle para diagnóstico.
     return NextResponse.json(
-      { error: "Error de conexión con la IA." },
-      { status: 500 }
+      { error: "Error al conectar con la IA. Intenta de nuevo.", detail: `HTTP ${response.status}` },
+      { status: 502 }
     );
   }
+
+  console.error("[AiChat] Todos los modelos fallaron:", lastError);
+  return NextResponse.json(
+    { error: "La IA no está disponible en este momento. Intenta de nuevo más tarde." },
+    { status: 503 }
+  );
 }

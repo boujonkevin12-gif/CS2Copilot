@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getInventory } from "@/lib/services/inventory.service";
+import { getSession } from "@/lib/session";
 
 const STEAMID64_REGEX = /^\d{17}$/;
 
 export async function GET(request: NextRequest) {
   try {
-    const cookie = request.cookies.get("cs2pilot_user");
-    if (!cookie) {
+    const user = getSession(request);
+    if (!user) {
       return NextResponse.json({ success: false, error: "No autenticado" }, { status: 401 });
-    }
-
-    let user;
-    try { user = JSON.parse(cookie.value); } catch {
-      return NextResponse.json({ success: false, error: "Sesión inválida" }, { status: 401 });
     }
 
     const steamId = user.steamId;

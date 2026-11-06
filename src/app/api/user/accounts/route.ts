@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { getSession } from "@/lib/session";
 
 function getUser(req: NextRequest) {
-  const cookie = req.cookies.get("cs2pilot_user");
-  if (!cookie) return null;
-  try { return JSON.parse(cookie.value); } catch { return null; }
+  return getSession(req);
 }
 
 const DISPLAY_NAMES: Record<string, string> = {
@@ -40,7 +39,7 @@ export async function PATCH(req: NextRequest) {
     if (provider === "steam") {
       const exists = await db.execute("SELECT provider FROM connected_accounts WHERE steam_id = ? AND provider = 'steam'", [steamId]);
       if (exists.rows.length === 0) {
-        await db.execute("INSERT INTO connected_accounts (steam_id, provider, provider_id, username) VALUES (?, 'steam', ?, ?)", [steamId, user.steamId, user.name]);
+        await db.execute("INSERT INTO connected_accounts (steam_id, provider, provider_id, username) VALUES (?, 'steam', ?, ?)", [steamId, user.steamId as string, (user.name as string) || "Steam User"]);
       }
       return NextResponse.json({ success: true, connected: true });
     }

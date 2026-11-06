@@ -1,46 +1,49 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #09090b;
-  --color-foreground: #fafafa;
-  --color-card: rgba(255, 255, 255, 0.03);
-  --color-card-hover: rgba(255, 255, 255, 0.06);
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-hover: rgba(255, 255, 255, 0.15);
-  --color-muted: #a1a1aa;
-  --color-muted-foreground: #71717a;
-  --color-primary: #8b5cf6;
-  --color-primary-hover: #7c3aed;
-  --color-accent: #6366f1;
-  --color-accent-hover: #4f46e5;
-  --color-success: #22c55e;
-  --color-danger: #ef4444;
-  --color-surface: #18181b;
-  --color-surface-elevated: #27272a;
-  --font-sans: "Inter", var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  /* ─── Paleta CS2Pilot 2.0 ────────────────────────────────────── */
+  --color-background: #111315;
+  --color-background-secondary: #15181B;
+  --color-surface: #191C20;
+  --color-surface-elevated: #24282D;
+  --color-border: #30353B;
+  --color-border-hover: #474d55;
+  --color-foreground: #F0F1F2;
+  --color-foreground-secondary: #9299A2;
+  --color-muted: #5a6169;
+  --color-muted-foreground: #9299A2;
+  --color-primary: #D58B45;
+  --color-primary-hover: #e0a362;
+  --color-primary-foreground: #111315;
+  --color-accent: #D58B45;
+  --color-accent-hover: #e0a362;
+  --color-accent-foreground: #111315;
+  --color-success: #34d399;
+  --color-success-foreground: #111315;
+  --color-danger: #f87171;
+  --color-danger-foreground: #111315;
+  --color-info: #60a5fa;
+  --color-info-foreground: #111315;
+
+  /* ─── Radios ─────────────────────────────────────────────────── */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+
+  /* ─── Sombras ────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+
+  /* ─── Transiciones ───────────────────────────────────────────── */
+  --transition-default: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ─── Tipografía ─────────────────────────────────────────────── */
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-space-grotesk), system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", var(--font-geist-mono), monospace;
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
-}
-
-*::-webkit-scrollbar {
-  width: 6px;
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
 }
 
 html {
@@ -55,10 +58,78 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}
+
 ::selection {
-  background: rgba(59, 130, 246, 0.3);
+  background: var(--color-primary);
   color: #fff;
 }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-foreground);
+}
+
+h1 { font-size: 1.875rem; line-height: 1.2; }
+h2 { font-size: 1.5rem; line-height: 1.25; }
+h3 { font-size: 1.25rem; line-height: 1.3; }
+h4 { font-size: 1.125rem; line-height: 1.4; }
+
+.text-display {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.text-muted {
+  color: var(--color-foreground-secondary);
+}
+
+.surface {
+  background: var(--color-surface);
+}
+
+.surface-elevated {
+  background: var(--color-surface-elevated);
+}
+
+.border-subtle {
+  border: 1px solid var(--color-border);
+}
+
+.border-subtle:hover {
+  border-color: var(--color-border-hover);
+}
+
+.shadow-card {
+  box-shadow: var(--shadow-md);
+}
+
+.transition-default {
+  transition: all var(--transition-default);
+}
+
 
 .dashboard-shell {
   --panel: rgba(16, 17, 31, 0.82);

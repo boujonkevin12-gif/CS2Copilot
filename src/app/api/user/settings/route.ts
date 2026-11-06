@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { getSession } from "@/lib/session";
 
 function getUser(req: NextRequest) {
-  const cookie = req.cookies.get("cs2pilot_user");
-  if (!cookie) return null;
-  try { return JSON.parse(cookie.value); } catch { return null; }
+  return getSession(req);
 }
 
 export async function GET(req: NextRequest) {

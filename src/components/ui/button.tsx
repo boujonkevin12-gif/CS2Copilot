@@ -1,14 +1,14 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-import { ReactNode, forwardRef } from "react";
+import { forwardRef } from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "accent";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "accent";
   size?: "sm" | "md" | "lg";
-  children: ReactNode;
-  icon?: ReactNode;
+  children?: React.ReactNode;
+  icon?: React.ReactNode;
+  className?: string;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -21,17 +21,19 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       className,
       ...props
     },
-    ref
+    ref,
   ) => {
     const variants = {
       primary:
-        "bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20",
+        "bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm shadow-primary/15",
       secondary:
-        "glass text-foreground hover:bg-white/[0.08]",
+        "border border-white/[0.08] bg-surface-elevated text-foreground hover:bg-white/[0.04]",
       ghost:
-        "text-muted hover:text-foreground hover:bg-white/[0.05]",
+        "text-muted hover:text-foreground hover:bg-white/[0.04]",
+      danger:
+        "border border-danger/20 bg-danger/5 text-danger hover:bg-danger/10 hover:text-danger",
       accent:
-        "bg-accent text-white hover:bg-accent-hover shadow-lg shadow-accent/20",
+        "bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm shadow-primary/15",
     };
 
     const sizes = {
@@ -41,25 +43,24 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     return (
-      <motion.button
+      <button
         ref={ref}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
         className={cn(
-          "inline-flex items-center justify-center rounded-xl font-medium transition-all duration-200 cursor-pointer",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+          "inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 cursor-pointer",
+          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
           "disabled:opacity-50 disabled:cursor-not-allowed",
+          "active:scale-[0.98]",
           variants[variant],
           sizes[size],
-          className
+          className,
         )}
         {...(props as any)}
       >
         {icon && <span className="shrink-0">{icon}</span>}
         {children}
-      </motion.button>
+      </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSteamService } from "@/lib/services";
+import { getSession } from "@/lib/session";
 
 type Insight = {
   emoji: string;
@@ -185,13 +186,12 @@ function generateInsights(stats: {
 }
 
 export async function GET(request: NextRequest) {
-  const cookie = request.cookies.get("cs2pilot_user");
-  if (!cookie) {
+  const user = getSession(request);
+  if (!user) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
   try {
-    const user = JSON.parse(cookie.value);
     const steamService = getSteamService();
     const stats = await steamService.getUserStatsForGame(user.steamId);
 

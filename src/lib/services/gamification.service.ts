@@ -204,11 +204,19 @@ export async function syncSteamData(steamId: string, data: {
 }
 
 // ─── XP & COINS ─────────────────────────────────────────────────
+/** Tope de XP por operación: evita montos absurdos por bugs o abuso. */
+const MAX_XP_PER_CALL = 10_000;
+/** Tope de coins por operación. */
+const MAX_COINS_PER_CALL = 100_000;
+
 export async function addXP(steamId: string, amount: number): Promise<{ newLevel: number; leveledUp: boolean }> {
   await ensureDb();
+  if (!Number.isFinite(amount) || amount <= 0) return { newLevel: 0, leveledUp: false };
+  const safeAmount = Math.min(MAX_XP_PER_CALL, Math.trunc(amount));
+
   const profile = await getOrCreateProfile(steamId);
   const oldLevel = profile.level;
-  const newXP = profile.xp + amount;
+  const newXP = profile.xp + safeAmount;
   const newLevel = calculateLevel(newXP);
   const leveledUp = newLevel > oldLevel;
 
@@ -230,9 +238,14 @@ export async function addXP(steamId: string, amount: number): Promise<{ newLevel
 
 export async function addCoins(steamId: string, amount: number): Promise<number> {
   await ensureDb();
+  if (!Number.isFinite(amount) || amount <= 0) {
+    const current = await getOrCreateProfile(steamId);
+    return current.pilot_coins;
+  }
+  const safeAmount = Math.min(MAX_COINS_PER_CALL, Math.trunc(amount));
   await getDb().execute({
     sql: "UPDATE player_profile SET pilot_coins = pilot_coins + ?, updated_at = datetime('now') WHERE steam_id = ?",
-    args: [amount, steamId],
+    args: [safeAmount, steamId],
   });
   const profile = await getOrCreateProfile(steamId);
   return profile.pilot_coins;
@@ -673,16 +686,25 @@ const CHEST_COSTS: Record<string, number> = { daily: 0, weekly: 0, standard: 100
 
 export async function openChest(steamId: string, chestType: string): Promise<{ success: boolean; reward?: any; error?: string }> {
   await ensureDb();
-  const cost = CHEST_COSTS[chestType] ?? 100;
-  const profile = await getOrCreateProfile(steamId);
-
-  if (cost > 0 && profile.pilot_coins < cost) return { success: false, error: "No tienes suficientes Pilot Coins" };
+  // Whitelist: tipos de cofre desconocidos se rechazan (antes cualquier string
+  // pasaba y quedaba registrado en chest_history).
+  const cost = Object.prototype.hasOwnProperty.call(CHEST_COSTS, chestType)
+    ? CHEST_COSTS[chestType]
+    : undefined;
+  if (cost === undefined) return { success: false, error: "Tipo de cofre inválido" };
 
   if (cost > 0) {
-    await getDb().execute({
-      sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ?, updated_at = datetime('now') WHERE steam_id = ?",
-      args: [cost, steamId],
+    // Débito condicional atómico: solo descuenta si alcanza el saldo.
+    const debit = await getDb().execute({
+      sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ?, updated_at = datetime('now') WHERE steam_id = ? AND pilot_coins >= ?",
+      args: [cost, steamId, cost],
     });
+    if (debit.rowsAffected === 0) {
+      const profile = await getOrCreateProfile(steamId);
+      if (profile.pilot_coins < cost) return { success: false, error: "No tienes suficientes Pilot Coins" };
+      // Fila existente pero sin coincidencia: caso anómalo, no abrir cofre.
+      return { success: false, error: "No se pudo debitar el costo del cofre" };
+    }
   }
 
   const loot = rollChest();
@@ -902,11 +924,25 @@ export async function buyShopItem(steamId: string, itemId: string): Promise<{ su
   });
   if (existing.rows.length > 0) return { success: false, error: "Ya tienes este ítem" };
 
-  await getDb().execute({ sql: "INSERT INTO shop_purchases (steam_id, item_id) VALUES (?, ?)", args: [steamId, itemId] });
-  await getDb().execute({
-    sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ?, updated_at = datetime('now') WHERE steam_id = ?",
-    args: [item.price, steamId],
+  // 1) Débito condicional atómico: solo descuenta si el saldo alcanza.
+  const debit = await getDb().execute({
+    sql: "UPDATE player_profile SET pilot_coins = pilot_coins - ?, updated_at = datetime('now') WHERE steam_id = ? AND pilot_coins >= ?",
+    args: [item.price, steamId, item.price],
   });
+  if (debit.rowsAffected === 0) return { success: false, error: "No tienes suficientes Pilot Coins" };
+
+  // 2) Registrar la compra. Si falla (duplicado concurrente), se revierte el débito.
+  try {
+    await getDb().execute({ sql: "INSERT INTO shop_purchases (steam_id, item_id) VALUES (?, ?)", args: [steamId, itemId] });
+  } catch (err) {
+    await getDb().execute({
+      sql: "UPDATE player_profile SET pilot_coins = pilot_coins + ?, updated_at = datetime('now') WHERE steam_id = ?",
+      args: [item.price, steamId],
+    });
+    console.error("[buyShopItem] INSERT shop_purchases falló, débito revertido:", err);
+    return { success: false, error: "No se pudo registrar la compra" };
+  }
+
   await getDb().execute({
     sql: "INSERT INTO notifications (steam_id, type, title, message) VALUES (?, 'shop_purchase', ?, ?)",
     args: [steamId, "¡Compra exitosa!", `Adquiriste: ${item.name}`],
@@ -995,9 +1031,17 @@ export async function getUnreadCount(steamId: string): Promise<number> {
 // ─── ACTION LOG & TRACKING ──────────────────────────────────────
 export async function logAction(steamId: string, action: string, value: number = 1) {
   await ensureDb();
+  // Guard: action debe ser string corto; value acotado para no inflar
+  // progreso de misiones ni recompensas XP/coins.
+  const safeAction = typeof action === "string" && action.length > 0 && action.length <= 50
+    ? action
+    : null;
+  if (!safeAction) return;
+  const safeValue = Number.isFinite(value) ? Math.min(1000, Math.max(1, Math.trunc(value))) : 1;
+
   await getDb().execute({
     sql: "INSERT INTO action_log (steam_id, action, value) VALUES (?, ?, ?)",
-    args: [steamId, action, value],
+    args: [steamId, safeAction, safeValue],
   });
 
   const dailyMap: Record<string, string[]> = {
@@ -1019,11 +1063,11 @@ export async function logAction(steamId: string, action: string, value: number =
     match_played: ["w_play20"],
   };
 
-  for (const id of dailyMap[action] || []) {
-    await updateChallengeProgress(steamId, id, value);
+  for (const id of dailyMap[safeAction] || []) {
+    await updateChallengeProgress(steamId, id, safeValue);
   }
-  for (const id of weeklyMap[action] || []) {
-    await updateWeeklyProgress(steamId, id, value);
+  for (const id of weeklyMap[safeAction] || []) {
+    await updateWeeklyProgress(steamId, id, safeValue);
   }
 
   // XP per action
@@ -1047,10 +1091,10 @@ export async function logAction(steamId: string, action: string, value: number =
     ace: 15,
     clutch: 8,
   };
-  const xp = xpRewards[action] || 0;
-  const coins = coinRewards[action] || 0;
-  if (xp > 0) await addXP(steamId, xp * value);
-  if (coins > 0) await addCoins(steamId, coins * value);
+  const xp = xpRewards[safeAction] || 0;
+  const coins = coinRewards[safeAction] || 0;
+  if (xp > 0) await addXP(steamId, xp * safeValue);
+  if (coins > 0) await addCoins(steamId, coins * safeValue);
 }
 
 // ─── LEADERBOARD ────────────────────────────────────────────────

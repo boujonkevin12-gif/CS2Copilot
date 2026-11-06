@@ -59,7 +59,25 @@ function emptyStats(): ParsedPlayerStats {
   };
 }
 
-export async function parseDemoFile(buffer: Buffer): Promise<ParsedDemo | null> {
+/**
+ * Compara el SteamID del jugador en la demo con el SteamID64 del usuario.
+ * Tolera SteamID32 (account id) por si la demo lo expresa en ese formato.
+ */
+function matchesViewer(demoSteamId: string, viewerSteamId64: string): boolean {
+  if (!demoSteamId || !viewerSteamId64) return false;
+  if (demoSteamId === viewerSteamId64) return true;
+  const accountId = Number(viewerSteamId64) - 76561197960265728;
+  return Number.isFinite(accountId) && String(accountId) === demoSteamId;
+}
+
+/**
+ * Parsea una demo de CS2.
+ *
+ * @param viewerSteamId SteamID64 del usuario en sesión. Si está presente y
+ *   juega en la demo, `playerStats` apunta a ESE jugador (asociación correcta).
+ *   Antes se elegía siempre al top-frag, atribuyendo stats ajenas al usuario.
+ */
+export async function parseDemoFile(buffer: Buffer, viewerSteamId?: string): Promise<ParsedDemo | null> {
   try {
     const cs2parser = await import("cs2parser");
     const DemoReader = cs2parser.DemoReader;
@@ -117,7 +135,8 @@ export async function parseDemoFile(buffer: Buffer): Promise<ParsedDemo | null> 
     const serverName = parser.header?.server_name || "desconocido";
 
     const allPlayers: ParsedPlayerStats[] = [];
-    let firstPlayer: ParsedPlayerStats | null = null;
+    let topFragger: ParsedPlayerStats | null = null;
+    let viewerPlayer: ParsedPlayerStats | null = null;
 
     const teams: TeamInfo[] = [];
     for (const team of parser.teams) {
@@ -200,10 +219,16 @@ export async function parseDemoFile(buffer: Buffer): Promise<ParsedDemo | null> 
 
       allPlayers.push(stats);
 
-      if (!firstPlayer || kills > firstPlayer.kills) {
-        firstPlayer = stats;
+      if (!topFragger || kills > topFragger.kills) {
+        topFragger = stats;
+      }
+      if (viewerSteamId && matchesViewer(stats.steamId, viewerSteamId)) {
+        viewerPlayer = stats;
       }
     }
+
+    // Prioridad: el usuario en sesión > top-frag (fallback para demos ajenas).
+    let firstPlayer = viewerPlayer || topFragger;
 
     if (!firstPlayer && allPlayers.length > 0) {
       firstPlayer = allPlayers[0];

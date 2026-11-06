@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseDemoFile } from "@/lib/services/demo-parser";
+import { getSession } from "@/lib/session";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
+    // Sesión obligatoria: el parser es costoso y no debe ser un servicio abierto.
+    const user = getSession(request);
+    if (!user) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
+
+    const ip = getClientIp(request);
+    if (!rateLimit(`demo/upload:${user.steamId}`, 10, 60_000) || !rateLimit(`demo/upload:ip:${ip}`, 20, 60_000)) {
+      return NextResponse.json({ error: "Demasiadas subidas. Espera un minuto." }, { status: 429 });
+    }
+
     const formData = await request.formData();
     const file = formData.get("demo") as File | null;
 
@@ -23,7 +36,7 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const parsed = await parseDemoFile(buffer);
+    const parsed = await parseDemoFile(buffer, user.steamId);
 
     if (!parsed) {
       return NextResponse.json({
