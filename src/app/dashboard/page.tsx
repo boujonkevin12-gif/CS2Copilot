@@ -241,26 +241,38 @@ function CoachIaSection({ faceitStats }: { faceitStats: any }) {
 }
 
 function XpProgress({ profile }: { profile: any }) {
-  const currentLevelXP = (profile.level - 1) * (profile.level - 1) * 100;
-  const nextLevelXP = profile.level * profile.level * 100;
-  const progressXP = profile.xp - currentLevelXP;
-  const neededXP = nextLevelXP - currentLevelXP;
-  const pct = Math.min(100, (progressXP / neededXP) * 100);
+  // Valores por defecto seguros: un usuario nuevo puede no tener registro de XP
+  const level =
+    typeof profile?.level === "number" &&
+    Number.isFinite(profile.level) &&
+    profile.level > 0
+      ? profile.level
+      : 1;
+  const xp =
+    typeof profile?.xp === "number" && Number.isFinite(profile.xp)
+      ? profile.xp
+      : 0;
+
+  const currentLevelXP = (level - 1) * (level - 1) * 100;
+  const nextLevelXP = level * level * 100;
+  const progressXP = Math.max(0, xp - currentLevelXP);
+  const neededXP = Math.max(1, nextLevelXP - currentLevelXP);
+  const pct = Math.min(100, Math.max(0, (progressXP / neededXP) * 100));
 
   return (
     <Card>
       <SectionHeader title="Progreso de XP" description="Experiencia y nivel actual" />
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-semibold text-muted">Nivel {profile.level}</span>
-          <span className="text-xs font-bold text-foreground">{profile.xp.toLocaleString()} XP</span>
+          <span className="text-xs font-semibold text-muted">Nivel {level}</span>
+          <span className="text-xs font-bold text-foreground">{xp.toLocaleString()} XP</span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
           <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
         <div className="flex items-center justify-between mt-1 text-[10px] text-muted">
           <span>{progressXP.toLocaleString()} / {neededXP.toLocaleString()} XP</span>
-          <span>Siguiente nivel: {profile.level + 1}</span>
+          <span>Siguiente nivel: {level + 1}</span>
         </div>
       </div>
     </Card>
